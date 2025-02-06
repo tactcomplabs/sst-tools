@@ -1,0 +1,77 @@
+debug probe demo configuration:
+	 probeC0  =  1
+	 probeC1  =  1
+	 probeStartCycle  =  0
+	 probeEndCycle  =  0
+	 probeBufferSize  =  4
+	 probePostDelay  =  2
+	 probePort  =  10000
+	 verbose  =  1
+	 cliControlC0  =  0
+	 cliControlC1  =  0
+# Creating simulation checkpoint at simulated time period of 1us.
+DbgCLI[cp0:DbgCLI:0]: numPorts=1
+DbgCLI[cp0:DbgCLI:0]: minData=1
+DbgCLI[cp0:DbgCLI:0]: maxData=100
+DbgCLI[cp0:DbgCLI:0]: clockDelay=100
+DbgCLI[cp0:DbgCLI:0]: clocks=10000
+DbgCLI[cp0:DbgCLI:0]: traceMode=2
+DbgCLI[cp0:DbgCLI:0]: tracing RECV events
+DbgCLI[cp0:ProbeControl:0]: probeMode=1
+DbgCLI[cp0:ProbeControl:0]: probeStartCycle=0
+DbgCLI[cp0:ProbeControl:0]: probeEndCycle=0
+DbgCLI[cp0:ProbeControl:0]: probeBufferSize=4
+DbgCLI[cp0:ProbeControl:0]: probePort=10000
+DbgCLI[cp0:ProbeControl:0]: probePostDelay=2
+DbgCLI[cp0:ProbeControl:0]: cliControl=0
+DbgCLI[cp1:DbgCLI:0]: numPorts=1
+DbgCLI[cp1:DbgCLI:0]: minData=1
+DbgCLI[cp1:DbgCLI:0]: maxData=100
+DbgCLI[cp1:DbgCLI:0]: clockDelay=100
+DbgCLI[cp1:DbgCLI:0]: clocks=10000
+DbgCLI[cp1:DbgCLI:0]: traceMode=1
+DbgCLI[cp1:DbgCLI:0]: tracing SEND events
+DbgCLI[cp1:ProbeControl:0]: probeMode=1
+DbgCLI[cp1:ProbeControl:0]: probeStartCycle=0
+DbgCLI[cp1:ProbeControl:0]: probeEndCycle=0
+DbgCLI[cp1:ProbeControl:0]: probeBufferSize=4
+DbgCLI[cp1:ProbeControl:0]: probePort=10001
+DbgCLI[cp1:ProbeControl:0]: probePostDelay=2
+DbgCLI[cp1:ProbeControl:0]: cliControl=0
+# Simulation Checkpoint: Simulated Time 1 us (Real CPU time since last checkpoint 0.00272 seconds)
+DbgCLI[cp1:updateSyncState:1000000]: probe active at cycle 1000000
+DbgCLI[cp1:updateProbeState:1000000]: probe in pre-trigger sampling phase
+DbgCLI[cp0:updateSyncState:1000000]: probe active at cycle 1000000
+DbgCLI[cp0:updateProbeState:1000000]: probe in pre-trigger sampling phase
+# Simulation Checkpoint: Simulated Time 2 us (Real CPU time since last checkpoint 0.00098 seconds)
+# Simulation Checkpoint: Simulated Time 3 us (Real CPU time since last checkpoint 0.00091 seconds)
+# Simulation Checkpoint: Simulated Time 4 us (Real CPU time since last checkpoint 0.00091 seconds)
+# Simulation Checkpoint: Simulated Time 5 us (Real CPU time since last checkpoint 0.00097 seconds)
+DbgCLI[cp1:trigger:5900000]: Detected Trigger
+DbgCLI[cp1:trigger:5900000]: Sampling for 2 additional samples
+# Simulation Checkpoint: Simulated Time 6 us (Real CPU time since last checkpoint 0.00090 seconds)
+DbgCLI[cp1:updateProbeState:6100000]: Sampling stopped at cycle 6100
+DbgCLI[cp0:trigger:6900000]: Detected Trigger
+DbgCLI[cp0:trigger:6900000]: Sampling for 2 additional samples
+# Simulation Checkpoint: Simulated Time 7 us (Real CPU time since last checkpoint 0.00097 seconds)
+DbgCLI[cp1:handleSyncPointActions:7000000]: syncAction: flush to stdout
+#I 4 records
+#  cycle=5800000 sz=99 deliveryTime=6800000 priority=50 orderTag=1 queueOrder=5922
+#T cycle=5900000 sz=100 deliveryTime=6900000 priority=50 orderTag=1 queueOrder=6024
+#  cycle=6000000 sz=13 deliveryTime=7000000 priority=50 orderTag=1 queueOrder=6127
+#  cycle=6100000 sz=58 deliveryTime=7100000 priority=50 orderTag=1 queueOrder=6229
+DbgCLI[cp1:handleSyncPointActions:7000000]: syncAction: exit probe
+DbgCLI[cp0:updateProbeState:7101000]: Sampling stopped at cycle 7101
+# Simulation Checkpoint: Simulated Time 8 us (Real CPU time since last checkpoint 0.00093 seconds)
+DbgCLI[cp0:handleSyncPointActions:8000000]: syncAction: flush to stdout
+#I 4 records
+#  cycle=6800000 sz=99 deliveryTime=6800000 priority=50 orderTag=1 queueOrder=5922
+#T cycle=6900000 sz=100 deliveryTime=6900000 priority=50 orderTag=1 queueOrder=6024
+#  cycle=7000000 sz=13 deliveryTime=7000000 priority=50 orderTag=1 queueOrder=6127
+#  cycle=7100000 sz=58 deliveryTime=7100000 priority=50 orderTag=1 queueOrder=6229
+DbgCLI[cp0:handleSyncPointActions:8000000]: syncAction: exit probe
+# Simulation Checkpoint: Simulated Time 9 us (Real CPU time since last checkpoint 0.00095 seconds)
+# Simulation Checkpoint: Simulated Time 10 us (Real CPU time since last checkpoint 0.00093 seconds)
+DbgCLI[cp0:clockTick:10000000]: cp0 ready to end simulation
+DbgCLI[cp1:clockTick:10000000]: cp1 ready to end simulation
+Simulation is complete, simulated time: 10 us

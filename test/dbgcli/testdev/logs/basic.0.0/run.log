@@ -1,0 +1,75 @@
+debug probe demo configuration:
+	 probeC0  =  1
+	 probeC1  =  1
+	 probeStartCycle  =  0
+	 probeEndCycle  =  0
+	 probeBufferSize  =  4
+	 probePostDelay  =  0
+	 probePort  =  10000
+	 verbose  =  1
+	 cliControlC0  =  0
+	 cliControlC1  =  0
+# Creating simulation checkpoint at simulated time period of 1us.
+DbgCLI[cp0:DbgCLI:0]: numPorts=1
+DbgCLI[cp0:DbgCLI:0]: minData=1
+DbgCLI[cp0:DbgCLI:0]: maxData=100
+DbgCLI[cp0:DbgCLI:0]: clockDelay=100
+DbgCLI[cp0:DbgCLI:0]: clocks=10000
+DbgCLI[cp0:DbgCLI:0]: traceMode=2
+DbgCLI[cp0:DbgCLI:0]: tracing RECV events
+DbgCLI[cp0:ProbeControl:0]: probeMode=1
+DbgCLI[cp0:ProbeControl:0]: probeStartCycle=0
+DbgCLI[cp0:ProbeControl:0]: probeEndCycle=0
+DbgCLI[cp0:ProbeControl:0]: probeBufferSize=4
+DbgCLI[cp0:ProbeControl:0]: probePort=10000
+DbgCLI[cp0:ProbeControl:0]: probePostDelay=0
+DbgCLI[cp0:ProbeControl:0]: cliControl=0
+DbgCLI[cp1:DbgCLI:0]: numPorts=1
+DbgCLI[cp1:DbgCLI:0]: minData=1
+DbgCLI[cp1:DbgCLI:0]: maxData=100
+DbgCLI[cp1:DbgCLI:0]: clockDelay=100
+DbgCLI[cp1:DbgCLI:0]: clocks=10000
+DbgCLI[cp1:DbgCLI:0]: traceMode=1
+DbgCLI[cp1:DbgCLI:0]: tracing SEND events
+DbgCLI[cp1:ProbeControl:0]: probeMode=1
+DbgCLI[cp1:ProbeControl:0]: probeStartCycle=0
+DbgCLI[cp1:ProbeControl:0]: probeEndCycle=0
+DbgCLI[cp1:ProbeControl:0]: probeBufferSize=4
+DbgCLI[cp1:ProbeControl:0]: probePort=10001
+DbgCLI[cp1:ProbeControl:0]: probePostDelay=0
+DbgCLI[cp1:ProbeControl:0]: cliControl=0
+# Simulation Checkpoint: Simulated Time 1 us (Real CPU time since last checkpoint 0.00316 seconds)
+DbgCLI[cp1:updateSyncState:1000000]: probe active at cycle 1000000
+DbgCLI[cp1:updateProbeState:1000000]: probe in pre-trigger sampling phase
+DbgCLI[cp0:updateSyncState:1000000]: probe active at cycle 1000000
+DbgCLI[cp0:updateProbeState:1000000]: probe in pre-trigger sampling phase
+# Simulation Checkpoint: Simulated Time 2 us (Real CPU time since last checkpoint 0.00121 seconds)
+# Simulation Checkpoint: Simulated Time 3 us (Real CPU time since last checkpoint 0.00106 seconds)
+# Simulation Checkpoint: Simulated Time 4 us (Real CPU time since last checkpoint 0.00107 seconds)
+# Simulation Checkpoint: Simulated Time 5 us (Real CPU time since last checkpoint 0.00101 seconds)
+DbgCLI[cp1:trigger:5900000]: Detected Trigger
+DbgCLI[cp1:updateProbeState:5900000]: Sampling stopped at cycle 5900
+# Simulation Checkpoint: Simulated Time 6 us (Real CPU time since last checkpoint 0.00104 seconds)
+DbgCLI[cp1:handleSyncPointActions:6000000]: syncAction: flush to stdout
+#I 4 records
+#  cycle=5600000 sz=32 deliveryTime=6600000 priority=50 orderTag=1 queueOrder=5718
+#  cycle=5700000 sz=76 deliveryTime=6700000 priority=50 orderTag=1 queueOrder=5820
+#  cycle=5800000 sz=99 deliveryTime=6800000 priority=50 orderTag=1 queueOrder=5922
+#T cycle=5900000 sz=100 deliveryTime=6900000 priority=50 orderTag=1 queueOrder=6024
+DbgCLI[cp1:handleSyncPointActions:6000000]: syncAction: exit probe
+DbgCLI[cp0:trigger:6900000]: Detected Trigger
+DbgCLI[cp0:updateProbeState:6901000]: Sampling stopped at cycle 6901
+# Simulation Checkpoint: Simulated Time 7 us (Real CPU time since last checkpoint 0.00108 seconds)
+DbgCLI[cp0:handleSyncPointActions:7000000]: syncAction: flush to stdout
+#I 4 records
+#  cycle=6600000 sz=32 deliveryTime=6600000 priority=50 orderTag=1 queueOrder=5718
+#  cycle=6700000 sz=76 deliveryTime=6700000 priority=50 orderTag=1 queueOrder=5820
+#  cycle=6800000 sz=99 deliveryTime=6800000 priority=50 orderTag=1 queueOrder=5922
+#T cycle=6900000 sz=100 deliveryTime=6900000 priority=50 orderTag=1 queueOrder=6024
+DbgCLI[cp0:handleSyncPointActions:7000000]: syncAction: exit probe
+# Simulation Checkpoint: Simulated Time 8 us (Real CPU time since last checkpoint 0.00105 seconds)
+# Simulation Checkpoint: Simulated Time 9 us (Real CPU time since last checkpoint 0.00103 seconds)
+# Simulation Checkpoint: Simulated Time 10 us (Real CPU time since last checkpoint 0.00099 seconds)
+DbgCLI[cp0:clockTick:10000000]: cp0 ready to end simulation
+DbgCLI[cp1:clockTick:10000000]: cp1 ready to end simulation
+Simulation is complete, simulated time: 10 us
