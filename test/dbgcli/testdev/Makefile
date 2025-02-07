@@ -102,7 +102,7 @@ RUNSCRIPT ?= $(PWD)/client-run5.bash
 # 	@echo "### " $@":" `cat $(@D)/run.status`
 
 check: run
-	diff -r out logs | grep -v 'Real CPU time' | grep -v Binary | egrep -v '^\-\-\-$$' | egrep -v '^\d+c\d+$$' | egrep -v '^\d+,\d+c\d+,\d+$$' | egrep -v 'Only in out/.+: checkpoint' | egrep -v '(\.json|\.status)'
+	diff -r out logs | grep -v 'Real CPU time' | grep -v Binary | egrep -v '^\-\-\-$$' | egrep -v '^\d+c\d+$$' | egrep -v '^\d+,\d+c\d+,\d+$$' | egrep -v 'Only in out/.+: checkpoint' | egrep -v '(\.json|\.status)' | grep -v 'diff -r out' | wc -l | xargs echo "diffs $$1"
 
 clean:
 	rm -rf $(OUTDIR)
