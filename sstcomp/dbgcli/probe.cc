@@ -15,7 +15,7 @@
 namespace SSTDEBUG::Probe {
 
 ProbeControl::ProbeControl( SST::Component * comp, SST::Output * out,
-    int mode, int startCycle, int endCycle, int bufferSize, 
+    int mode, SST::SimTime_t startCycle, SST::SimTime_t  endCycle, int bufferSize, 
     int port, int postDelay, uint64_t cliControl) : 
     comp_(comp),
     out_(out), 
@@ -35,8 +35,8 @@ ProbeControl::ProbeControl( SST::Component * comp, SST::Output * out,
     if (endCycle_ <= startCycle_) endCycle_ = 0;
 
     out_->verbose(CALL_INFO,1,0,"probeMode=%d\n", mode_);
-    out_->verbose(CALL_INFO,1,0,"probeStartCycle=%d\n", startCycle_);
-    out_->verbose(CALL_INFO,1,0,"probeEndCycle=%d\n", endCycle_);
+    out_->verbose(CALL_INFO,1,0,"probeStartCycle=%" PRId64 "\n", startCycle_);
+    out_->verbose(CALL_INFO,1,0,"probeEndCycle=%" PRId64 "\n", endCycle_);
     out_->verbose(CALL_INFO,1,0,"probeBufferSize=%d\n", bufferSize_);
     out_->verbose(CALL_INFO,1,0,"probePort=%d\n", port_);
     out_->verbose(CALL_INFO,1,0,"probePostDelay=%d\n", postDelayCounter_);
@@ -62,20 +62,20 @@ ProbeControl::ProbeControl( SST::Component * comp, SST::Output * out,
 ProbeControl::~ProbeControl() {}
 
 void
-ProbeControl::updateSyncState(int cycle)
+ProbeControl::updateSyncState(SST::SimTime_t cycle)
 {
     syncCycle = cycle;
     switch (syncState_) {
     case SyncState::WAIT:
         if (cycle >= startCycle_) {
-            out_->verbose(CALL_INFO, 1, 0, "probe active at cycle %d\n", cycle);
+            out_->verbose(CALL_INFO, 1, 0, "probe active at cycle %" PRId64 "\n", cycle);
             syncState_ = SyncState::ACTIVE;
         }
         break;
     case SyncState::ACTIVE:
         handleSyncPointActions();
         if ( endCycle_ && (cycle >= endCycle_) ) {
-            out_->verbose(CALL_INFO, 1, 0, "probe disabled at cycle %d\n", cycle);
+            out_->verbose(CALL_INFO, 1, 0, "probe disabled at cycle %" PRId64 "\n", cycle);
             syncState_ = SyncState::INVALID;
         }
         break;
@@ -102,7 +102,7 @@ ProbeControl::updateSyncState(int cycle)
 }
 
 void
-ProbeControl::updateProbeState(int cycle)
+ProbeControl::updateProbeState(SST::SimTime_t  cycle)
 {
     // TODO the sample and trigger functions may be able to manage the probe state
     switch (probeState_) {
@@ -116,7 +116,7 @@ ProbeControl::updateProbeState(int cycle)
     case ProbeState::POST_SAMPLING:
         if ( useDelayCounter_ && (postDelayCounter_ < 0) ) {
             // trigger detected. Indicate flush and wait until sync action clears
-            out_->verbose(CALL_INFO,1,0, "Sampling stopped at cycle %d\n", cycle);
+            out_->verbose(CALL_INFO,1,0, "Sampling stopped at cycle %" PRId64 "\n", cycle);
             syncActions_.f.flush2stdout = true;
             probeState_ = ProbeState::WAIT;
         }
@@ -252,7 +252,7 @@ ProbeControl::updateCLI()
     }
 }
 
-ProbeBufCtl::ProbeBufCtl(int sz) : sz_(sz) {
+ProbeBufCtl::ProbeBufCtl(size_t sz) : sz_(sz) {
     tags.resize(sz);
 };
 
@@ -322,9 +322,9 @@ void ProbeBufCtl::render_buffer(std::ostream& os) {
         if (samples_lost>0)
             os << "# records discarded " << samples_lost << std::endl;
     }
-    for (int i=0;i<num_recs;i++) {
+    for (size_t i=0;i<num_recs;i++) {
         os << "#";
-        int idx = (first + i) % sz_;
+        size_t idx = (first + i) % sz_;
         char pfx = ( (state==TRIGGERED) && (tags.at(idx)==TRIGREC)) ? 'T' : ' ';
         render( os, idx, pfx );
         os << std::endl;
@@ -394,7 +394,7 @@ ProbeSocket::RESULT ProbeSocket::cli_handler() {
     bool continueSim = false;
     do {
         memset(buffer_,0,SOCKET_BUFFER_SIZE);
-        int rc = recv(clientSock_, buffer_,sizeof(buffer_), 0);
+        int rc = (int) recv(clientSock_, buffer_,sizeof(buffer_), 0);
         if ( rc < 0) return RESULT::RECV_ERROR;
         // std::cout << "<server received>" << buffer_ << std::endl;
         std::stringstream response;
@@ -408,7 +408,7 @@ ProbeSocket::RESULT ProbeSocket::cli_handler() {
         case CMD::CLICONTROL:
             if (args.size() > 1) {
                 try {
-                    uint64_t n = std::stol(args[1]);
+                    uint64_t n = std::stoul(args[1]);
                     probeControl_->cliControl(n);
                 } catch (std::exception& e) {
                     std::cout << "Could not set cliControl. " << e.what() << std::endl;
@@ -451,9 +451,9 @@ ProbeSocket::RESULT ProbeSocket::cli_handler() {
         case CMD::RUN:
             if (args.size() > 1) {
                 try {
-                    uint64_t n = std::stol(args[1]);
+                    uint64_t n = std::stoul(args[1]);
                     continueSim = true;
-                    runEventCounter_ = n;
+                    runEventCounter_ = (int) n;
                     response << "continuing sim for " << n << " events";;
                 } catch (std::exception& e) {
                     std::cout << "could not set number of events. " << e.what() << std::endl;
@@ -499,7 +499,7 @@ ProbeSocket::RESULT ProbeSocket::cli_handler() {
         // std::cout << "<server sending>" << response << std::endl;
         memset(buffer_,0,SOCKET_BUFFER_SIZE);
         memcpy(buffer_, response.str().c_str(), strlen(response.str().c_str()));
-        rc = send(clientSock_, buffer_, strlen(buffer_), 0);
+        rc = (int) send(clientSock_, buffer_, strlen(buffer_), 0);
     } while (!continueSim);
 
     return ProbeSocket::RESULT::SUCCESS;
@@ -515,11 +515,11 @@ ProbeSocket::splitStr(std::string s, const char* delim, std::vector<std::string>
 }
 
 void
-ProbeSocket::joinStr(int startpos, std::vector<std::string> v, const char* delim, std::string& s)
+ProbeSocket::joinStr(size_t startpos, std::vector<std::string> v, const char* delim, std::string& s)
 {
     s.clear();
-    int n = v.size();
-    for ( int i = startpos; i < n; i++ ) {
+    size_t n = v.size();
+    for ( size_t i = startpos; i < n; i++ ) {
         s.append(v[i]);
         if (i < n-1) s.append(delim);
     }

@@ -26,9 +26,7 @@
 #include <vector>
 
 // -- SST Headers
-#include <sst/core/sst_config.h>
-#include <sst/core/component.h>
-#include <sst/core/output.h>
+#include "SST.h"
 
 namespace SSTDEBUG::Probe {
 
@@ -100,7 +98,7 @@ public:
     // TODO component should inherit from ProbeControl
     ProbeControl(   SST::Component * comp,
                     SST::Output * out,
-                    int probeMode, int probeStartCycle, int probeEndCycle,
+                    int probeMode, SST::SimTime_t probeStartCycle, SST::SimTime_t  probeEndCycle,
                     int probeBufferSize, int probePort,  int probePostDelay,
                     uint64_t cliControl);
     virtual ~ProbeControl();
@@ -110,9 +108,9 @@ public:
     /// child class provides controls to buffer
     void setBufferControls(std::shared_ptr<ProbeBufCtl>);
     /// Call back for sync points for high level controller updates
-    void updateSyncState(int cycle);
+    void updateSyncState(SST::SimTime_t cycle);
     /// Called at end of component's clock cycle and end of updateSyncState
-    void updateProbeState(int cycle);
+    void updateProbeState(SST::SimTime_t  cycle);
     /// handle any requested sync point actions
     void handleSyncPointActions();
     /// Detect trigger to transition between pre and post sampling phase
@@ -142,7 +140,7 @@ public:
     SST::Output * out_;                         ///< Component output stream
     SyncState syncState_ = SyncState::INVALID;  ///< State managed at sync points
     SyncState lastSyncState_ = SyncState::INVALID; /// < Saved sync state
-    int      syncCycle = 0;                     ///< Cycle passed to updateSyncState
+    SST::SimTime_t      syncCycle = 0;                     ///< Cycle passed to updateSyncState
     ProbeState probeState_ = ProbeState::IDLE;  ///< State managed by component level probe
     ProbeState lastProbeState_ = ProbeState::IDLE;  /// <saved probe state
     std::unique_ptr<ProbeSocket>  probeSocket_; ///< CLI Probe Socket Server
@@ -152,8 +150,8 @@ public:
 
     // -- Component probe parameters
     int      mode_;                             ///< 0-disable, 1-checkpoint-mode, >1-reserved
-    int      startCycle_;                       ///< When checkpoint >= probeStartCycle sampling begins
-    int      endCycle_;                         ///< Cycle to disable sampling. When 0, no limit
+    SST::SimTime_t      startCycle_;            ///< When checkpoint >= probeStartCycle sampling begins
+    SST::SimTime_t       endCycle_;                         ///< Cycle to disable sampling. When 0, no limit
     int      bufferSize_;                       ///< initial number of entries for circular buffers. 
     int      port_;                             ///< socket assignment for debug probe port  ( 0 = None )
     int      postDelayCounter_;                 ///< Post trigger delay (-1 to post-trigger sample until checkpoint)
@@ -165,7 +163,7 @@ public:
 // splits generic control from templatized data capture for Probe Buffer
 class ProbeBufCtl {
 public:
-    enum TRIGGER_STATE : int { 
+    enum TRIGGER_STATE : unsigned { 
         CLEAR     = 0,  // not triggered
         TRIGREC   = 1,  // current sample associated with trigger
         TRIGGERED = 2,  // trigger has occurred
@@ -174,22 +172,22 @@ public:
     const std::map<TRIGGER_STATE, char> trig2char {
         {CLEAR, '-'}, {TRIGREC,'!'}, {TRIGGERED, '+'}, {OVERRUN, 'o'}
     };
-    ProbeBufCtl(int sz);
+    ProbeBufCtl(size_t sz);
     void reset_buffer();      // effectively clear buffer (e.g. after flush)
     void reset_trigger();     // Clear trigger states
     void markAsTriggerRec();  // Set TRIGREC state to enable special capture
     void render_buffer(std::ostream& os);  // iterate over buffer for output
-    virtual void render(std::ostream& os, int idx, char pfx) = 0; // print a rec to ostream
+    virtual void render(std::ostream& os, size_t idx, char pfx) = 0; // print a rec to ostream
     virtual void render_trigger_rec(std::ostream&, char pfx) = 0; // print the saved trigger rec
     // cli support
     char getTrigStateChar() { return trig2char.at(state); };
-    int getNumRecs() { return num_recs; }
+    size_t getNumRecs() { return num_recs; }
 protected:
     void capture();                  // Called by child after capture record
-    int sz_;                         // defined size
-    int num_recs = 0;                // number of valid entries (max is sz)
-    int cur  = 0;                    // index to buffer entry to be written
-    int first = 0;                   // index of oldest data written
+    size_t sz_;                      // defined size
+    size_t num_recs = 0;             // number of valid entries (max is sz)
+    size_t cur  = 0;                 // index to buffer entry to be written
+    size_t first = 0;                // index of oldest data written
     int samples_lost = 0;            // number of samples sampled but overwritten in circular buffer
     TRIGGER_STATE state;             // current state of triggering sequence  
     std::vector<TRIGGER_STATE> tags; // state associated with each entry.
@@ -198,7 +196,7 @@ protected:
 // Simple template wrapper for buffer data
 template<typename T> class ProbeBuffer : public ProbeBufCtl {
 public:
-    ProbeBuffer( int sz ) : ProbeBufCtl(sz) { buf.resize(sz); };
+    ProbeBuffer( size_t sz ) : ProbeBufCtl(sz) { buf.resize(sz); };
     virtual ~ProbeBuffer() {};
     void capture(T& rec) {
         ProbeBufCtl::capture(); // update pointers and trigger capture detection
@@ -207,7 +205,7 @@ public:
         if (tags[cur]==TRIGREC)
             trigger_rec = rec;
     }
-    void render(std::ostream& os, int idx, char pfx) override {
+    void render(std::ostream& os, size_t idx, char pfx) override {
         assert(idx<sz_);
         os << pfx << ' ' << buf.at(idx);
     }
@@ -353,7 +351,7 @@ private:
     //TODO does SST have utility class for these things? 
     // courtesy of RevOpts.h
     void splitStr( std::string s, const char* delim, std::vector<std::string>& v );
-    void joinStr( int startpos, std::vector<std::string> v, const char* delim, std::string& s);
+    void joinStr( size_t startpos, std::vector<std::string> v, const char* delim, std::string& s);
     bool match(std::string in, CMD cmd);
 
 }; //class ProbeSocket

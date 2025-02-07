@@ -22,7 +22,7 @@ DbgCLI::DbgCLI(SST::ComponentId_t id, const SST::Params& params ) :
   curCycle(0) {
   
   kgdbg::spinner("SPINNER");
-  const int Verbosity = params.find< int >( "verbose", 0 );
+  const uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
   output.init(
     "DbgCLI[" + getName() + ":@p:@t]: ",
     Verbosity, 0, SST::Output::STDOUT );
@@ -137,8 +137,8 @@ void DbgCLI::handleEvent(SST::Event *ev){
 
   /// debug probe 
   if ((traceMode & 2) == 2) {
-      unsigned range = maxData - minData + 1;
-      unsigned r = cev->getData().size();
+      uint64_t range = maxData - minData + 1;
+      size_t r = cev->getData().size();
       if (probe_->triggering()) {
         probe_->trigger(r > (range-1));
       }
@@ -153,15 +153,15 @@ void DbgCLI::sendData(){
   for( unsigned i=0; i<numPorts; i++ ){
     // generate a new payload
     std::vector<unsigned> data;
-    unsigned range = maxData - minData + 1;
-    unsigned r = rand() % range + minData;
+    uint64_t range = maxData - minData + 1;
+    uint64_t r = uint64_t(rand()) % range + minData;
 
     /// debug probe trigger (advance to post-trigger state)
     bool trace = (traceMode & 1) == 1;
     if (trace && probe_->triggering()) probe_->trigger(r > (range-1));
     ///
 
-    for( unsigned i=0; i<r; i++ ){
+    for( size_t i=0; i<(unsigned)r; i++ ){
       data.push_back((unsigned)(mersenne->generateNextUInt32()));
     }
     output.verbose(CALL_INFO, 5, 0,
@@ -207,7 +207,7 @@ bool DbgCLI::clockTick( SST::Cycle_t currentCycle ){
 }
 
 DbgCLI_Probe::DbgCLI_Probe(SST::Component * comp, SST::Output * out, 
-  int mode, int startCycle, int endCycle, int bufferSize, 
+  int mode, SST::SimTime_t startCycle, SST::SimTime_t endCycle, int bufferSize, 
   int port, int postDelay, uint64_t cliControl)
  : ProbeControl(comp, out, mode, startCycle, endCycle, bufferSize, port, postDelay, cliControl)
 {

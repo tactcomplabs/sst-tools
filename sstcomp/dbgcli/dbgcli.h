@@ -21,19 +21,7 @@
 #include <time.h>
 
 // -- SST Headers
-#include <sst/core/sst_config.h>
-#include <sst/core/component.h>
-#include <sst/core/event.h>
-#include <sst/core/interfaces/simpleNetwork.h>
-#include <sst/core/link.h>
-#include <sst/core/output.h>
-#include <sst/core/statapi/stataccumulator.h>
-#include <sst/core/subcomponent.h>
-#include <sst/core/timeConverter.h>
-#include <sst/core/model/element_python.h>
-#include <sst/core/rng/distrib.h>
-#include <sst/core/rng/rng.h>
-#include <sst/core/rng/mersenne.h>
+#include "SST.h"
 
 // -- Debug Probe
 #include "probe.h"
@@ -213,7 +201,7 @@ class DbgCLI_Probe : public ProbeControl {
 
 public:
   DbgCLI_Probe(SST::Component * comp, SST::Output * out, 
-              int mode, int startCycle, int endCycle, int bufferSize, 
+              int mode, SST::SimTime_t startCycle, SST::SimTime_t endCycle, int bufferSize, 
               int port, int postDelay, uint64_t cliControl);
   // User custom sampling functions
   void capture_event_atts(uint64_t cycle, uint64_t sz, DbgCLIEvent *ev);
@@ -222,7 +210,7 @@ public:
     uint64_t cycle_ = 0;
     uint64_t sz_ = 0;
     uint64_t deliveryTime_ = 0;
-    uint64_t priority_ = 0;
+    int priority_ = 0;
     uint64_t orderTag_ = 0; 
     uint64_t queueOrder_ = 0;
     event_atts_t() {};
