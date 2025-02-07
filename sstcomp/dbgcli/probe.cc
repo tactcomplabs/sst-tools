@@ -331,7 +331,7 @@ void ProbeBufCtl::render_buffer(std::ostream& os) {
     }
 }
 
-ProbeSocket::ProbeSocket(int port, ProbeControl * probeControl, SST::Component * comp, SST::Output* out) 
+ProbeSocket::ProbeSocket(uint16_t port, ProbeControl * probeControl, SST::Component * comp, SST::Output* out) 
     : port_(port), probeControl_(probeControl), comp_(comp), out_(out) 
 {}
 

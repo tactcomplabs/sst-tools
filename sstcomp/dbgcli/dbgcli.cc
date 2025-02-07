@@ -42,10 +42,10 @@ DbgCLI::DbgCLI(SST::ComponentId_t id, const SST::Params& params ) :
   cliType = params.find<unsigned>("cliType", 0);
   
   output.verbose(CALL_INFO, 1, 0, "numPorts=%u\n",numPorts);
-  output.verbose(CALL_INFO, 1, 0, "minData=%llu\n", minData);
-  output.verbose(CALL_INFO, 1, 0, "maxData=%llu\n", maxData);
-  output.verbose(CALL_INFO, 1, 0, "clockDelay=%llu\n", clockDelay);
-  output.verbose(CALL_INFO, 1, 0, "clocks=%llu\n", clocks);
+  output.verbose(CALL_INFO, 1, 0, "minData=%" PRIu64 "\n", minData);
+  output.verbose(CALL_INFO, 1, 0, "maxData=%" PRIu64 "\n", maxData);
+  output.verbose(CALL_INFO, 1, 0, "clockDelay=%" PRIu64 "\n", clockDelay);
+  output.verbose(CALL_INFO, 1, 0, "clocks=%" PRIu64 "\n", clocks);
 
   output.verbose(CALL_INFO, 1, 0, "traceMode=%" PRIu32 "\n", traceMode);
   if (traceMode & 1) output.verbose(CALL_INFO, 1, 0, "tracing SEND events\n");
@@ -100,7 +100,7 @@ void DbgCLI::init( unsigned int phase ){
 }
 
 void DbgCLI::printStatus( SST::Output& out ){
-  assert(false);
+  out.fatal(CALL_INFO, -1, "unexpected printStatus\n");
 }
 
 void DbgCLI::serialize_order(SST::Core::Serialization::serializer& ser){
