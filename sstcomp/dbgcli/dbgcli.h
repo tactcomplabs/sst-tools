@@ -197,7 +197,7 @@ private:
 // -------------------------------------------------------
 // Debug Control State 
 // -------------------------------------------------------
-class DbgCLI_Probe : public ProbeControl {
+class DbgCLI_Probe final : public ProbeControl {
 
 public:
   DbgCLI_Probe(SST::Component * comp, SST::Output * out, 

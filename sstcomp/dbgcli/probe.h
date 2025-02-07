@@ -194,7 +194,7 @@ protected:
 };
 
 // Simple template wrapper for buffer data
-template<typename T> class ProbeBuffer : public ProbeBufCtl {
+template<typename T> class ProbeBuffer final : public ProbeBufCtl {
 public:
     ProbeBuffer( size_t sz ) : ProbeBufCtl(sz) { buf.resize(sz); };
     virtual ~ProbeBuffer() {};
@@ -217,7 +217,7 @@ private:
     T trigger_rec;          // copy of record associated with triggered cycle
 };
 
-class ProbeSocket {
+class ProbeSocket final {
 
 public:
     static const int SOCKET_BUFFER_SIZE=4096;
@@ -326,7 +326,7 @@ public:
         {CMD::UNKNOWN,   "Unknown command"},
     };
 
-    ProbeSocket(int port, ProbeControl * probeControl, SST::Component * comp, SST::Output* out);
+    ProbeSocket(uint16_t port, ProbeControl * probeControl, SST::Component * comp, SST::Output* out);
     virtual ~ProbeSocket();
     /// Create a valid socket
     RESULT create();
@@ -338,7 +338,7 @@ public:
     inline bool connected() { return socket_state_ == SOCKET_STATE::CONNECTED;}
 
 private:
-    int port_ = 0;
+    uint16_t port_ = 0;
     ProbeControl * probeControl_;
     SST::Component * comp_;
     SST::Output * out_;
