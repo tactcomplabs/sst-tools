@@ -13,5 +13,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 #-- Components
 message(STATUS "[SST-TOOLS] Enabling dbgcli")
 add_subdirectory(dbgcli)
+message(STATUS "[SST-TOOLS] Enabling grid")
+add_subdirectory(grid)
+
 
 # EOF

@@ -10,4 +10,7 @@
 message(STATUS "[SST-BENCH] Enabling DBGCLI testing")
 add_subdirectory(dbgcli)
 
+message(STATUS "[SST-BENCH] Enabling CPTAPI testing")
+add_subdirectory(cptapi)
+
 # EOF
