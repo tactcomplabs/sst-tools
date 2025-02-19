@@ -1,5 +1,5 @@
 #
-# sst-bench/test/dbgcli CMake
+# sst-tools/test/dbgcli CMake
 #
 # Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
 # All Rights Reserved

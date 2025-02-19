@@ -7,10 +7,16 @@
 # See LICENSE in the top level directory for licensing details
 #
 
-message(STATUS "[SST-BENCH] Enabling DBGCLI testing")
+if (mpiOK)
+  message(STATUS "[SST-TOOLS] Testing with MPI enabled")
+else()
+  message(STATUS "[SST-TOOLS] Testing with MPI disabled")
+endif()
+
+message(STATUS "[SST-TOOLS] Enabling DBGCLI testing")
 add_subdirectory(dbgcli)
 
-message(STATUS "[SST-BENCH] Enabling CPTAPI testing")
+message(STATUS "[SST-TOOLS] Enabling CPTAPI testing")
 add_subdirectory(cptapi)
 
 # EOF

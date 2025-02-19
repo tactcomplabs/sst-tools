@@ -95,10 +95,15 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall")
 #-- Include Paths
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
+#-- MPI Availability
+execute_process(
+  COMMAND mpirun --version | egrep 'mpirun .+ 4\.' && echo 1 || echo 0
+  OUTPUT_VARIABLE mpiOK
+)
+
 #---------------------------------------------
 # TARGET OPTIONS
 #---------------------------------------------
-
 
 #-- Testing Options
 option(SST_TOOLS_ENABLE_TESTING "Enable Testing" OFF)

@@ -12,7 +12,7 @@ PROJHOME ?= $(realpath ../..)
 # SST
 SSTCFG ?= $(PWD)/probe.py
 SSTCHKPT ?= --checkpoint-sim-period=1us
-SSTOPTS += $(SSTCHKPT) --add-lib-path=$(PROJHOME)/sst-bench/dbgcli --output-json=rank.json
+SSTOPTS += $(SSTCHKPT) --add-lib-path=$(PROJHOME)/sst-tools/dbgcli --output-json=rank.json
 ifdef VALGRIND
  SST ?= valgrind sst
 else
