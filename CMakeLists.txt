@@ -101,7 +101,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 
 #-- Testing Options
-option(SST_TOOLS_ENABLE_TESTING "Enable Testing" ON)
+option(SST_TOOLS_ENABLE_TESTING "Enable Testing" OFF)
 if(SST_TOOLS_ENABLE_TESTING)
   enable_testing()
   add_subdirectory(test)
