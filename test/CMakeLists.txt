@@ -7,7 +7,7 @@
 # See LICENSE in the top level directory for licensing details
 #
 
-if (mpiOK)
+if (${mpiOK})
   message(STATUS "[SST-TOOLS] Testing with MPI enabled")
 else()
   message(STATUS "[SST-TOOLS] Testing with MPI disabled")

@@ -106,6 +106,8 @@ execute_process(
 #---------------------------------------------
 
 #-- Testing Options
+option(SST_TOOLS_CLEAN_TESTS "Clean test directories after running" ON)
+
 option(SST_TOOLS_ENABLE_TESTING "Enable Testing" OFF)
 if(SST_TOOLS_ENABLE_TESTING)
   enable_testing()

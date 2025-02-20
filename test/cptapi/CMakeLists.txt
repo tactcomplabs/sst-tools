@@ -13,8 +13,10 @@ set (passRegex "Simulation is complete")
 get_filename_component(testName ${testSrc} NAME_WLE)
 set(CHKPT_PFX ${testName}_SAVE_)
 
-if (mpiOK)
+if (${mpiOK})
   set(nmpi 2)
+else()
+  set(nmpi 1)
 endif()
 
 # Checkpoint Save
@@ -38,5 +40,16 @@ set_tests_properties(${testName}_RESTORE
   DEPENDS ${testName}_SAVE
   PASS_REGULAR_EXPRESSION "${passRegex}")
 
+# Cleanup conditionally
+if( ${SST_TOOLS_CLEAN_TESTS} )
+  add_test(NAME ${testName}_CLEAN
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND rm -rf ${CHKPT_PFX})
+  set_tests_properties(${testName}_CLEAN
+    PROPERTIES
+    TIMEOUT 10
+    LABELS "cptapi"
+    DEPENDS ${testName}_RESTORE)
+endif()
 
 # EOF
