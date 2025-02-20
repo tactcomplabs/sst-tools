@@ -97,8 +97,9 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 #-- MPI Availability
 execute_process(
-  COMMAND mpirun --version | egrep 'mpirun .+ 4\.' && echo 1 || echo 0
-  OUTPUT_VARIABLE mpiOK
+  COMMAND mpirun --version
+  COMMAND egrep -q "mpirun .+ 4\."
+  RESULT_VARIABLE mpiDisable
 )
 
 #---------------------------------------------

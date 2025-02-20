@@ -13,10 +13,10 @@ set (passRegex "Simulation is complete")
 get_filename_component(testName ${testSrc} NAME_WLE)
 set(CHKPT_PFX ${testName}_SAVE_)
 
-if (${mpiOK})
-  set(nmpi 2)
-else()
+if (${mpiDisable})
   set(nmpi 1)
+else()
+  set(nmpi 2)
 endif()
 
 # Checkpoint Save

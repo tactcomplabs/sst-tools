@@ -7,10 +7,10 @@
 # See LICENSE in the top level directory for licensing details
 #
 
-if (${mpiOK})
-  message(STATUS "[SST-TOOLS] Testing with MPI enabled")
-else()
+if (${mpiDisable})
   message(STATUS "[SST-TOOLS] Testing with MPI disabled")
+else()
+  message(STATUS "[SST-TOOLS] Testing with MPI enabled")
 endif()
 
 message(STATUS "[SST-TOOLS] Enabling DBGCLI testing")
