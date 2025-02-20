@@ -55,7 +55,9 @@ execute_process(COMMAND sst-config --ELEMENT_LDFLAGS
                 OUTPUT_VARIABLE SST_LDFLAGS
                 OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-set(LDFLAGS "${SST_LDFLAGS}  -fno-stack-protector")
+
+# set(LDFLAGS "${SST_LDFLAGS}  -fno-stack-protector")
+set(LDFLAGS -fno-stack-protector)
 
 execute_process(COMMAND sst-config SST_ELEMENT_LIBRARY SST_ELEMENT_LIBRARY_LIBDIR
                 OUTPUT_VARIABLE SST_ELEMENT_LIBRARY_LIBDIR
@@ -106,9 +108,11 @@ execute_process(
 # TARGET OPTIONS
 #---------------------------------------------
 
+#-- Executables
+add_subdirectory(src)
+
 #-- Testing Options
 option(SST_TOOLS_CLEAN_TESTS "Clean test directories after running" ON)
-
 option(SST_TOOLS_ENABLE_TESTING "Enable Testing" OFF)
 if(SST_TOOLS_ENABLE_TESTING)
   enable_testing()
