@@ -13,6 +13,6 @@ add_executable(readcpt)
 target_sources(readcpt PUBLIC 
   readcpt.cc
 )
-install(TARGETS readcpt DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+install(TARGETS readcpt DESTINATION ${SST_TOOLS_INSTALL_PATH}/bin)
 
 # EOF

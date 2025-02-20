@@ -56,7 +56,7 @@ execute_process(COMMAND sst-config --ELEMENT_LDFLAGS
                 OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# set(LDFLAGS "${SST_LDFLAGS}  -fno-stack-protector")
+# Use SST_LDFLAGS in sstcomp only or it will affect add_executable() in other subprojects
 set(LDFLAGS -fno-stack-protector)
 
 execute_process(COMMAND sst-config SST_ELEMENT_LIBRARY SST_ELEMENT_LIBRARY_LIBDIR
@@ -107,6 +107,8 @@ execute_process(
 #---------------------------------------------
 # TARGET OPTIONS
 #---------------------------------------------
+# Install directory for APIs and Executables
+set(SST_TOOLS_INSTALL_PATH ${PROJECT_SOURCE_DIR}/install)
 
 #-- Executables
 add_subdirectory(src)
@@ -123,8 +125,12 @@ endif()
 add_subdirectory(sstcomp)
 
 #-- Custom Commands
-add_custom_target(uninstall COMMAND
-  "${CMAKE_CURRENT_SOURCE_DIR}/scripts/uninstall.sh")
+add_custom_target(uninstall 
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/uninstall.sh
+  COMMAND ${CMAKE_COMMAND} -E echo "Deleting ${SST_TOOLS_INSTALL_PATH}/bin"
+  COMMAND ${CMAKE_COMMAND} -E rm -rf "${SST_TOOLS_INSTALL_PATH}"
+  VERBATIM
+)
 
 
 # EOF
