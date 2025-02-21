@@ -11,3 +11,4 @@
 .gdb_history
 *.out
 *.asm
+install/

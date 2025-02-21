@@ -9,6 +9,7 @@
 //
 
 #include "gridnode.h"
+#include "kgdbg.h"
 
 namespace SST::GridNode{
 
@@ -31,6 +32,7 @@ GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
   primaryComponentDoNotEndSim();
 
   // read the rest of the parameters
+
   numBytes = params.find<uint64_t>("numBytes", 16384);
   numPorts = params.find<unsigned>("numPorts", 8);
   minData = params.find<uint64_t>("minData", 10);
@@ -43,6 +45,15 @@ GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
 
   // bug injection
   dataMax += demoBug;
+  
+  // Checkpoint markers
+
+  cptBegin = 0xffb0000000000000UL | (id&0xffffffff)<<16 | 0xb1ffUL;
+  cptEnd = 0xffe0000000000000UL | (id&0xffffffff)<<16 | 0xe1ffUL;
+  
+  output.verbose(CALL_INFO, 1, 0, 
+    "Checkpoint markers for component id %" PRId32 " = [ 0x%" PRIx64 " 0x%" PRIx64 " ]\n",
+    id, cptBegin, cptEnd );
 
   // sanity check the params
   if (minData < 10) {
@@ -123,7 +134,9 @@ void GridNode::printStatus( Output& out ){
 }
 
 void GridNode::serialize_order(SST::Core::Serialization::serializer& ser){
+  kgdbg::spinner("GRID_SPINNER");
   SST::Component::serialize_order(ser);
+  SST_SER(cptBegin)
   SST_SER(clockHandler)
   SST_SER(numBytes)
   SST_SER(numPorts)
@@ -143,6 +156,7 @@ void GridNode::serialize_order(SST::Core::Serialization::serializer& ser){
   SST_SER(demoBug)
   SST_SER(dataMask)
   SST_SER(dataMax)
+  SST_SER(cptEnd)
 }
 
 void GridNode::handleEvent(SST::Event *ev){

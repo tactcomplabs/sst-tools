@@ -183,6 +183,10 @@ private:
   std::map< std::string, SST::RNG::Random* > rng; ///< per port mersenne twister objects
   SST::RNG::Random* localRNG = 0;                 ///< component local random number generator
 
+  // -- checkpoint debug
+  uint64_t cptBegin;
+  uint64_t cptEnd;
+
   // -- private methods
   /// event handler
   void handleEvent(SST::Event *ev);
