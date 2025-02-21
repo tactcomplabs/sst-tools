@@ -10,4 +10,7 @@
 message(STATUS "[SST-TOOLS] Enabling READCPT")
 add_subdirectory(readcpt)
 
+message(STATUS "[SST-TOOLS] Enabling READCPT-GRID")
+add_subdirectory(readcpt-grid)
+
 # EOF

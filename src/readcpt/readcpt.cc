@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 {
     // parse command line
     if (argc != 4) {
-        cout << "Usage: checkpoint-file component-offset num-words" << endl;
+        cout << "Usage: readcpt checkpoint-file component-offset num-words" << endl;
         return 1;
     }
     string cptFileName(argv[1]);\
