@@ -7,6 +7,10 @@
 # See LICENSE in the top level directory for licensing details
 #
 
+#-- Include Paths
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+#-- Application Sources
 message(STATUS "[SST-TOOLS] Enabling READCPT")
 add_subdirectory(readcpt)
 
