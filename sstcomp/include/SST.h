@@ -20,11 +20,15 @@
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wconversion"
+
 
 #if defined( __GNUC__ ) && !defined( __clang__ )
+#pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wsuggest-final-methods"
 #pragma GCC diagnostic ignored "-Wsuggest-final-types"
+#else
+#pragma GCC diagnostic ignored "-Wimplicit-int-conversion"
+#pragma GCC diagnostic ignored "-Wshorten-64-to-32"
 #endif
 
 // The #include order is important, so we prevent clang-format from reordering
@@ -33,7 +37,6 @@
 #include <sst/core/component.h>
 #include <sst/core/event.h>
 #include <sst/core/interfaces/simpleNetwork.h>
-// #include <sst/core/interfaces/stdMem.h>
 #include <sst/core/link.h>
 #include <sst/core/output.h>
 #include <sst/core/statapi/stataccumulator.h>

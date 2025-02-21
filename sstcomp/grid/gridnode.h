@@ -11,6 +11,7 @@
 #ifndef _SST_GRIDNODE_H_
 #define _SST_GRIDNODE_H_
 
+// clang-format off
 // -- Standard Headers
 #include <map>
 #include <vector>
@@ -18,7 +19,6 @@
 #include <random>
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 #include <time.h>
 
 // -- SST Headers
@@ -29,6 +29,7 @@
 #include <sst/core/rng/distrib.h>
 #include <sst/core/rng/rng.h>
 #include <sst/core/rng/mersenne.h>
+// clang-format on
 
 namespace SST::GridNode{
 

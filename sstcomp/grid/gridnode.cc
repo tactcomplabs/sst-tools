@@ -190,7 +190,7 @@ void GridNode::handleEvent(SST::Event *ev){
   }
   for (unsigned i=2; i<r; i++){
     // checked is slightly different from how send data is generated to induce an error.
-    unsigned d = (unsigned)portRNG->generateNextUInt32() & dataMask; 
+    unsigned d = (unsigned)portRNG->generateNextUInt32() & (unsigned)dataMask; 
     if ( d != data[i] ) {
       output.fatal(CALL_INFO, -1,
           "%s expected data[%" PRIu32 "] %" PRIu32 " does not match actual %" PRIu32 "\n",
