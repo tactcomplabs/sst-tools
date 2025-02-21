@@ -11,6 +11,9 @@
 
 using namespace std;
 
+// Declare variables for know types and placeholders of an appropriate size for unknown types.
+
+// Serializing the base class for our test case is consistently 195 bytes.
 // SST::Component::serialize_order(ser);
 uint8_t padding0[195];
 // SST_SER(cptBegin)
@@ -31,13 +34,13 @@ uint64_t maxData;
 uint64_t minDelay;
 uint64_t maxDelay;
 // SST_SER(clkDelay)
-uint64_t clkDelay;
 // SST_SER(clocks)
 // SST_SER(rngSeed)
+uint64_t clkDelay;
 uint64_t clocks; 
 unsigned rngSeed;
-// SST_SER(state)
-std::vector<unsigned> state;
+// // SST_SER(state)
+// std::vector<unsigned> state;
 // SST_SER(curCycle)
 uint64_t curCycle;
 // SST_SER(portname)
@@ -136,6 +139,6 @@ int main(int argc, char* argv[])
     kgdbg::spinner("SPINNER");
     cout << "cptBegin <- 0x" << hex << setfill('0') << setw(16) << cptBegin << endl;
     cout << "cptEnd <- 0x" << hex << setfill('0') << setw(16) << cptEnd << endl;
-    cout << "readcpt completed normally" << endl;
+    cout << "readcpt-grid completed normally" << endl;
     return 0;
 }
