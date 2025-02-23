@@ -40,20 +40,20 @@ uint64_t maxDelay;
 uint64_t clkDelay;
 uint64_t clocks; 
 unsigned rngSeed;
-// // SST_SER(state)
-// std::vector<unsigned> state;
+// SST_SER(state)
+std::vector<unsigned> state;
 // SST_SER(curCycle)
 uint64_t curCycle;
 // SST_SER(portname)
 std::vector<std::string> portname;
 // SST_SER(rng)
-//std::map< std::string, SST::RNG::Random* > rng;
+// std::map< std::string, SST::RNG::Random* > rng;
 std::map< std::string, void* > rng;
 // SST_SER(localRNG)
-//SST::RNG::Random* localRNG;
+// SST::RNG::Random* localRNG;
 void* localRNG;
 // SST_SER(linkHandlers)
-//std::vector<SST::Link *> linkHandlers;
+// std::vector<SST::Link *> linkHandlers;
 std::vector<void*> linkHandlers;
 // SST_SER(demoBug)
 // SST_SER(dataMask)
@@ -66,6 +66,8 @@ uint64_t cptEnd;
 
 // file read buffer
 char buffer[4096];
+// variable size for vectors
+uint64_t vsize = 0; 
 
 int main(int argc, char* argv[])
 {
@@ -112,14 +114,30 @@ int main(int argc, char* argv[])
     cpt.read(buffer, sizeof(clocks)); memcpy(&clocks, buffer, sizeof(clocks));
     // SST_SER(rngSeed)
     cpt.read(buffer, sizeof(rngSeed)); memcpy(&rngSeed, buffer, sizeof(rngSeed));
-    // // SST_SER(state)
-    // state.resize(1);
-    // cpt.read(buffer, sizeof(state)); memcpy(&state, buffer, sizeof(state));
+    // SST_SER(state)
+    // std::vector<unsigned>: first 8 bytes are size
+    cpt.read(buffer, sizeof(vsize)); memcpy(&vsize, buffer, sizeof(vsize));
+    std::cout << "state.size()=" << vsize << endl;
+    state.resize(vsize);
+    for (size_t i=0; i<vsize; i++) {
+        cpt.read(buffer, sizeof(unsigned));
+        memcpy(&state[i], buffer, sizeof(unsigned));
+        // cout  << state[i] << endl;
+    }
     // SST_SER(curCycle)
     cpt.read(buffer, sizeof(curCycle)); memcpy(&curCycle, buffer, sizeof(curCycle));
-    // // SST_SER(portname)
+    // SST_SER(portname)
+    // std::vector<std::string>:
+    cpt.read(buffer, sizeof(vsize)); memcpy(&vsize, buffer, sizeof(vsize));
+    std::cout << "portname.size()=" << vsize << endl;
+    for (size_t i=0; i<vsize; i++) {
+        cpt.read(buffer, sizeof(unsigned));
+        memcpy(&state[i], buffer, sizeof(unsigned));
+        // cout  << state[i] << endl;
+    }
     // cpt.read(buffer, sizeof(portname)); memcpy(&portname, buffer, sizeof(portname));
-    // // SST_SER(rng)
+    // SST_SER(rng)
+    // std::map< std::string, void* > rng;
     // cpt.read(buffer, sizeof(rng)); memcpy(&rng, buffer, sizeof(rng));
     // // SST_SER(localRNG)
     // cpt.read(buffer, sizeof(localRNG)); memcpy(&localRNG, buffer, sizeof(localRNG));
