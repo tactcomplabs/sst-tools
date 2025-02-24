@@ -4,7 +4,7 @@
 #numThreads="--num-threads=2'
 #verbose="--verbose=10"
 
-../../scripts/sst-chkpt.sh 1 2d_SAVE_ ${verbose} ${numThreads} --add-lib-path=../..//build/sstcomp/grid 2d.py --checkpoint-period=1us --gen-checkpoint-schema -- --x=1 --y=2
+../../scripts/sst-chkpt.sh 1 2d_SAVE_ ${verbose} ${numThreads} --add-lib-path=../..//build/sstcomp/grid 2d.py --checkpoint-period=1us --gen-checkpoint-schema -- --x=2 --y=2
 
 cpt=2d_SAVE__0_1000000
 pushd 2d_SAVE_/${cpt} || exit 1

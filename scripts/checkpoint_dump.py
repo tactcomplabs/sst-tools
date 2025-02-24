@@ -108,6 +108,16 @@ def main():
     expected['cp_0_1.cptBegin'] = 0xffb000000001b1ff;
     obj_list.extend(['cp_0_0.cptEnd']);
     expected['cp_0_1.cptEnd'] = 0xffe000000001e1ff;
+
+    obj_list.extend(['cp_1_0.cptBegin']);
+    expected['cp_1_0.cptBegin'] = 0xffb000000002b1ff;
+    obj_list.extend(['cp_1_0.cptEnd']);
+    expected['cp_1_0.cptEnd'] = 0xffe000000002e1ff;
+
+    obj_list.extend(['cp_1_1.cptBegin']);
+    expected['cp_1_1.cptBegin'] = 0xffb000000003b1ff;
+    obj_list.extend(['cp_0_0.cptEnd']);
+    expected['cp_1_1.cptEnd'] = 0xffe000000003e1ff;
     
     for s in obj_list:
         pos = g_name2pos[s]
