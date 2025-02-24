@@ -12,3 +12,4 @@
 *.out
 *.asm
 install/
+__pycache__/

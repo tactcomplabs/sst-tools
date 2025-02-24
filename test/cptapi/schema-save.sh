@@ -1,18 +1,28 @@
 #!/bin/bash
 #export GRID_SPINNER=1
 #export SST_SPINNER=1
-#numThreads="--num-threads=2'
-#verbose="--verbose=10"
+LIBGRID=$(realpath ../../build/sstcomp/grid)
+SCRIPTS=$(realpath ../../SCRIPTS)
 
-../../scripts/sst-chkpt.sh 1 2d_SAVE_ ${verbose} ${numThreads} --add-lib-path=../..//build/sstcomp/grid 2d.py --checkpoint-period=1us --gen-checkpoint-schema -- --x=2 --y=2
 
-cpt=2d_SAVE__0_1000000
-pushd 2d_SAVE_/${cpt} || exit 1
-t=_0_0
-hexdump -C ${cpt}${t}.bin > ${cpt}${t}.hex
-cat ${cpt}${t}.json | c++filt -t >${cpt}${t}.schema.json
-${HOME}/work/sst-tools/scripts/checkpoint_dump.py ${cpt}${t}.schema.json ${cpt}${t}.bin || exit 2
-popd
+# generate checkpoints and json files from sst
+${SCRIPTS}/sst-chkpt.sh 1 2d_SAVE_ --verbose=1 --num-threads=4 --add-lib-path=${LIBGRID} 2d.py --checkpoint-period=1us --gen-checkpoint-schema -- --x=2 --y=2
+
+# run checkpoint json files through c++filt
+for j in $(find 2d_SAVE_ -name '*.json')
+do
+    (cd $(dirname $j); cat $(basename $j) | c++filt -t > $(basename -s json $j)schema.json)
+done
+
+# generate hex dumps for each binary
+for j in $(find 2d_SAVE_ -name '*.bin')
+do
+    (cd $(dirname $j);  hexdump -C $(basename $j) > $(basename -s bin $j)hex )
+done
+
+# Independently load and verify the checkpoint files.
+export PYTHONPATH="${SCRIPTS}:$PYTHONPATH"
+cpt_verify.py  || exit 1
 
 echo schema-save.sh finished normally
 
