@@ -11,6 +11,11 @@
 #include "gridnode.h"
 #include "kgdbg.h"
 
+#ifdef CPT_SCHEMA
+  #undef SST_SER
+  #define SST_SER SER_INI
+#endif
+
 namespace SST::GridNode{
 
 //------------------------------------------
@@ -136,27 +141,27 @@ void GridNode::printStatus( Output& out ){
 void GridNode::serialize_order(SST::Core::Serialization::serializer& ser){
   kgdbg::spinner("GRID_SPINNER");
   SST::Component::serialize_order(ser);
-  SER_INI(cptBegin)
-  SER_INI(clockHandler)
-  SER_INI(numBytes)
-  SER_INI(numPorts)
-  SER_INI(minData)
-  SER_INI(maxData)
-  SER_INI(minDelay)
-  SER_INI(maxDelay)
-  SER_INI(clkDelay)
-  SER_INI(clocks)
-  SER_INI(rngSeed)
-  SER_INI(state)
-  SER_INI(curCycle)
-  SER_INI(portname)
-  SER_INI(rng)
-  SER_INI(localRNG)
-  SER_INI(linkHandlers)
-  SER_INI(demoBug)
-  SER_INI(dataMask)
-  SER_INI(dataMax)
-  SER_INI(cptEnd)
+  SST_SER(cptBegin)
+  SST_SER(clockHandler)
+  SST_SER(numBytes)
+  SST_SER(numPorts)
+  SST_SER(minData)
+  SST_SER(maxData)
+  SST_SER(minDelay)
+  SST_SER(maxDelay)
+  SST_SER(clkDelay)
+  SST_SER(clocks)
+  SST_SER(rngSeed)
+  SST_SER(state)
+  SST_SER(curCycle)
+  SST_SER(portname)
+  SST_SER(rng)
+  SST_SER(localRNG)
+  SST_SER(linkHandlers)
+  SST_SER(demoBug)
+  SST_SER(dataMask)
+  SST_SER(dataMax)
+  SST_SER(cptEnd)
 }
 
 void GridNode::handleEvent(SST::Event *ev){
