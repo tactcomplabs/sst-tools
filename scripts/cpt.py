@@ -50,6 +50,9 @@ class CPT:
 
     def getType(self, name):
         return self.hash2type[self.name2hash[name]]
+    
+    def getValue(self, name):
+        return struct.unpack_from("Q", self.blob, self.name2pos[name])
         
     def load(self, json_file, cpt_file):
         self.hash2type
