@@ -44,6 +44,13 @@ class CPT:
             # size = int(t['size'])
             self.hash2type[hash_code] = name
 
+    # TODO combine into tuple
+    def getPosition(self, name):
+        return self.name2pos[name];
+
+    def getType(self, name):
+        return self.hash2type[self.name2hash[name]]
+        
     def load(self, json_file, cpt_file):
         self.hash2type
         self.name2pos
@@ -67,7 +74,7 @@ class CPT:
 
         print(f"\nLoading checkpoint file {cpt_file}")
         with open(cpt_file, mode='rb') as datafile:
-            data = datafile.read()
+            self.blob = datafile.read()
         
         # set look-up list and expected data
         obj_list = []
@@ -86,7 +93,7 @@ class CPT:
         for s in obj_list:
             pos = self.name2pos[s]
             type = self.hash2type[self.name2hash[s]]
-            value = struct.unpack_from("Q", data, pos)
+            value = struct.unpack_from("Q", self.blob, pos)
             print(f"{s} type='{type}' pos=0x{pos:x}  value=0x{value[0]:x}")
             if expected[s] != value[0]:
                 print(f"ERROR: mismatch E=0x{expected[s]:x} A=0x{value[0]:x}", file=sys.stderr)
