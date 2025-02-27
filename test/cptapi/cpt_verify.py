@@ -30,35 +30,34 @@ if __name__ == "__main__":
             # Load and check the framing of non-component specific segments
             cptObj.load(f"{fn}.schema.json", f"{fn}.bin")
             # Check our custom component markers
-            obj_list = []
-            expected = {}
+            checkDict = {}
             if rank_thread=="_0_0":
-                obj_list.extend(['cp_0_0.segcbegin']);
-                expected['cp_0_0.segcbegin'] = 0xa5a5a5a5a5a5bb0c;
-                obj_list.extend(['cp_0_0.segcend'])
-                expected['cp_0_0.segcend'] = 0xa5a5a5a5a5a5ee0c
+                checkDict['cp_0_0.segcbegin'] =  0xa5a5a5a5a5a5bb0c
+                checkDict['cp_0_0.cptBegin'] = 0xffb000000000b1ff
+                checkDict['cp_0_0.cptEnd'] = 0xffe000000000e1ff
+                checkDict['cp_0_0.segcend'] = 0xa5a5a5a5a5a5ee0c
             elif rank_thread=="_0_1":
-                obj_list.extend(['cp_0_1.segcbegin'])
-                expected['cp_0_1.segcbegin'] = 0xa5a5a5a5a5a5bb0c
-                obj_list.extend(['cp_0_1.segcend'])
-                expected['cp_0_1.segcend'] = 0xa5a5a5a5a5a5ee0c
+                checkDict['cp_0_1.segcbegin'] = 0xa5a5a5a5a5a5bb0c
+                checkDict['cp_0_1.cptBegin'] = 0xffb000000001b1ff
+                checkDict['cp_0_1.cptEnd'] = 0xffe000000001e1ff
+                checkDict['cp_0_1.segcend'] = 0xa5a5a5a5a5a5ee0c
             elif rank_thread=="_0_2":
-                obj_list.extend(['cp_1_0.segcbegin'])
-                expected['cp_1_0.segcbegin'] = 0xa5a5a5a5a5a5bb0c
-                obj_list.extend(['cp_1_0.segcend'])
-                expected['cp_1_0.segcend'] = 0xa5a5a5a5a5a5ee0c
+                checkDict['cp_1_0.segcbegin'] = 0xa5a5a5a5a5a5bb0c
+                checkDict['cp_1_0.cptBegin'] = 0xffb000000002b1ff
+                checkDict['cp_1_0.cptEnd'] = 0xffe000000002e1ff
+                checkDict['cp_1_0.segcend'] = 0xa5a5a5a5a5a5ee0c
             elif rank_thread=="_0_3":
-                obj_list.extend(['cp_1_1.segcbegin'])
-                expected['cp_1_1.segcbegin'] = 0xa5a5a5a5a5a5bb0c
-                obj_list.extend(['cp_1_1.segcend'])
-                expected['cp_1_1.segcend'] = 0xa5a5a5a5a5a5ee0c
+                checkDict['cp_1_1.segcbegin'] = 0xa5a5a5a5a5a5bb0c
+                checkDict['cp_1_1.cptBegin'] = 0xffb000000003b1ff
+                checkDict['cp_1_1.cptEnd'] = 0xffe000000003e1ff
+                checkDict['cp_1_1.segcend'] = 0xa5a5a5a5a5a5ee0c
     
-            for s in obj_list:
+            for s in checkDict:
                 print(f"Looking for {s} in {fn}")
                 pos = cptObj.getPosition(s)
                 type = cptObj.getType(s)
                 value = cptObj.getValue(s)
                 print(f"{s} type='{type}' pos=0x{pos:x}  value=0x{value[0]:x}")
-                if expected[s] != value[0]:
-                    print(f"ERROR: mismatch E=0x{expected[s]:x} A=0x{value[0]:x}", file=sys.stderr)
+                if checkDict[s] != value[0]:
+                    print(f"ERROR: mismatch E=0x{checkDict[s]:x} A=0x{value[0]:x}", file=sys.stderr)
                     exit(2)
