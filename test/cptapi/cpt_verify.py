@@ -38,20 +38,20 @@ if __name__ == "__main__":
                 obj_list.extend(['cp_0_0.segcend'])
                 expected['cp_0_0.segcend'] = 0xa5a5a5a5a5a5ee0c
             elif rank_thread=="_0_1":
-                obj_list.extend(['cp_0_1.cptBegin'])
-                expected['cp_0_1.cptBegin'] = 0xffb000000001b1ff
-                obj_list.extend(['cp_0_1.cptEnd'])
-                expected['cp_0_1.cptEnd'] = 0xffe000000001e1ff
+                obj_list.extend(['cp_0_1.segcbegin'])
+                expected['cp_0_1.segcbegin'] = 0xa5a5a5a5a5a5bb0c
+                obj_list.extend(['cp_0_1.segcend'])
+                expected['cp_0_1.segcend'] = 0xa5a5a5a5a5a5ee0c
             elif rank_thread=="_0_2":
-                obj_list.extend(['cp_1_0.cptBegin'])
-                expected['cp_1_0.cptBegin'] = 0xffb000000002b1ff
-                obj_list.extend(['cp_1_0.cptEnd'])
-                expected['cp_1_0.cptEnd'] = 0xffe000000002e1ff
+                obj_list.extend(['cp_1_0.segcbegin'])
+                expected['cp_1_0.segcbegin'] = 0xa5a5a5a5a5a5bb0c
+                obj_list.extend(['cp_1_0.segcend'])
+                expected['cp_1_0.segcend'] = 0xa5a5a5a5a5a5ee0c
             elif rank_thread=="_0_3":
-                obj_list.extend(['cp_1_1.cptBegin'])
-                expected['cp_1_1.cptBegin'] = 0xffb000000003b1ff
-                obj_list.extend(['cp_1_1.cptEnd'])
-                expected['cp_1_1.cptEnd'] = 0xffe000000003e1ff
+                obj_list.extend(['cp_1_1.segcbegin'])
+                expected['cp_1_1.segcbegin'] = 0xa5a5a5a5a5a5bb0c
+                obj_list.extend(['cp_1_1.segcend'])
+                expected['cp_1_1.segcend'] = 0xa5a5a5a5a5a5ee0c
     
             for s in obj_list:
                 print(f"Looking for {s} in {fn}")

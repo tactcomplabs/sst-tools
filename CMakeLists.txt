@@ -77,6 +77,7 @@ message(STATUS "SST MAJOR VERSION=${SST_MAJOR_VERSION}")
 #-- Checkpoint Serialization build flags (temporary)
 if ( ${SST_MAJOR_VERSION} EQUAL "90" )
   option(CPT_SCHEMA "Compile for sst version -dev-schema" ON)
+  message(STATUS "Compiling with -DCPT_SCHEMA")
 endif()
 
 #-- Compiler Options

@@ -83,15 +83,15 @@ class CPT:
         obj_list = []
         expected = {}
 
-        obj_list.extend(['loaded_libraries.seg1begin']);
-        expected['loaded_libraries.seg1begin'] = 0xa5a5a5a5a5a5bb01;
-        obj_list.extend(['loaded_libraries.seg1end']);
-        expected['loaded_libraries.seg1end'] = 0xa5a5a5a5a5a5ee01;
+        obj_list.extend(['loaded_libraries.seg2begin']);
+        expected['loaded_libraries.seg2begin'] = 0xa5a5a5a5a5a5bb02;
+        obj_list.extend(['loaded_libraries.seg2end']);
+        expected['loaded_libraries.seg2end'] = 0xa5a5a5a5a5a5ee02;
 
-        obj_list.extend(['simulation_impl.seg2begin']);
-        expected['simulation_impl.seg2begin'] = 0xa5a5a5a5a5a5bb02;
-        obj_list.extend(['simulation_impl.seg2end']);
-        expected['simulation_impl.seg2end'] = 0xa5a5a5a5a5a5ee02;
+        obj_list.extend(['simulation_impl.seg3begin']);
+        expected['simulation_impl.seg3begin'] = 0xa5a5a5a5a5a5bb03;
+        obj_list.extend(['simulation_impl.seg3end']);
+        expected['simulation_impl.seg3end'] = 0xa5a5a5a5a5a5ee03;
         
         for s in obj_list:
             pos = self.name2pos[s]
