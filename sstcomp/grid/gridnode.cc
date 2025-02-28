@@ -9,12 +9,7 @@
 //
 
 #include "gridnode.h"
-#include "kgdbg.h"
-
-#ifdef CPT_SCHEMA
-  #undef SST_SER
-  #define SST_SER SER_INI
-#endif
+#include "tcldbg.h"
 
 namespace SST::GridNode{
 
@@ -139,7 +134,7 @@ void GridNode::printStatus( Output& out ){
 }
 
 void GridNode::serialize_order(SST::Core::Serialization::serializer& ser){
-  kgdbg::spinner("GRID_SPINNER");
+  tcldbg::spinner("GRID_SPINNER");
   SST::Component::serialize_order(ser);
   SST_SER(cptBegin)
   SST_SER(clockHandler)

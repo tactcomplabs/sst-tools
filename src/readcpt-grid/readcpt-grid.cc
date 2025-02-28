@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 
-#include <kgdbg.h>
+#include <tcldbg.h>
 //clang-format on
 
 using namespace std;
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
     // Done
     cpt.close();
 
-    kgdbg::spinner("SPINNER");
+    tcldbg::spinner("SPINNER");
     cout << "cptBegin <- 0x" << hex << setfill('0') << setw(16) << cptBegin << endl;
     cout << "cptEnd <- 0x" << hex << setfill('0') << setw(16) << cptEnd << endl;
     cout << "readcpt-grid completed normally" << endl;

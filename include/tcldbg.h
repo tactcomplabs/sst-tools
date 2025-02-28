@@ -1,19 +1,24 @@
 //
-// Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 // See LICENSE in the top level directory for licensing details
 //
 
-#ifndef _KGDBG_H
-#define _KGDBG_H
+#ifndef _TCLDBG_H
+#define _TCLDBG_H
 
 #include <iostream>
 #include <unistd.h>
 
-namespace kgdbg {
+#ifdef TCL_SCHEMA
+  #undef SST_SER
+  #define SST_SER SST_SER_SCHEMA
+#endif
 
-static inline void spin(const char* id = "") {
+namespace tcldbg {
+
+  static inline void spin(const char* id = "") {
   std::cout << id << " spinning" << std::endl;
   unsigned long spinner = 1;
   while( spinner > 0 ) {
@@ -34,6 +39,6 @@ static inline void spinner( const char* id, bool cond = true ) {
 }
 
 
-}  //namespace kgdbg
+}  //namespace tcldbg
 
-#endif  //_KGDBG_H
+#endif  //_TCLDBG_H

@@ -10,7 +10,7 @@
 // distribution.
 
 #include "probe.h"
-#include "kgdbg.h"
+#include "tcldbg.h"
 
 namespace SSTDEBUG::Probe {
 
@@ -55,7 +55,7 @@ ProbeControl::ProbeControl( SST::Component * comp, SST::Output * out,
     // by the checkpoint settings instead. 
     syncState_ = SyncState::WAIT;
 
-    kgdbg::spinner("PROBE_SPINNER");
+    tcldbg::spinner("PROBE_SPINNER");
 
 }
 
@@ -466,7 +466,7 @@ ProbeSocket::RESULT ProbeSocket::cli_handler() {
             }
             break;
         case CMD::SPIN:
-            kgdbg::spin();
+            tcldbg::spin();
             response << "freed from spin";
             break;
         case CMD::SYNCSTATE:

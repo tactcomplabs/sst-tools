@@ -9,7 +9,7 @@
 //
 
 #include "dbgcli.h"
-#include "kgdbg.h"
+#include "tcldbg.h"
 
 namespace SSTDEBUG::DbgCLI{
 
@@ -21,7 +21,7 @@ DbgCLI::DbgCLI(SST::ComponentId_t id, const SST::Params& params ) :
   numPorts(1), minData(1), maxData(2), clockDelay(1), clocks(1000),
   curCycle(0) {
   
-  kgdbg::spinner("SPINNER");
+  tcldbg::spinner("SPINNER");
   const uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
   output.init(
     "DbgCLI[" + getName() + ":@p:@t]: ",
@@ -180,7 +180,7 @@ void DbgCLI::sendData(){
 
 bool DbgCLI::clockTick( SST::Cycle_t currentCycle ){
 
-  kgdbg::spinner("CP0_SPINNER", getName().compare("cp1")==0);
+  tcldbg::spinner("CP0_SPINNER", getName().compare("cp1")==0);
 
   // check to see whether we need to send data over the links
   curCycle++;
