@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import cpt
+import cptapi
 import struct
 import sys
 
@@ -26,7 +26,7 @@ if __name__ == "__main__":
             fn=f"{pfx}{rank_thread}"
             print(f"Loading {fn}.bin using {fn}.schema.json")
             # Create checkpoint object from the checkpoint files
-            cptObj = cpt.CPT()
+            cptObj = cptapi.CPT()
             # Load and check the framing of non-component specific segments
             cptObj.load(f"{fn}.schema.json", f"{fn}.bin")
             # Check our custom component markers

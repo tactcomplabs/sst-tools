@@ -1,4 +1,15 @@
 #!/usr/bin/python3
+#
+# cptapi.py
+#
+# Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
+# All Rights Reserved
+# contact@tactcomplabs.com
+#
+# See LICENSE in the top level directory for licensing details
+#
+
+# TODO pydoc comments
 
 import json
 import sys
@@ -103,5 +114,5 @@ class CPT:
                 exit(2)
 
 if __name__ == "__main__":
-    print("cpt.py v0.0")
+    print("cptapi.py v0.0")
     
