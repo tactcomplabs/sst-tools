@@ -52,4 +52,28 @@ if( ${SST_TOOLS_CLEAN_TESTS} )
     DEPENDS ${testName}_RESTORE)
 endif()
 
+# schema testing ( requires tcl sst-core schema branch)
+if( ${SST_SCHEMA_TESTING} )
+  add_test(NAME SCHEMA_TEST
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND ./schema-test.sh)
+  set_tests_properties(SCHEMA_TEST
+    PROPERTIES
+    TIMEOUT 60
+    LABELS "cptapi"
+    PASS_REGULAR_EXPRESSION "schema-test.sh finished normally")
+  # Cleanup conditionally
+  if( ${SST_TOOLS_CLEAN_TESTS} )
+    add_test(NAME SCHEMA_TEST_CLEAN
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMAND rm -rf SCHEMA_SAVE_)
+    set_tests_properties(SCHEMA_TEST_CLEAN
+      PROPERTIES
+      TIMEOUT 10
+      LABELS "cptapi"
+      DEPENDS SCHEMA_TEST)
+  endif()
+endif()
+
+
 # EOF
