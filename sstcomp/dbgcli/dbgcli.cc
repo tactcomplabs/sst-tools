@@ -100,7 +100,6 @@ void DbgCLI::init( unsigned int phase ){
 }
 
 void DbgCLI::printStatus( SST::Output& out ){
-  out.fatal(CALL_INFO, -1, "unexpected printStatus\n");
 }
 
 void DbgCLI::serialize_order(SST::Core::Serialization::serializer& ser){

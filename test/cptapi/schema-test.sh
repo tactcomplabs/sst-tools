@@ -3,10 +3,10 @@
 #export GRID_SPINNER=1
 #export SST_SPINNER=1
 LIBGRID=$(realpath ../../build/sstcomp/grid)
-SCRIPTS=$(realpath ../../SCRIPTS)
+SCRIPTS=$(realpath ../../scripts)
 
 # Check version
-version=$($SCRIPTS/sst-major-version.sh)
+version=$(${SCRIPTS}/sst-major-version.sh)
 if [[ "$version" != "90" ]]; then
     echo "error: schema-test currently only works with sst version -dev-schema"
     exit 1
@@ -29,6 +29,6 @@ done
 
 # Independently load and verify the checkpoint files.
 export PYTHONPATH="${SCRIPTS}:$PYTHONPATH"
-cpt_verify.py  || exit 1
+./cpt_verify.py  || exit 1
 
 echo schema-test.sh finished normally
