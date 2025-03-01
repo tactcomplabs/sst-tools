@@ -1,8 +1,16 @@
 #!/bin/bash
+
 #export GRID_SPINNER=1
 #export SST_SPINNER=1
 LIBGRID=$(realpath ../../build/sstcomp/grid)
 SCRIPTS=$(realpath ../../SCRIPTS)
+
+# Check version
+version=$($SCRIPTS/sst-major-version.sh)
+if [[ "$version" != "90" ]]; then
+    echo "error: schema-test currently only works with sst version -dev-schema"
+    exit 1
+fi
 
 
 # generate checkpoints and json files from sst

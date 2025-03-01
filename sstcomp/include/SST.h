@@ -20,6 +20,7 @@
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Winconsistent-missing-override"
 
 
 #if defined( __GNUC__ ) && !defined( __clang__ )

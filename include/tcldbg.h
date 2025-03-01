@@ -11,11 +11,6 @@
 #include <iostream>
 #include <unistd.h>
 
-#ifdef TCL_SCHEMA
-  #undef SST_SER
-  #define SST_SER SST_SER_SCHEMA
-#endif
-
 namespace tcldbg {
 
   static inline void spin(const char* id = "") {
