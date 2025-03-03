@@ -25,6 +25,8 @@ If running on MacOS you made need to configure sst-core with the --disableMPI fl
     make -j -s && make install
     ctest -j 4
 
+`sst-tools --version` should return '-dev-schema'
+
 ### Example schema and API test
 
 If sst-core is set up properly then the schema test should run and pass.  Using -DSST_TOOL_CLEAN_TESTS=OFF ensures that the checkpoint directoriers are retained.
