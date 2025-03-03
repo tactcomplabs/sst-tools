@@ -12,9 +12,9 @@ set(CPTSubCompSrcs
   cptsubcomp.h
 )
 
-add_library(cptsubcomp SHARED ${CPTSubCompSrcs})
-target_include_directories(cptsubcomp PUBLIC ${SST_INSTALL_DIR}/include)
-install(TARGETS cptsubcomp DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
-install(CODE "execute_process(COMMAND sst-register cptsubcomp cptsubcomp_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+add_library(CPTSubComp SHARED ${CPTSubCompSrcs})
+target_include_directories(CPTSubComp PUBLIC ${SST_INSTALL_DIR}/include)
+install(TARGETS CPTSubComp DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+install(CODE "execute_process(COMMAND sst-register CPTSubCompVecInt CPTSubComp_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 
 # EOF

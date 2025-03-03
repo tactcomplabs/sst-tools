@@ -130,7 +130,12 @@ public:
   // -------------------------------------------------------
   // GridNode SubComponent Parameter Data
   // -------------------------------------------------------
-  SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS()
+  SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
+    { "CPTSubComp",
+      "Expansion slot for more checkpoint type checking",
+      "SST::CPTSubComp::CPTSubCompAPI"
+    }
+  )
 
   // -------------------------------------------------------
   // GridNode Component Statistics Data
@@ -192,7 +197,7 @@ private:
   unsigned neighbor(unsigned n);
 
   // SubComponent for testing checkpointing of various types
-  SST::CPTSubComp::CPTSubCompAPI* cptSubComp;
+  SST::CPTSubComp::CPTSubCompAPI* CPTSubComp;
 
 };  // class GridNode
 }   // namespace SST::GridNode

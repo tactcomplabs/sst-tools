@@ -1,5 +1,5 @@
 #
-# sst-tools/test/grid CMake
+# sst-tools/test/cptapi CMake
 #
 # Copyright (C) 2017-2024 Tactical Computing Laboratories, LLC
 # All Rights Reserved

@@ -39,10 +39,15 @@ GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
   clocks = params.find<uint64_t>("clocks", 1000);
   rngSeed = params.find<unsigned>("rngSeed", 1223);
   demoBug = params.find<unsigned>("demoBug", 0);
+  int checkSlot = params.find<int>("checkSlot", 0);
 
   // Load optional subcomponent in the cpt_check slot
-  cptSubComp = loadUserSubComponent<CPTSubComp::CPTSubCompAPI>("cptSubComp");
-  
+  tcldbg::spinner("GRID_SPINNER");
+  CPTSubComp = loadUserSubComponent<CPTSubComp::CPTSubCompAPI>("CPTSubComp");
+  if (checkSlot && !CPTSubComp) {
+    output.fatal(CALL_INFO, -1, "SubComponent did not load properly\n");
+  }
+
   // Complete construction
   registerAsPrimaryComponent();
   primaryComponentDoNotEndSim();
@@ -136,7 +141,6 @@ void GridNode::printStatus( Output& out ){
 }
 
 void GridNode::serialize_order(SST::Core::Serialization::serializer& ser){
-  tcldbg::spinner("GRID_SPINNER");
   SST::Component::serialize_order(ser);
   SST_SER(cptBegin)
   SST_SER(clockHandler)
@@ -203,7 +207,7 @@ void GridNode::handleEvent(SST::Event *ev){
   delete ev;
 
   // Periodic subcomponent self-checking
-  if (cptSubComp && cptSubComp->check())
+  if (CPTSubComp && CPTSubComp->check())
     output.fatal(CALL_INFO, -1, "%s subcomponent self-check failed\n", getName().c_str());
 
 }
@@ -280,8 +284,8 @@ bool GridNode::clockTick( SST::Cycle_t currentCycle ){
   }
 
   // Perform checkpoint subcomponent update every clock.
-  if (cptSubComp)
-    cptSubComp->update();
+  if (CPTSubComp)
+    CPTSubComp->update();
 
   // check to see whether we need to send data over the links
   curCycle++;

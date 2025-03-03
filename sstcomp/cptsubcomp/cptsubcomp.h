@@ -65,12 +65,12 @@ public:
 };
 
 // subcomponent implementation for std::vector<int>
-class cptSubCompVecInt : public CPTSubCompAPI {
+class CPTSubCompVecInt : public CPTSubCompAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
-    cptSubCompVecInt,     // Class name
+    CPTSubCompVecInt,     // Class name
     "CPTSubComp",         // Library name, the 'lib' in SST's lib.name format
-    "cptSubCompVecInt",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
+    "CPTSubCompVecInt",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
     SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
     "SubComponent for checkpoint type std::vector<int>", // Description
     SST::CPTSubComp::CPTSubCompAPI // Fully qualified name of the API this subcomponent implements
@@ -80,8 +80,8 @@ public:
     { "seed","Initial seed for data generation", "1223"}
   )
 
-  cptSubCompVecInt(ComponentId_t id, Params& params);
-  ~cptSubCompVecInt();
+  CPTSubCompVecInt(ComponentId_t id, Params& params);
+  ~CPTSubCompVecInt();
 
   // API members
   int check() override;

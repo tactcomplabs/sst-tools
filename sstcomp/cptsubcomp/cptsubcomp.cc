@@ -15,7 +15,7 @@ using namespace SST;
 using namespace SST::CPTSubComp;
 
 // cptSubCompVecInt
-cptSubCompVecInt::cptSubCompVecInt(ComponentId_t id, Params& params) {
+CPTSubCompVecInt::CPTSubCompVecInt(ComponentId_t id, Params& params) {
     max = params.find<size_t>("max", 1024);
     seed = params.find<unsigned>("seed", 1223);
     assert(max>0);
@@ -24,22 +24,22 @@ cptSubCompVecInt::cptSubCompVecInt(ComponentId_t id, Params& params) {
         tut.push_back(rng->generateNextInt32());
 }
 
-cptSubCompVecInt::~cptSubCompVecInt()
+CPTSubCompVecInt::~CPTSubCompVecInt()
 {
     if (rng) delete rng;
 }
 
-int cptSubCompVecInt::check()
+int CPTSubCompVecInt::check()
 {
     return 0;
 }
 
-void cptSubCompVecInt::update()
+void CPTSubCompVecInt::update()
 {
     
 }
 
-void cptSubCompVecInt::serialize_order(SST::Core::Serialization::serializer &ser)
+void CPTSubCompVecInt::serialize_order(SST::Core::Serialization::serializer &ser)
 {
     SST_SER(max);
     SST_SER(seed);

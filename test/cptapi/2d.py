@@ -47,6 +47,7 @@ comp_params = {
   "rngSeed" : args.rngSeed,
   "clockFreq" : "1Ghz",
   "demoBug" : args.demoBug,
+  "checkSlot" : 0
 }
 
 class GRIDNODE():
@@ -55,6 +56,7 @@ class GRIDNODE():
     self.id = id
     self.comp = sst.Component(id, "grid.GridNode" )
     self.comp.addParams(comp_params)
+    # self.comp.setSubComponent("CPTSubComp","CPTSubComp.CPTSubCompVecInt" )
     # everyone gets 8 links, up/down/left/right, send/rcv
     # links here are associated with this component's send ports
     self.upLink = sst.Link(f"upLink_{x}_{y}")
