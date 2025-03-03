@@ -8,7 +8,10 @@
 #
 
 #-- Include Paths
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+include_directories(
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cptsubcomp"
+)
 
 #-- SST Compile Options
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SST_LDFLAGS}" )

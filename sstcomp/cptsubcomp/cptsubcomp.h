@@ -77,7 +77,7 @@ public:
   )
   SST_ELI_DOCUMENT_PARAMS( 
     { "max", "Maximum number of test elements", "1024" },
-    { "seed","Initial seed for data generation", "0"}
+    { "seed","Initial seed for data generation", "1223"}
   )
 
   cptSubCompVecInt(ComponentId_t id, Params& params);

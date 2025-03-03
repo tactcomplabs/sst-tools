@@ -17,11 +17,11 @@ using namespace SST::CPTSubComp;
 // cptSubCompVecInt
 cptSubCompVecInt::cptSubCompVecInt(ComponentId_t id, Params& params) {
     max = params.find<size_t>("max", 1024);
-    seed = params.find<unsigned>("seed", 0);
+    seed = params.find<unsigned>("seed", 1223);
     assert(max>0);
     rng = new SST::RNG::MersenneRNG(seed);
     for (size_t i=0; i<max; i++)
-     tut.push_back(rng->generateNextInt32());
+        tut.push_back(rng->generateNextInt32());
 }
 
 cptSubCompVecInt::~cptSubCompVecInt()

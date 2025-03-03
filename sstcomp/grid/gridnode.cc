@@ -28,11 +28,8 @@ GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
   const std::string cpuClock = params.find< std::string >("clockFreq", "1GHz");
   clockHandler  = new SST::Clock::Handler2<GridNode,&GridNode::clockTick>(this);
   timeConverter = registerClock(cpuClock, clockHandler);
-  registerAsPrimaryComponent();
-  primaryComponentDoNotEndSim();
 
   // read the rest of the parameters
-
   numBytes = params.find<uint64_t>("numBytes", 16384);
   numPorts = params.find<unsigned>("numPorts", 8);
   minData = params.find<uint64_t>("minData", 10);
@@ -43,14 +40,19 @@ GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
   rngSeed = params.find<unsigned>("rngSeed", 1223);
   demoBug = params.find<unsigned>("demoBug", 0);
 
+  // Load optional subcomponent in the cpt_check slot
+  cptSubComp = loadUserSubComponent<CPTSubComp::CPTSubCompAPI>("cptSubComp");
+  
+  // Complete construction
+  registerAsPrimaryComponent();
+  primaryComponentDoNotEndSim();
+
   // bug injection
   dataMax += demoBug;
   
   // Checkpoint markers
-
   cptBegin = 0xffb0000000000000UL | (id&0xffffffff)<<16 | 0xb1ffUL;
   cptEnd = 0xffe0000000000000UL | (id&0xffffffff)<<16 | 0xe1ffUL;
-  
   output.verbose(CALL_INFO, 1, 0, 
     "Checkpoint markers for component id %" PRId64 " = [ 0x%" PRIx64 " 0x%" PRIx64 " ]\n",
     id, cptBegin, cptEnd );
@@ -199,6 +201,11 @@ void GridNode::handleEvent(SST::Event *ev){
   }
   
   delete ev;
+
+  // Periodic subcomponent self-checking
+  if (cptSubComp && cptSubComp->check())
+    output.fatal(CALL_INFO, -1, "%s subcomponent self-check failed\n", getName().c_str());
+
 }
 
 void GridNode::sendData(){
@@ -271,6 +278,10 @@ bool GridNode::clockTick( SST::Cycle_t currentCycle ){
                     i, state[i], ((unsigned)(i) + rngSeed));
     }
   }
+
+  // Perform checkpoint subcomponent update every clock.
+  if (cptSubComp)
+    cptSubComp->update();
 
   // check to see whether we need to send data over the links
   curCycle++;

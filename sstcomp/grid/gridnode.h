@@ -26,6 +26,10 @@
 #include <sst/core/rng/distrib.h>
 #include <sst/core/rng/rng.h>
 #include <sst/core/rng/mersenne.h>
+
+// -- SubComponent API
+#include "cptsubcomp.h"
+
 // clang-format on
 
 namespace SST::GridNode{
@@ -186,6 +190,9 @@ private:
   void sendData();
   /// calculates the port number for the receiver
   unsigned neighbor(unsigned n);
+
+  // SubComponent for testing checkpointing of various types
+  SST::CPTSubComp::CPTSubCompAPI* cptSubComp;
 
 };  // class GridNode
 }   // namespace SST::GridNode
