@@ -23,9 +23,6 @@
 
 // -- SST Headers
 #include "SST.h"
-#include <sst/core/interfaces/simpleNetwork.h>
-#include <sst/core/link.h>
-#include <sst/core/model/element_python.h>
 #include <sst/core/rng/distrib.h>
 #include <sst/core/rng/rng.h>
 #include <sst/core/rng/mersenne.h>

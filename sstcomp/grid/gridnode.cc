@@ -277,7 +277,7 @@ bool GridNode::clockTick( SST::Cycle_t currentCycle ){
   if( curCycle >= clkDelay ){
     sendData();
     curCycle = 0;
-    clkDelay = localRNG->generateNextUInt32() % (maxDelay-minDelay+1) + minData;
+    clkDelay = localRNG->generateNextUInt32() % (maxDelay-minDelay+1) + minDelay;
   }
 
   // check to see if we've reached the completion state
