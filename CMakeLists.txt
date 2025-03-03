@@ -98,11 +98,16 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 #-- MPI Availability
-execute_process(
-  COMMAND mpirun --version
-  COMMAND egrep -q "mpirun .+ 4\."
-  RESULT_VARIABLE mpiDisable
-)
+option(ALLOW_MPI "Use MPI if available for testing" ON)
+if ( ${ALLOW_MPI} )
+  execute_process(
+    COMMAND mpirun --version
+    COMMAND egrep -q "mpirun .+ 4\."
+    RESULT_VARIABLE mpiDisable
+    )
+else()
+  set(mpiDisable 1)
+endif()
 
 #---------------------------------------------
 # TARGET OPTIONS

@@ -14,6 +14,7 @@ Design and debug utilities, examples, and methods for SST developers
 
 Additional cmake configuration options include:
 
+    ALLOW_MPI - Enable MPI for testing if available (ON)
     SST_TOOLS_CLEAN_TESTS - delete saved checkpoint directories (ON)
     WERROR - enabled -Werror compile flag (ON)
 
