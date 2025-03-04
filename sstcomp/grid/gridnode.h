@@ -197,7 +197,7 @@ private:
   unsigned neighbor(unsigned n);
 
   // SubComponent for testing checkpointing of various types
-  SST::CPTSubComp::CPTSubCompAPI* CPTSubComp;
+  SST::CPTSubComp::CPTSubCompAPI* CPTSubComp = nullptr;
 
 };  // class GridNode
 }   // namespace SST::GridNode

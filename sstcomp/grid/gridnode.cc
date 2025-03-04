@@ -19,8 +19,9 @@ namespace SST::GridNode{
 GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
   SST::Component( id ), timeConverter(nullptr), clockHandler(nullptr),
   numPorts(8), minData(10), maxData(256), minDelay(20), maxDelay(100), clocks(1000),
-  curCycle(0), demoBug(0), dataMask(0x1ffffff), dataMax(0x1ffffff) {
-  
+  curCycle(0), demoBug(0), dataMask(0x1ffffff), dataMax(0x1ffffff) 
+{
+  tcldbg::spinner("GRID_SPINNER");
   uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
   output.init(
     "GridNode[" + getName() + ":@p:@t]: ",
@@ -42,7 +43,6 @@ GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
   int checkSlot = params.find<int>("checkSlot", 0);
 
   // Load optional subcomponent in the cpt_check slot
-  tcldbg::spinner("GRID_SPINNER");
   CPTSubComp = loadUserSubComponent<CPTSubComp::CPTSubCompAPI>("CPTSubComp");
   if (checkSlot && !CPTSubComp) {
     output.fatal(CALL_INFO, -1, "SubComponent did not load properly\n");
