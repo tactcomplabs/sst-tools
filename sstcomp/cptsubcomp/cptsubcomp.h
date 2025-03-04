@@ -60,8 +60,9 @@ public:
   virtual void update() = 0;
 
   // Serialization
-  CPTSubCompAPI() {};
+  CPTSubCompAPI();
   ImplementVirtualSerializable(SST::CPTSubComp::CPTSubCompAPI);
+
 };
 
 // subcomponent implementation for std::vector<int>
@@ -76,7 +77,8 @@ public:
     SST::CPTSubComp::CPTSubCompAPI // Fully qualified name of the API this subcomponent implements
   )
   SST_ELI_DOCUMENT_PARAMS( 
-    { "max", "Maximum number of test elements", "1024" },
+    {"verbose", "Sets the verbosity level of output", "0" },
+    { "max", "Maximum number of test elements", "100" },
     { "seed","Initial seed for data generation", "1223"}
   )
 
@@ -91,9 +93,15 @@ public:
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
 
 private:
+  // Internal handlers
+  SST::Output    output;               ///< SST output handler
+
+private:
+  unsigned clocks;
   size_t max;
   unsigned seed;
-  std::vector<int32_t> tut;
+  std::vector<int32_t> tut;     // type under test
+  std::vector<int32_t> tutini;  // initial values for type under test
   SST::RNG::Random* rng;
 
 }; //class CPTSubCompAPI

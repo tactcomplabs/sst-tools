@@ -46,7 +46,7 @@ GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
   CPTSubComp = loadUserSubComponent<CPTSubComp::CPTSubCompAPI>("CPTSubComp");
   if (checkSlot && !CPTSubComp)
     output.fatal(CALL_INFO, -1, "SubComponent did not load properly\n");
-
+  
   // Complete construction
   registerAsPrimaryComponent();
   primaryComponentDoNotEndSim();

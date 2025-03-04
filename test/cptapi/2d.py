@@ -12,7 +12,6 @@
 #
 
 import argparse
-import os
 import sst
 import sys
 
@@ -26,9 +25,11 @@ parser.add_argument("--clocks", type=int, help="number of clocks to run sim", de
 parser.add_argument("--minDelay", type=int, help="min number of clocks between transmissions", default=50)
 parser.add_argument("--maxDelay", type=int, help="max number of clocks between transmissions", default=100)
 parser.add_argument("--rngSeed", type=int, help="seed for random number generator", default=1223)
-parser.add_argument("--subcomp", type=str, help="subcomponent for CPTSubComp (extends CPTSubCompAPI)", default=None)
 parser.add_argument("--demoBug", type=int, help="induce bug for debug demonstration", default=0)
 parser.add_argument("--verbose", type=int, help="verbosity level", default=1)
+# SubComponent
+parser.add_argument("--subcomp", type=str, help="subcomponent for CPTSubComp (extends CPTSubCompAPI)", default=None)
+parser.add_argument("--submax", type=int, help="subcomponent max param)", default=100)
 args = parser.parse_args()
 
 print("2d grid test SST Simulation Configuration:")
@@ -60,13 +61,14 @@ class GRIDNODE():
     id = f"cp_{x}_{y}"
     self.id = id
     self.comp = sst.Component(id, "grid.GridNode" )
+    self.comp.addParams(comp_params)
     # Provide subcomponent if specified as well as sanity check the slot actually loads
     if args.subcomp != None:
       if args.subcomp not in SUPPORTED_SUBCOMPONENTS:
         sys.exit(f"subcomp must be one of: {SUPPORTED_SUBCOMPONENTS}")
-      self.comp.setSubComponent("CPTSubComp", args.subcomp )
-      comp_params["checkSlot"] = 1
-    self.comp.addParams(comp_params)
+      subcomp=self.comp.setSubComponent("CPTSubComp", args.subcomp )
+      subcomp.addParam("max", args.submax)
+      self.comp.addParam("checkSlot",1)
     # everyone gets 8 links, up/down/left/right, send/rcv
     # links here are associated with this component's send ports
     self.upLink = sst.Link(f"upLink_{x}_{y}")
