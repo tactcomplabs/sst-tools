@@ -60,7 +60,7 @@ public:
   virtual void update() = 0;
 
   // Serialization
-  CPTSubCompAPI();
+  CPTSubCompAPI() {};
   ImplementVirtualSerializable(SST::CPTSubComp::CPTSubCompAPI);
 };
 

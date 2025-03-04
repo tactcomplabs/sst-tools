@@ -15,7 +15,7 @@ using namespace SST;
 using namespace SST::CPTSubComp;
 
 // cptSubCompVecInt
-CPTSubCompVecInt::CPTSubCompVecInt(ComponentId_t id, Params& params) {
+CPTSubCompVecInt::CPTSubCompVecInt(ComponentId_t id, Params& params) : CPTSubCompAPI() {
     max = params.find<size_t>("max", 1024);
     seed = params.find<unsigned>("seed", 1223);
     assert(max>0);
