@@ -46,7 +46,7 @@ public:
   GridNodeEvent(std::vector<unsigned> d) : SST::Event(), data(d) {}
 
   /// GridNodeEvent: destructor
-  ~GridNodeEvent() {}
+  virtual ~GridNodeEvent() {}
 
   /// GridNodeEvent: retrieve the data
   std::vector<unsigned> const getData() { return data; }

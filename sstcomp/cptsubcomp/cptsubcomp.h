@@ -83,20 +83,21 @@ public:
   )
 
   CPTSubCompVecInt(ComponentId_t id, Params& params);
-  ~CPTSubCompVecInt();
+  virtual ~CPTSubCompVecInt();
 
   // API members
   int check() override;
   void update() override;
 
   // Serialization
+  CPTSubCompVecInt();
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
-
+  // This causes grid to fail with the following error
+  // SST-DL: Loading failed for /Users/kgriesser/work/sst-tools/build/sstcomp/grid/libgrid.dylib, error: dlopen(/Users/kgriesser/work/sst-tools/build/sstcomp/grid/libgrid.dylib, 0x0009): symbol not found in flat namespace '__ZTIN3SST10CPTSubComp16CPTSubCompVecIntE'
+  // ImplementSerializable(SST::CPTSubComp::CPTSubCompVecInt);
+  
 private:
-  // Internal handlers
-  SST::Output    output;               ///< SST output handler
-
-private:
+  SST::Output    output;        ///< SST output handler
   unsigned clocks;
   size_t max;
   unsigned seed;
