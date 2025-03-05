@@ -54,7 +54,7 @@ comp_params = {
 }
 
 SUPPORTED_SUBCOMPONENTS = [
-  "grid.CPTSubCompVecInt"
+  "cptsubcomp.CPTSubCompVecInt"
 ]
 class GRIDNODE():
   def __init__(self, x, y):
@@ -68,6 +68,7 @@ class GRIDNODE():
         sys.exit(f"subcomp must be one of: {SUPPORTED_SUBCOMPONENTS}")
       subcomp=self.comp.setSubComponent("CPTSubComp", args.subcomp )
       subcomp.addParam("max", args.submax)
+      subcomp.addParam("verbose", args.verbose)
       self.comp.addParam("checkSlot",1)
     # everyone gets 8 links, up/down/left/right, send/rcv
     # links here are associated with this component's send ports

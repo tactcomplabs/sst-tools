@@ -37,6 +37,8 @@
 #include "sst/core/subcomponent.h"
 // clang-format on
 
+//#define KG_SERIALIZE
+
 namespace SST::CPTSubComp{
 
 // -------------------------------------------------------
@@ -59,10 +61,11 @@ public:
   // Update the subcomponent internal state
   virtual void update() = 0;
 
+#ifdef KG_SERIALIZE
   // Serialization
   CPTSubCompAPI() {};
   ImplementVirtualSerializable(SST::CPTSubComp::CPTSubCompAPI);
-
+#endif
 };
 
 // subcomponent implementation for std::vector<int>
@@ -70,7 +73,7 @@ class CPTSubCompVecInt : public CPTSubCompAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
     CPTSubCompVecInt,     // Class name
-    "grid",               // Library name, the 'lib' in SST's lib.name format
+    "cptsubcomp",         // Library name, the 'lib' in SST's lib.name format
     "CPTSubCompVecInt",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
     SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
     "SubComponent for checkpoint type std::vector<int>", // Description
@@ -89,11 +92,13 @@ public:
   int check() override;
   void update() override;
 
+#ifdef KG_SERIALIZE
   // Serialization
   CPTSubCompVecInt() : CPTSubCompAPI() {};
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
   ImplementSerializable(SST::CPTSubComp::CPTSubCompVecInt);
-  
+#endif
+
 private:
   SST::Output    output;        ///< SST output handler
   unsigned clocks;

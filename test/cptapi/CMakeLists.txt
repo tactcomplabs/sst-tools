@@ -11,12 +11,12 @@
 # checks them and conditionally deletes the checkpoint files.
 
 set(testSrc 2d.py)
-set(UserLibs "--add-lib-path=${CMAKE_BINARY_DIR}/sstcomp/grid")
+set(UserLibs "--add-lib-path=${CMAKE_BINARY_DIR}/sstcomp/cptsubcomp --add-lib-path=${CMAKE_BINARY_DIR}/sstcomp/grid")
 set (passRegex "Simulation is complete")
 set (failRegex "[Ee][Rr][Rr][Oo][Rr]")
 get_filename_component(testName ${testSrc} NAME_WLE)
 set(CHKPT_PFX ${testName}_SAVE_)
-set(SUBCOMP "--subcomp=grid.CPTSubCompVecInt")
+set(SUBCOMP "--subcomp=cptsubcomp.CPTSubCompVecInt")
 
 # For simple ctest just running MPI with 2 ranks.
 # May need to add RUN_SERIAL property for threaded tests as some point.
