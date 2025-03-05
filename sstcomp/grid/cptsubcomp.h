@@ -60,7 +60,7 @@ public:
   virtual void update() = 0;
 
   // Serialization
-  CPTSubCompAPI();
+  CPTSubCompAPI() {};
   ImplementVirtualSerializable(SST::CPTSubComp::CPTSubCompAPI);
 
 };
@@ -70,7 +70,7 @@ class CPTSubCompVecInt : public CPTSubCompAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
     CPTSubCompVecInt,     // Class name
-    "CPTSubComp",         // Library name, the 'lib' in SST's lib.name format
+    "grid",               // Library name, the 'lib' in SST's lib.name format
     "CPTSubCompVecInt",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
     SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
     "SubComponent for checkpoint type std::vector<int>", // Description
@@ -90,11 +90,9 @@ public:
   void update() override;
 
   // Serialization
-  CPTSubCompVecInt();
+  CPTSubCompVecInt() : CPTSubCompAPI() {};
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
-  // This causes grid to fail with the following error
-  // SST-DL: Loading failed for /Users/kgriesser/work/sst-tools/build/sstcomp/grid/libgrid.dylib, error: dlopen(/Users/kgriesser/work/sst-tools/build/sstcomp/grid/libgrid.dylib, 0x0009): symbol not found in flat namespace '__ZTIN3SST10CPTSubComp16CPTSubCompVecIntE'
-  // ImplementSerializable(SST::CPTSubComp::CPTSubCompVecInt);
+  ImplementSerializable(SST::CPTSubComp::CPTSubCompVecInt);
   
 private:
   SST::Output    output;        ///< SST output handler

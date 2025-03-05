@@ -10,15 +10,12 @@
 #-- Include Paths
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/cptsubcomp"
 )
 
 #-- SST Compile Options
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SST_LDFLAGS}" )
 
 #-- Components
-message(STATUS "[SST-TOOLS] Enabling cptsubcomp")
-add_subdirectory(cptsubcomp)
 message(STATUS "[SST-TOOLS] Enabling dbgcli")
 add_subdirectory(dbgcli)
 message(STATUS "[SST-TOOLS] Enabling grid")
