@@ -75,8 +75,8 @@ execute_process(COMMAND ${SCRIPTS}/sst-minor-version.sh
 message(STATUS "SST MAJOR VERSION=${SST_MAJOR_VERSION}")
 
 #-- Compiler Options
-option(WERROR "Compile with warnings as errors" ON)
-if (WERROR)
+option(SST_TOOLS_WERROR "Compile with warnings as errors" ON)
+if (SST_TOOLS_WERROR)
   set(WERROR_FLAG "-Werror")
 endif()
 
@@ -98,8 +98,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 #-- MPI Availability
-option(ALLOW_MPI "Use MPI if available for testing" ON)
-if ( ${ALLOW_MPI} )
+option(SST_TOOLS_MPI "Use MPI if available for testing" OFF)
+if ( ${SST_TOOLS_MPI} )
   execute_process(
     COMMAND mpirun --version
     COMMAND egrep -q "mpirun .+ 4\."
@@ -120,7 +120,9 @@ add_subdirectory(src)
 
 #-- Testing Options
 option(SST_TOOLS_CLEAN_TESTS "Clean test directories after running" ON)
-option(SST_TOOLS_ENABLE_TESTING "Enable Testing" OFF)
+option(SST_TOOLS_ENABLE_TESTING "Enable testing" OFF)
+option(SST_TOOLS_SOCKETS "Enable tests using sockets" ON)
+
 #-- Checkpoint Serialization build flags (temporary)
 if ( ${SST_MAJOR_VERSION} EQUAL "90" )
   set(SST_SCHEMA_TESTING ON)

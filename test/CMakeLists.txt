@@ -13,8 +13,10 @@ else()
   message(STATUS "[SST-TOOLS] Testing with MPI enabled")
 endif()
 
-message(STATUS "[SST-TOOLS] Enabling DBGCLI testing")
-add_subdirectory(dbgcli)
+if (${SST_TOOLS_SOCKETS})
+  message(STATUS "[SST-TOOLS] Enabling DBGCLI testing")
+  add_subdirectory(dbgcli)
+endif()
 
 message(STATUS "[SST-TOOLS] Enabling CPTAPI testing")
 add_subdirectory(cptapi)
