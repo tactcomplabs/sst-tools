@@ -58,16 +58,16 @@ void CPTSubCompVecInt::update()
 }
 
 #ifdef KG_SERIALIZE
-// void CPTSubCompVecInt::serialize_order(SST::Core::Serialization::serializer &ser)
-// {
-//     SST_SER(output);
-//     SST_SER(clocks);
-//     SST_SER(max);
-//     SST_SER(seed);
-//     SST_SER(tut);
-//     SST_SER(tutini);
-//     SST_SER(rng);
-// }
+void CPTSubCompVecInt::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+    SST_SER(output);
+    SST_SER(clocks);
+    SST_SER(max);
+    SST_SER(seed);
+    SST_SER(tut);
+    SST_SER(tutini);
+    SST_SER(rng);
+}
 #endif
 
 // EOF
