@@ -77,7 +77,7 @@ set_tests_properties(${testName}_RESTORE_VECINT
   PROPERTIES
   TIMEOUT 60
   LABELS "cptapi"
-  DEPENDS ${testName}_SAVE_SAVE_VECINT
+  DEPENDS ${testName}_SAVE_VECINT
   PASS_REGULAR_EXPRESSION "${passRegex}"
   FAIL_REGULAR_EXPRESSION "${failRegex}"
 )
