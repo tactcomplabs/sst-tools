@@ -43,6 +43,7 @@ CPTSubCompVecInt::~CPTSubCompVecInt()
 int CPTSubCompVecInt::check()
 {
     for (size_t i=0;i<max; i++) {
+        output.verbose(CALL_INFO, 1, 0, "Comparing %x %x\n", tut[i], tutini[i]);
         if (tut[i] != tutini[i] + (int32_t)clocks) 
             return 1;
     }
