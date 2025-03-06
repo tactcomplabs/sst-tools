@@ -37,7 +37,7 @@
 #include "sst/core/subcomponent.h"
 // clang-format on
 
-//#define KG_SERIALIZE
+#define KG_SERIALIZE
 
 namespace SST::CPTSubComp{
 
@@ -73,7 +73,7 @@ class CPTSubCompVecInt : public CPTSubCompAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
     CPTSubCompVecInt,     // Class name
-    "cptsubcomp",         // Library name, the 'lib' in SST's lib.name format
+    "grid",               // Library name, the 'lib' in SST's lib.name format
     "CPTSubCompVecInt",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
     SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
     "SubComponent for checkpoint type std::vector<int>", // Description

@@ -3,7 +3,6 @@
 echo "### checking run without subcomponent"
 
 sst --num-threads=2 \
-    --add-lib-path=/Users/kgriesser/work/sst-tools/build/sstcomp/cptsubcomp \
     --add-lib-path=/Users/kgriesser/work/sst-tools/build/sstcomp/grid \
     2d.py -- \
     --x=2 --y=2 --verbose=1
@@ -16,11 +15,10 @@ fi
 echo "### checking run with subcomponent"
 
 sst --num-threads=2 \
-    --add-lib-path=/Users/kgriesser/work/sst-tools/build/sstcomp/cptsubcomp \
     --add-lib-path=/Users/kgriesser/work/sst-tools/build/sstcomp/grid \
     2d.py -- \
     --x=2 --y=2 --verbose=1 \
-    --subcomp=cptsubcomp.CPTSubCompVecInt
+    --subcomp=grid.CPTSubCompVecInt
 
 if [ $? != 0 ]; then
     echo "run with subcomponent failed"
