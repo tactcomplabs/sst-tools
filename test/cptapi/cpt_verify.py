@@ -34,21 +34,29 @@ if __name__ == "__main__":
             if rank_thread=="_0_0":
                 checkDict['cp_0_0.segcbegin'] =  0xa5a5a5a5a5a5bb0c
                 checkDict['cp_0_0.cptBegin'] = 0xffb000000000b1ff
+                checkDict['cp_0_0.subcompBegin'] = 0xcccb00000000bccc
+                checkDict['cp_0_0.subcompEnd'] = 0xccce00000000eccc
                 checkDict['cp_0_0.cptEnd'] = 0xffe000000000e1ff
                 checkDict['cp_0_0.segcend'] = 0xa5a5a5a5a5a5ee0c
             elif rank_thread=="_0_1":
                 checkDict['cp_0_1.segcbegin'] = 0xa5a5a5a5a5a5bb0c
                 checkDict['cp_0_1.cptBegin'] = 0xffb000000001b1ff
+                checkDict['cp_0_1.subcompBegin'] = 0xcccb00000000bccc
+                checkDict['cp_0_1.subcompEnd'] = 0xccce00000000eccc
                 checkDict['cp_0_1.cptEnd'] = 0xffe000000001e1ff
                 checkDict['cp_0_1.segcend'] = 0xa5a5a5a5a5a5ee0c
             elif rank_thread=="_0_2":
                 checkDict['cp_1_0.segcbegin'] = 0xa5a5a5a5a5a5bb0c
                 checkDict['cp_1_0.cptBegin'] = 0xffb000000002b1ff
+                checkDict['cp_1_0.subcompBegin'] = 0xcccb00000000bccc
+                checkDict['cp_1_0.subcompEnd'] = 0xccce00000000eccc
                 checkDict['cp_1_0.cptEnd'] = 0xffe000000002e1ff
                 checkDict['cp_1_0.segcend'] = 0xa5a5a5a5a5a5ee0c
             elif rank_thread=="_0_3":
                 checkDict['cp_1_1.segcbegin'] = 0xa5a5a5a5a5a5bb0c
                 checkDict['cp_1_1.cptBegin'] = 0xffb000000003b1ff
+                checkDict['cp_1_1.subcompBegin'] = 0xcccb00000000bccc
+                checkDict['cp_1_1.subcompEnd'] = 0xccce00000000eccc
                 checkDict['cp_1_1.cptEnd'] = 0xffe000000003e1ff
                 checkDict['cp_1_1.segcend'] = 0xa5a5a5a5a5a5ee0c
     

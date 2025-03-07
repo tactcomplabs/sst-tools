@@ -43,7 +43,7 @@ set_tests_properties(${testName}_SAVE
 
 add_test(NAME ${testName}_RESTORE
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} ${CHKPT_PFX}/${CHKPT_PFX}_100_1010000/${CHKPT_PFX}_100_1010000.sstcpt --num-threads=2 ${UserLibs}
+  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} ${CHKPT_PFX}/${CHKPT_PFX}_800_8010000/${CHKPT_PFX}_800_8010000.sstcpt --num-threads=2 ${UserLibs}
 )
 set_tests_properties(${testName}_RESTORE
   PROPERTIES
@@ -71,7 +71,7 @@ set_tests_properties(${testName}_SAVE_VECINT
 
 add_test(NAME ${testName}_RESTORE_VECINT
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} ${CHKPT_PFX}VecInt/${CHKPT_PFX}VecInt_100_1010000/${CHKPT_PFX}VecInt_100_1010000.sstcpt --num-threads=2 ${UserLibs}
+  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} ${CHKPT_PFX}VecInt/${CHKPT_PFX}VecInt_800_8010000/${CHKPT_PFX}VecInt_800_8010000.sstcpt --num-threads=2 ${UserLibs}
 )
 set_tests_properties(${testName}_RESTORE_VECINT
   PROPERTIES

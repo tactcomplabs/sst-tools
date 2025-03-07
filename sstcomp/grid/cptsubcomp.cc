@@ -33,6 +33,8 @@ CPTSubCompVecInt::CPTSubCompVecInt(ComponentId_t id, Params& params) : CPTSubCom
         tut[i] = n;
         tutini[i] = n;
     }
+    subcompBegin = 0xcccb00000000bccc;
+    subcompEnd = 0xccce00000000eccc;
 }
 
 CPTSubCompVecInt::~CPTSubCompVecInt()
@@ -43,7 +45,7 @@ CPTSubCompVecInt::~CPTSubCompVecInt()
 int CPTSubCompVecInt::check()
 {
     for (size_t i=0;i<max; i++) {
-        output.verbose(CALL_INFO, 1, 0, "Comparing %x %x\n", tut[i], tutini[i]);
+        output.verbose(CALL_INFO, 2, 0, "Comparing %x %x\n", tut[i], tutini[i]);
         if (tut[i] != tutini[i] + (int32_t)clocks) 
             return 1;
     }
@@ -60,6 +62,7 @@ void CPTSubCompVecInt::update()
 #ifdef KG_SERIALIZE
 void CPTSubCompVecInt::serialize_order(SST::Core::Serialization::serializer &ser)
 {
+    SST_SER(subcompBegin);
     SST_SER(output);
     SST_SER(clocks);
     SST_SER(max);
@@ -67,6 +70,7 @@ void CPTSubCompVecInt::serialize_order(SST::Core::Serialization::serializer &ser
     SST_SER(tut);
     SST_SER(tutini);
     SST_SER(rng);
+    SST_SER(subcompEnd);
 }
 #endif
 

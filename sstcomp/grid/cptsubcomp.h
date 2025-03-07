@@ -100,6 +100,7 @@ public:
 #endif
 
 private:
+  uint64_t  subcompBegin;
   SST::Output    output;        ///< SST output handler
   unsigned clocks;
   size_t max;
@@ -107,6 +108,7 @@ private:
   std::vector<int32_t> tut;     // type under test
   std::vector<int32_t> tutini;  // initial values for type under test
   SST::RNG::Random* rng;
+  uint64_t subcompEnd;
 
 }; //class CPTSubCompAPI
 
