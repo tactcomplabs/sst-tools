@@ -43,7 +43,7 @@ set_tests_properties(${testName}_SAVE
 
 add_test(NAME ${testName}_RESTORE
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} ${CHKPT_PFX}/${CHKPT_PFX}_800_8010000/${CHKPT_PFX}_800_8010000.sstcpt --num-threads=2 ${UserLibs}
+  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} ${CHKPT_PFX} ${CHKPT_PFX}/${CHKPT_PFX}_800_8010000/${CHKPT_PFX}_800_8010000.sstcpt --num-threads=2 ${UserLibs}
 )
 set_tests_properties(${testName}_RESTORE
   PROPERTIES
@@ -55,29 +55,16 @@ set_tests_properties(${testName}_RESTORE
 )
 
 #  
-# Checkpoint Save -- --subcomp=CPTSubComp.CPTSubCompVecInt
+# Checkpoint Save/Restore -- --subcomp=grid.CPTSubCompVecInt
 #
-add_test(NAME ${testName}_SAVE_VECINT
+add_test(NAME ${testName}_VECINT
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND ${SCRIPTS}/sst-chkpt.sh ${nmpi} ${CHKPT_PFX}VecInt --num-threads=2 ${UserLibs} ${testSrc} --checkpoint-period=10ns -- --x=2 --y=2 ${SUBCOMP}
+  COMMAND vecint-test.sh ${SST_TOOLS_CLEAN_TESTS}
 )
-set_tests_properties(${testName}_SAVE_VECINT
+set_tests_properties(${testName}_VECINT
   PROPERTIES
   TIMEOUT 60
   LABELS "cptapi"
-  PASS_REGULAR_EXPRESSION "${passRegex}"
-  FAIL_REGULAR_EXPRESSION "${failRegex}"
-)
-
-add_test(NAME ${testName}_RESTORE_VECINT
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} ${CHKPT_PFX}VecInt/${CHKPT_PFX}VecInt_800_8010000/${CHKPT_PFX}VecInt_800_8010000.sstcpt --num-threads=2 ${UserLibs}
-)
-set_tests_properties(${testName}_RESTORE_VECINT
-  PROPERTIES
-  TIMEOUT 60
-  LABELS "cptapi"
-  DEPENDS ${testName}_SAVE_VECINT
   PASS_REGULAR_EXPRESSION "${passRegex}"
   FAIL_REGULAR_EXPRESSION "${failRegex}"
 )
