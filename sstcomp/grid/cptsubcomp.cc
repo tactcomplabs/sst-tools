@@ -44,8 +44,9 @@ CPTSubCompVecInt::~CPTSubCompVecInt()
 
 int CPTSubCompVecInt::check()
 {
+    tcldbg::spinner("CHECK_SPINNER");
     for (size_t i=0;i<max; i++) {
-        output.verbose(CALL_INFO, 2, 0, "Comparing %x %x\n", tut[i], tutini[i]);
+        output.verbose(CALL_INFO, 3, 0, "Comparing %x %x\n", tut[i], tutini[i]);
         if (tut[i] != tutini[i] + (int32_t)clocks) 
             return 1;
     }
@@ -75,3 +76,20 @@ void CPTSubCompVecInt::serialize_order(SST::Core::Serialization::serializer &ser
 #endif
 
 // EOF
+
+void SST::CPTSubComp::CPTSubCompVecInt::setup()
+{
+    output.verbose(CALL_INFO, 2, 0, "setup() clocks %d check 0x%x\n", clocks, tut[0]);
+}
+
+void CPTSubCompVecInt::finish()
+{
+    tcldbg::spinner("FINISH_SPINNER");
+    output.verbose(CALL_INFO, 2, 0, "finish() clocks %d check 0x%x\n", clocks, tut[0]);
+    if (tut[0] != tutini[0] + (int)clocks) {
+        if (check()) {
+            output.fatal(CALL_INFO, -1, "final check failed\n");
+        }
+    }
+        
+}

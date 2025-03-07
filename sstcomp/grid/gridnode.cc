@@ -21,7 +21,7 @@ GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
   numPorts(8), minData(10), maxData(256), minDelay(20), maxDelay(100), clocks(1000),
   curCycle(0), demoBug(0), dataMask(0x1ffffff), dataMax(0x1ffffff) 
 {
-  tcldbg::spinner("GRID_SPINNER");
+  tcldbg::spinner("GRIDNODE_SPINNER");
   uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
   output.init(
     "GridNode[" + getName() + ":@p:@t]: ",
@@ -119,9 +119,24 @@ GridNode::~GridNode(){
 }
 
 void GridNode::setup(){
+  for (auto d : state ) initialCheck += d;
+  output.verbose(CALL_INFO, 2, 0, 
+    "%s setup() clocks %" PRIu64 " check 0x%" PRIx64 "\n",
+    getName().c_str(), clocks, initialCheck
+  );
+  if (CPTSubComp) CPTSubComp->setup();
 }
 
 void GridNode::finish(){
+  uint64_t check = 0;
+  for (auto d : state ) check += d;
+  output.verbose(CALL_INFO, 2, 0, 
+    "%s finish() clocks %" PRIu64 " check 0x%" PRIx64 "\n",
+    getName().c_str(), clocks, check
+  );
+  if (check != initialCheck)
+    output.fatal(CALL_INFO, -1, "Final check failed\n");
+  if (CPTSubComp) CPTSubComp->finish();
 }
 
 void GridNode::init( unsigned int phase ){
@@ -141,26 +156,36 @@ void GridNode::printStatus( Output& out ){
 
 void GridNode::serialize_order(SST::Core::Serialization::serializer& ser){
   SST::Component::serialize_order(ser);
+  // Start of serialized members
   SST_SER(cptBegin)
+  // -- SST handlers
+  SST_SER(output)
+  SST_SER(timeConverter)
   SST_SER(clockHandler)
+  SST_SER(CPTSubComp)
+  // -- parameters
   SST_SER(numBytes)
   SST_SER(numPorts)
   SST_SER(minData)
   SST_SER(maxData)
   SST_SER(minDelay)
   SST_SER(maxDelay)
-  SST_SER(clkDelay)
   SST_SER(clocks)
   SST_SER(rngSeed)
-  SST_SER(state)
   SST_SER(curCycle)
-  SST_SER(portname)
-  SST_SER(rng)
-  SST_SER(localRNG)
-  SST_SER(linkHandlers)
+  // Bug injection
   SST_SER(demoBug)
   SST_SER(dataMask)
   SST_SER(dataMax)
+  // -- internal state
+  SST_SER(clkDelay)
+  SST_SER(portname)
+  SST_SER(linkHandlers)
+  SST_SER(state)
+  SST_SER(initialCheck)
+  SST_SER(rng)
+  SST_SER(localRNG)
+  // -- End of checkpointed members
   SST_SER(cptEnd)
 }
 

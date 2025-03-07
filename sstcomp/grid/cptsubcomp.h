@@ -88,6 +88,10 @@ public:
   CPTSubCompVecInt(ComponentId_t id, Params& params);
   virtual ~CPTSubCompVecInt();
 
+  // subcomponent overrides
+  virtual void setup() override;
+  virtual void finish() override;
+
   // API members
   int check() override;
   void update() override;

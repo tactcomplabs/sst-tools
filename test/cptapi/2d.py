@@ -69,6 +69,7 @@ class GRIDNODE():
       subcomp=self.comp.setSubComponent("CPTSubComp", args.subcomp )
       subcomp.addParam("max", args.submax)
       subcomp.addParam("verbose", args.verbose)
+      subcomp.addParam("seed", args.rngSeed + ( x << 16 ) + y)
       self.comp.addParam("checkSlot",1)
     # everyone gets 8 links, up/down/left/right, send/rcv
     # links here are associated with this component's send ports

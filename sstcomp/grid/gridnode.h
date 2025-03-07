@@ -155,11 +155,13 @@ public:
   ImplementSerializable(SST::GridNode::GridNode)
 
 private:
-  // -- internal handlers
+  // Start of serialized members
+  uint64_t cptBegin;                              ///< Mark beginning of checkpoint sequence
+  // -- SST handlers
   SST::Output    output;                          ///< SST output handler
   TimeConverter* timeConverter;                   ///< SST time conversion handler
   SST::Clock::HandlerBase* clockHandler;          ///< Clock Handler
-
+  CPTSubComp::CPTSubCompAPI* CPTSubComp=nullptr;  ///< SubComponent for additional testing
   // -- parameters
   uint64_t numBytes;                              ///< number of bytes of internal state
   unsigned numPorts;                              ///< number of ports to configure
@@ -170,23 +172,20 @@ private:
   uint64_t clocks;                                ///< number of clocks to execute
   unsigned rngSeed;                               ///< base seed for random number generator
   uint64_t curCycle;                              ///< current cycle delay
-
   // Bug injection
   unsigned demoBug;                               ///< induce bug for debug demonstration
   uint64_t dataMask;                              ///< send only 16 bits of data
   uint64_t dataMax;                               ///< change to inject illegal values
-
   // -- internal state
   uint64_t clkDelay = 0;                          ///< current clock delay
   std::vector<std::string> portname;              ///< port 0 to numPorts names
   std::vector<SST::Link *> linkHandlers;          ///< LinkHandler objects
   std::vector<unsigned> state;                    ///< internal data structure
+  uint64_t initialCheck = 0;                      ///< starting state signature
   std::map< std::string, SST::RNG::Random* > rng; ///< per port mersenne twister objects
-  SST::RNG::Random* localRNG = 0;                 ///< component local random number generator
-
-  // -- checkpoint debug
-  uint64_t cptBegin;
-  uint64_t cptEnd;
+  RNG::Random* localRNG = 0;                      ///< component local random number generator                                     
+  // -- End of checkpointed members
+  uint64_t cptEnd;                                ///< Mark ending of checkpoint sequence             
 
   // -- private methods
   /// event handler
@@ -195,9 +194,6 @@ private:
   void sendData();
   /// calculates the port number for the receiver
   unsigned neighbor(unsigned n);
-
-  // SubComponent for testing checkpointing of various types
-  SST::CPTSubComp::CPTSubCompAPI* CPTSubComp = nullptr;
 
 };  // class GridNode
 }   // namespace SST::GridNode
