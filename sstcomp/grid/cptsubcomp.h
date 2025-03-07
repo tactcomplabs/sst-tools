@@ -69,7 +69,7 @@ public:
 };
 
 // subcomponent implementation for std::vector<int>
-class CPTSubCompVecInt : public CPTSubCompAPI {
+class CPTSubCompVecInt final : public CPTSubCompAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
     CPTSubCompVecInt,     // Class name
