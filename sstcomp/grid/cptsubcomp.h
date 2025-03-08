@@ -116,6 +116,76 @@ private:
 
 }; //class CPTSubCompAPI
 
+// test struct
+struct struct_t : public SST::Core::Serialization::serializable {
+  uint8_t u8;
+  uint16_t u16;
+  uint32_t u32;
+  uint64_t u64;
+  std::string toString() {
+    std::stringstream s; 
+    s << std::hex << "0x" << u8 << " 0x" << u16 << " 0x" << u32 << " 0x " << u64;
+    return s.str();
+  };
+  struct_t() {};
+  void serialize_order(SST::Core::Serialization::serializer& ser) override {
+    SST_SER(u8);
+    SST_SER(u16);
+    SST_SER(u32);
+    SST_SER(u64);
+  };
+  ImplementSerializable(SST::CPTSubComp::struct_t) ;
+};
+
+// subcomponent implementation for std::pair<struct,struct>
+class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
+
+  public:
+    SST_ELI_REGISTER_SUBCOMPONENT(
+      CPTSubCompPairOfStructs,     // Class name
+      "grid",               // Library name, the 'lib' in SST's lib.name format
+      "CPTSubCompPairOfStructs",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
+      SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
+      "SubComponent for checkpoint type std::vector<int>", // Description
+      SST::CPTSubComp::CPTSubCompAPI // Fully qualified name of the API this subcomponent implements
+    )
+    SST_ELI_DOCUMENT_PARAMS( 
+      {"verbose", "Sets the verbosity level of output", "0" },
+      { "max", "Maximum number of test elements", "100" },
+      { "seed","Initial seed for data generation", "1223"}
+    )
+  
+    CPTSubCompPairOfStructs(ComponentId_t id, Params& params);
+    virtual ~CPTSubCompPairOfStructs();
+  
+    // subcomponent overrides
+    virtual void setup() override;
+    virtual void finish() override;
+  
+    // API members
+    int check() override;
+    void update() override;
+  
+  #ifdef KG_SERIALIZE
+    // Serialization
+    CPTSubCompPairOfStructs() : CPTSubCompAPI() {};
+    void serialize_order(SST::Core::Serialization::serializer& ser) override;
+    ImplementSerializable(SST::CPTSubComp::CPTSubCompPairOfStructs);
+  #endif
+  
+  private:
+    uint64_t  subcompBegin;
+    SST::Output    output;        ///< SST output handler
+    unsigned clocks;
+    size_t max;
+    unsigned seed;
+    std::pair<struct_t, struct_t> tut;     // type under test
+    std::pair<struct_t, struct_t> tutini;  // initial values for type under test
+    SST::RNG::Random* rng;
+    uint64_t subcompEnd;
+  
+  }; //class CPTSubCompAPI
+  
 } // namespace SST::CPTSubComp
 
 #endif  // _SST_CPTSUBCOMP_H_

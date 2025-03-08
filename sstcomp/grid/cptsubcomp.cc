@@ -44,7 +44,6 @@ CPTSubCompVecInt::~CPTSubCompVecInt()
 
 int CPTSubCompVecInt::check()
 {
-    tcldbg::spinner("CHECK_SPINNER");
     for (size_t i=0;i<max; i++) {
         output.verbose(CALL_INFO, 3, 0, "Comparing %x %x\n", tut[i], tutini[i]);
         if (tut[i] != tutini[i] + (int32_t)clocks) 
@@ -84,12 +83,63 @@ void SST::CPTSubComp::CPTSubCompVecInt::setup()
 
 void CPTSubCompVecInt::finish()
 {
-    tcldbg::spinner("FINISH_SPINNER");
     output.verbose(CALL_INFO, 2, 0, "finish() clocks %d check 0x%x\n", clocks, tut[0]);
-    if (tut[0] != tutini[0] + (int)clocks) {
-        if (check()) {
-            output.fatal(CALL_INFO, -1, "final check failed\n");
-        }
-    }
-        
+    if (check())
+        output.fatal(CALL_INFO, -1, "final check failed\n");
+}
+
+SST::CPTSubComp::CPTSubCompPairOfStructs::~CPTSubCompPairOfStructs()
+{
+    if (rng) delete rng;
+}
+
+void SST::CPTSubComp::CPTSubCompPairOfStructs::setup()
+{
+    output.verbose(CALL_INFO, 2, 0, "setup() clocks %d check {%s} : {%s}\n", 
+        clocks, tut.first.toString().c_str(), tut.second.toString().c_str());
+}
+
+void SST::CPTSubComp::CPTSubCompPairOfStructs::finish()
+{
+    output.verbose(CALL_INFO, 2, 0, 
+        "finish() clocks %d check {%s} : {%s}\n", 
+        clocks, tut.first.toString().c_str(), tut.second.toString().c_str()
+    );
+    // TODO
+    // if (check())
+    //     output.fatal(CALL_INFO, -1, "final check failed\n");  
+}
+
+int SST::CPTSubComp::CPTSubCompPairOfStructs::check()
+{
+    // TODO
+    // for (size_t i=0;i<max; i++) {
+    //     output.verbose(CALL_INFO, 3, 0, "Comparing %x %x\n", tut[i], tutini[i]);
+    //     if (tut[i] != tutini[i] + (int32_t)clocks) 
+    //         return 1;
+    // }
+    return 0;
+}
+
+void SST::CPTSubComp::CPTSubCompPairOfStructs::update()
+{
+    // TODO
+    // clocks++;
+    // for (size_t i=0; i<max; i++) 
+    //     tut[i]++;
+}
+
+void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+    SST_SER(subcompBegin);
+    SST_SER(output);
+    SST_SER(clocks);
+    SST_SER(max);
+    SST_SER(seed);
+    SST_SER(tut.first);
+    SST_SER(tut.second);
+    SST_SER(tutini.first);
+    SST_SER(tutini.second);
+    SST_SER(rng);
+    SST_SER(subcompEnd);
 }
