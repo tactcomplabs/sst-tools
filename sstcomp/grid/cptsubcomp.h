@@ -37,8 +37,6 @@
 #include "sst/core/subcomponent.h"
 // clang-format on
 
-#define KG_SERIALIZE
-
 namespace SST::CPTSubComp{
 
 // -------------------------------------------------------
@@ -61,11 +59,9 @@ public:
   // Update the subcomponent internal state
   virtual void update() = 0;
 
-#ifdef KG_SERIALIZE
   // Serialization
   CPTSubCompAPI() {};
   ImplementVirtualSerializable(SST::CPTSubComp::CPTSubCompAPI);
-#endif
 };
 
 // subcomponent implementation for std::vector<int>
@@ -96,12 +92,10 @@ public:
   int check() override;
   void update() override;
 
-#ifdef KG_SERIALIZE
   // Serialization
   CPTSubCompVecInt() : CPTSubCompAPI() {};
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
   ImplementSerializable(SST::CPTSubComp::CPTSubCompVecInt);
-#endif
 
 private:
   uint64_t  subcompBegin;
@@ -127,6 +121,19 @@ struct struct_t : public SST::Core::Serialization::serializable {
     s << std::hex << "0x" << u8 << " 0x" << u16 << " 0x" << u32 << " 0x " << u64;
     return s.str();
   };
+  struct_t(int32_t n) {
+    u8 = uint8_t(n);
+    u16 = uint16_t(n);
+    u32 = uint32_t(n);
+    u64 = uint64_t(n);
+  }
+  // postfix increment
+  struct_t operator++(int) {
+    struct_t old = *this;
+    u8++; u16++; u32++; u64++;
+    return old;
+  }
+  // serialization
   struct_t() {};
   void serialize_order(SST::Core::Serialization::serializer& ser) override {
     SST_SER(u8);
@@ -166,12 +173,10 @@ class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
     int check() override;
     void update() override;
   
-  #ifdef KG_SERIALIZE
     // Serialization
     CPTSubCompPairOfStructs() : CPTSubCompAPI() {};
     void serialize_order(SST::Core::Serialization::serializer& ser) override;
     ImplementSerializable(SST::CPTSubComp::CPTSubCompPairOfStructs);
-  #endif
   
   private:
     uint64_t  subcompBegin;
@@ -179,8 +184,8 @@ class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
     unsigned clocks;
     size_t max;
     unsigned seed;
-    std::pair<struct_t, struct_t> tut;     // type under test
-    std::pair<struct_t, struct_t> tutini;  // initial values for type under test
+    std::vector<std::pair<struct_t, struct_t>> tut;     // type under test
+    std::vector<std::pair<struct_t, struct_t>> tutini;  // initial values for type under test
     SST::RNG::Random* rng;
     uint64_t subcompEnd;
   
