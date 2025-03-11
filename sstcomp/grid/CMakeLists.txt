@@ -21,6 +21,7 @@ install(CODE "execute_process(COMMAND sst-register grid                       gr
 install(CODE "execute_process(COMMAND sst-register CPTSubCompPair             grid_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 install(CODE "execute_process(COMMAND sst-register CPTSubCompPairOfStructs    grid_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 install(CODE "execute_process(COMMAND sst-register CPTSubCompVecInt           grid_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register CPTSubCompVecPair          grid_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 install(CODE "execute_process(COMMAND sst-register CPTSubCompVecPairOfStructs grid_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 install(CODE "execute_process(COMMAND sst-register CPTSubCompVecStruct        grid_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 # EOF

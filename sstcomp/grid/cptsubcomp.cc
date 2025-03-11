@@ -423,3 +423,107 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serial
     SST_SER(rng);
     SST_SER(subcompEnd);     
 }
+
+SST::CPTSubComp::CPTSubCompVecPair::CPTSubCompVecPair(ComponentId_t id, Params &params)
+{
+    uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
+    output.init(
+      "CPTSubCompVecPair[" + getName() + ":@p:@t]: ",
+      Verbosity, 0, SST::Output::STDOUT
+    );
+    max = params.find<size_t>("max", 1);
+    seed = params.find<unsigned>("seed", 1223);
+    output.verbose(CALL_INFO, 1, 0, "max=%lx seed=%" PRIu32 "\n", max, seed);
+    assert(max>0);
+    rng = new SST::RNG::MersenneRNG(seed);
+    tut.resize(max);
+    tutini.resize(max);
+    for (size_t i=0; i<max; i++) {
+        unsigned n = rng->generateNextUInt32();
+        tut[i].first = n;
+        tut[i].second = n*n;
+        tutini[i].first = tut[i].first;
+        tutini[i].second = tut[i].second;
+    }
+    subcompBegin = 0xcccb00000000bccc;
+    subcompEnd = 0xccce00000000eccc;
+}
+
+SST::CPTSubComp::CPTSubCompVecPair::~CPTSubCompVecPair()
+{
+    if (rng) delete rng;
+}
+
+void SST::CPTSubComp::CPTSubCompVecPair::setup()
+{
+    output.verbose(CALL_INFO, 2, 0, "setup() clocks %d check {%" PRIx32 "} : {%" PRIx32 "}\n", 
+        clocks, tut[0].first, tut[0].second);
+
+}
+
+void SST::CPTSubComp::CPTSubCompVecPair::finish()
+{
+    output.verbose(CALL_INFO, 2, 0, 
+        "finish() clocks %d check {%x" PRIx32 "} : {%x" PRIx32 "}\n", 
+        clocks, tut[0].first, tut[0].second);
+    if (check())
+        output.fatal(CALL_INFO, -1, "final check failed\n");  
+
+}
+
+int SST::CPTSubComp::CPTSubCompVecPair::check()
+{
+    assert(tut.size() == tutini.size());
+    assert(tut.size() == max);
+    for (size_t i=0;i<tut.size(); i++) {
+        output.verbose(CALL_INFO, 3, 0, 
+            "Checking tut[%zu].first {%" PRIx32 "} against tutini[%zu].first {%" PRIx32 "} + %" PRId32 " clocks\n", 
+            i, tut[i].first, i, tutini[i].first, clocks);
+        if (tut[i].first != tutini[i].first + clocks)
+            return 1;
+        output.verbose(CALL_INFO, 3, 0, 
+            "Checking tut[%zu].second {%" PRIx32 "} against tutini[%zu].second {%" PRIx32 "} + %" PRId32 " clocks\n", 
+            i, tut[i].second, i, tutini[i].second, clocks);
+        if (tut[i].second != tutini[i].second + clocks)
+            return 1;
+    }
+    return 0;
+}
+
+void SST::CPTSubComp::CPTSubCompVecPair::update()
+{
+    clocks++;
+    for (size_t i=0; i<max; i++) {
+        tut[i].first++;
+        tut[i].second++;
+    }
+}
+
+void SST::CPTSubComp::CPTSubCompVecPair::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+    SST_SER(subcompBegin);
+    SST_SER(output);
+    SST_SER(clocks);
+    SST_SER(seed);
+    for (size_t i=0; i<tut.size(); i++) {
+        #ifndef TCL_SCHEMA
+        SST_SER(tut[i].first);
+        SST_SER(tut[i].second);
+        SST_SER(tutini[i].first);
+        SST_SER(tutini[i].second);
+        #else
+        // debug hack
+        std::stringstream s_tutfirst, s_tutsecond, s_tutifirst, s_tutisecond;
+        s_tutfirst   << "tut["    << i << "].first";
+        s_tutsecond  << "tut["    << i << "].second";
+        s_tutifirst  << "tutini[" << i << "].first";
+        s_tutisecond << "tutini[" << i << "].second";
+        SST_SER4(tut[i].first,     s_tutfirst.str(),   typeid(unsigned{}).hash_code(), typeid(unsigned{}).name());
+        SST_SER4(tut[i].second,    s_tutsecond.str(),  typeid(unsigned{}).hash_code(), typeid(unsigned{}).name());
+        SST_SER4(tutini[i].first,  s_tutifirst.str(),  typeid(unsigned{}).hash_code(), typeid(unsigned{}).name());
+        SST_SER4(tutini[i].second, s_tutisecond.str(), typeid(unsigned{}).hash_code(), typeid(unsigned{}).name());
+        #endif
+    }
+    SST_SER(rng);
+    SST_SER(subcompEnd);
+}

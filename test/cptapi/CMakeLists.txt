@@ -52,8 +52,9 @@ set_tests_properties(cpt-restore
 #
 
 set(subcomps grid.CPTSubCompPair grid.CPTSubCompPairOfStructs grid.CPTSubCompVecInt grid.CPTSubCompVecStruct)
-# TODO sst bug?
+# TODO sst bugs?
 list(APPEND subcomps grid.CPTSubCompVecPairOfStructs)
+# list(APPEND subcomps grid.CPTSubCompVecPair)
 foreach(subcomp IN ITEMS ${subcomps})
   add_test(NAME ${subcomp}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
