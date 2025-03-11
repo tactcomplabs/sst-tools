@@ -51,9 +51,9 @@ set_tests_properties(cpt-restore
 # Subcomponent/Type Checkpoint Save/Restore Tests
 #
 
-# TODO std:pair needs to be fixed
-# set(subcomps grid.CPTSubCompVecInt grid.CPTSubCompVecStruct grid.CPTSubCompPairOfStructs)
-set(subcomps grid.CPTSubCompPair grid.CPTSubCompVecInt grid.CPTSubCompVecStruct)
+set(subcomps grid.CPTSubCompPair grid.CPTSubCompPairOfStructs grid.CPTSubCompVecInt grid.CPTSubCompVecStruct)
+# TODO sst bug?
+list(APPEND subcomps grid.CPTSubCompVecPairOfStructs)
 foreach(subcomp IN ITEMS ${subcomps})
   add_test(NAME ${subcomp}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

@@ -346,3 +346,80 @@ void SST::CPTSubComp::CPTSubCompPair::serialize_order(SST::Core::Serialization::
     SST_SER(rng);
     SST_SER(subcompEnd);
 }
+
+SST::CPTSubComp::CPTSubCompPairOfStructs::CPTSubCompPairOfStructs(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params), clocks(0)
+{
+    uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
+    output.init(
+      "CPTSubCompPairOfStructs[" + getName() + ":@p:@t]: ",
+      Verbosity, 0, SST::Output::STDOUT
+    );
+    seed = params.find<unsigned>("seed", 1223);
+    output.verbose(CALL_INFO, 1, 0, "seed=%" PRIu32 "\n", seed);
+    rng = new SST::RNG::MersenneRNG(seed);
+    uint64_t n = rng->generateNextUInt64();
+    tut.first = struct_t{n};
+    tut.second = struct_t{n*n};
+    tutini.first = tut.first;
+    tutini.second = tut.second;
+    
+    subcompBegin = 0xcccb00000000bccc;
+    subcompEnd = 0xccce00000000eccc;    
+}
+
+SST::CPTSubComp::CPTSubCompPairOfStructs::~CPTSubCompPairOfStructs()
+{
+    if (rng) delete rng;
+}
+
+void SST::CPTSubComp::CPTSubCompPairOfStructs::setup()
+{
+    output.verbose(CALL_INFO, 2, 0, "setup() clocks %d check {%s} : {%s}\n", 
+        clocks, tut.first.toString().c_str(), tut.second.toString().c_str());
+
+}
+
+void SST::CPTSubComp::CPTSubCompPairOfStructs::finish()
+{
+    output.verbose(CALL_INFO, 2, 0, 
+        "finish() clocks %d check {%s} : {%s}\n", 
+        clocks, tut.first.toString().c_str(), tut.second.toString().c_str());
+    if (check())
+        output.fatal(CALL_INFO, -1, "final check failed\n"); 
+}
+
+int SST::CPTSubComp::CPTSubCompPairOfStructs::check()
+{
+    output.verbose(CALL_INFO, 3, 0, 
+        "Checking tut.first {%s} against tutini.first {%s} + %" PRId32 " clocks\n", 
+        tut.first.toString().c_str(), tutini.first.toString().c_str(), clocks);
+    if (tut.first != tutini.first + clocks)
+        return 1;
+    output.verbose(CALL_INFO, 3, 0, 
+        "Checking tut.second {%s} against tutini.second {%s} + %" PRId32 " clocks\n", 
+        tut.second.toString().c_str(), tutini.second.toString().c_str(), clocks);
+    if (tut.second != tutini.second + clocks)
+        return 1;
+    return 0;
+}
+
+void SST::CPTSubComp::CPTSubCompPairOfStructs::update()
+{
+    clocks++;
+    tut.first++;
+    tut.second++;
+}
+
+void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+    SST_SER(subcompBegin);
+    SST_SER(output);
+    SST_SER(clocks);
+    SST_SER(seed);
+    SST_SER(tut.first);
+    SST_SER(tut.second);
+    SST_SER(tutini.first);
+    SST_SER(tutini.second);
+    SST_SER(rng);
+    SST_SER(subcompEnd);     
+}
