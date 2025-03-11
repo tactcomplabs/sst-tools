@@ -13,16 +13,16 @@ if [[ "$version" != "90" ]]; then
 fi
 
 # generate checkpoints and json files from sst
-${SCRIPTS}/sst-chkpt.sh 1 SCHEMA_SAVE_ --verbose=1 --num-threads=4 --add-lib-path=${LIBGRID} 2d.py --checkpoint-period=1us --gen-checkpoint-schema -- --x=2 --y=2 --subcomp=grid.CPTSubCompVecInt
+${SCRIPTS}/sst-chkpt.sh 1 cpt.schema --verbose=1 --num-threads=4 --add-lib-path=${LIBGRID} 2d.py --checkpoint-period=1us --gen-checkpoint-schema -- --x=2 --y=2 --subcomp=grid.CPTSubCompVecInt
 
 # run checkpoint json files through c++filt
-for j in $(find SCHEMA_SAVE_ -name '*.json')
+for j in $(find cpt.schema -name '*.json')
 do
     (cd $(dirname $j); cat $(basename $j) | c++filt -t > $(basename -s json $j)schema.json)
 done
 
 # generate hex dumps for each binary
-for j in $(find SCHEMA_SAVE_ -name '*.bin')
+for j in $(find cpt.schema -name '*.bin')
 do
     (cd $(dirname $j);  hexdump -C $(basename $j) > $(basename -s bin $j)hex )
 done
@@ -31,4 +31,4 @@ done
 export PYTHONPATH="${SCRIPTS}:$PYTHONPATH"
 ./cpt_verify.py  || exit 1
 
-echo schema-test.sh finished normally
+echo test-schema.sh finished normally

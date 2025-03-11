@@ -7,16 +7,9 @@
 # See LICENSE in the top level directory for licensing details
 #
 
-# All tests generating checkpoints have a dependent test that 
-# checks them and conditionally deletes the checkpoint files.
-
-set(testSrc 2d.py)
 set(UserLibs "--add-lib-path=${CMAKE_BINARY_DIR}/sstcomp/grid")
 set (passRegex "Simulation is complete")
 set (failRegex "[Ee][Rr][Rr][Oo][Rr]")
-get_filename_component(testName ${testSrc} NAME_WLE)
-set(CHKPT_PFX ${testName}_SAVE_)
-set(SUBCOMP "--subcomp=grid.CPTSubCompVecInt")
 
 # For simple ctest just running MPI with 2 ranks.
 # May need to add RUN_SERIAL property for threaded tests as some point.
@@ -29,11 +22,11 @@ endif()
 #
 # Checkpoint Save/Restore - no subcomponent
 #
-add_test(NAME ${testName}_SAVE
+add_test(NAME cpt-save
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND ${SCRIPTS}/sst-chkpt.sh ${nmpi} ${CHKPT_PFX} --num-threads=2 ${UserLibs} ${testSrc} --checkpoint-period=10ns -- --x=2 --y=2
+  COMMAND ${SCRIPTS}/sst-chkpt.sh ${nmpi} cpt.save --num-threads=2 ${UserLibs} 2d.py --checkpoint-period=10ns -- --x=2 --y=2
 )
-set_tests_properties(${testName}_SAVE
+set_tests_properties(cpt-save
   PROPERTIES
   TIMEOUT 60
   LABELS "cptapi"
@@ -41,15 +34,15 @@ set_tests_properties(${testName}_SAVE
   FAIL_REGULAR_EXPRESSION "${failRegex}"
 )
 
-add_test(NAME ${testName}_RESTORE
+add_test(NAME cpt-restore
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} ${CHKPT_PFX} ${CHKPT_PFX}/${CHKPT_PFX}_800_8010000/${CHKPT_PFX}_800_8010000.sstcpt --num-threads=2 ${UserLibs}
+  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} cpt.save cpt.save/cpt.save_800_8010000/cpt.save_800_8010000.sstcpt --num-threads=2 ${UserLibs}
 )
-set_tests_properties(${testName}_RESTORE
+set_tests_properties(cpt-restore
   PROPERTIES
   TIMEOUT 60
   LABELS "cptapi"
-  DEPENDS ${testName}_SAVE
+  DEPENDS cpt-save
   PASS_REGULAR_EXPRESSION "${passRegex}"
   FAIL_REGULAR_EXPRESSION "${failRegex}"
 )
@@ -57,11 +50,11 @@ set_tests_properties(${testName}_RESTORE
 #  
 # Checkpoint Save/Restore -- --subcomp=grid.CPTSubCompVecInt
 #
-add_test(NAME ${testName}_VECINT
+add_test(NAME grid.CPTSubCompVecInt
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND vecint-test.sh ${SST_TOOLS_CLEAN_TESTS}
+  COMMAND test-subcomp.sh grid.CPTSubCompVecInt ${SST_TOOLS_CLEAN_TESTS}
 )
-set_tests_properties(${testName}_VECINT
+set_tests_properties(grid.CPTSubCompVecInt
   PROPERTIES
   TIMEOUT 60
   LABELS "cptapi"
@@ -70,27 +63,27 @@ set_tests_properties(${testName}_VECINT
 )
 
 #
-# schema testing ( requires tcl sst-core schema branch)
+# schema testing ( requires tcl sst-core schema branch, version -dev-schema)
 #
 if( ${TCL_SCHEMA} )
-  add_test(NAME SCHEMA_TEST
+  add_test(NAME cpt-schema
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMAND ./schema-test.sh)
-  set_tests_properties(SCHEMA_TEST
+    COMMAND ./test-schema.sh)
+  set_tests_properties(cpt-schema
     PROPERTIES
     TIMEOUT 60
     LABELS "cptapi"
-    PASS_REGULAR_EXPRESSION "schema-test.sh finished normally")
+    PASS_REGULAR_EXPRESSION "test-schema.sh finished normally")
   # Cleanup conditionally
   if( ${SST_TOOLS_CLEAN_TESTS} )
-    add_test(NAME SCHEMA_TEST_CLEAN
+    add_test(NAME cpt-schema-clean
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND rm -rf SCHEMA_SAVE_)
-    set_tests_properties(SCHEMA_TEST_CLEAN
+      COMMAND rm -rf cpt.schema)
+    set_tests_properties(cpt-schema-clean
       PROPERTIES
       TIMEOUT 10
       LABELS "cptapi"
-      DEPENDS SCHEMA_TEST)
+      DEPENDS cpt-schema)
   endif()
 endif()
 
