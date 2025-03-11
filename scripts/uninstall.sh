@@ -6,6 +6,7 @@
 #-- unregister it
 sst-register -u CPTSubCompPairOfStructs
 sst-register -u CPTSubCompVecInt
+sst-register -u CPTSubCompVecStruct
 sst-register -u dbgcli
 sst-register -u grid
 

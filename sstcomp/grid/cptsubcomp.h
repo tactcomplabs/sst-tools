@@ -169,6 +169,53 @@ struct struct_t : public SST::Core::Serialization::serializable {
   ImplementSerializable(SST::CPTSubComp::struct_t) ;
 };
 
+// subcomponent implementation for std::vector<struct>
+class CPTSubCompVecStruct final : public CPTSubCompAPI {
+
+  public:
+    SST_ELI_REGISTER_SUBCOMPONENT(
+      CPTSubCompVecStruct,            // Class name
+      "grid",                         // Library name, the 'lib' in SST's lib.name format
+      "CPTSubCompVecStruct",          // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
+      SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
+      "SubComponent for checkpoint type std::vector<struct_t>", // Description
+      SST::CPTSubComp::CPTSubCompAPI  // Fully qualified name of the API this subcomponent implements
+    )
+    SST_ELI_DOCUMENT_PARAMS( 
+      {"verbose", "Sets the verbosity level of output", "0" },
+      { "max", "Maximum number of test elements", "100" },
+      { "seed","Initial seed for data generation", "1223"}
+    )
+  
+    CPTSubCompVecStruct(ComponentId_t id, Params& params);
+    virtual ~CPTSubCompVecStruct();
+  
+    // subcomponent overrides
+    virtual void setup() override;
+    virtual void finish() override;
+  
+    // API members
+    int check() override;
+    void update() override;
+  
+    // Serialization
+    CPTSubCompVecStruct() : CPTSubCompAPI() {};
+    void serialize_order(SST::Core::Serialization::serializer& ser) override;
+    ImplementSerializable(SST::CPTSubComp::CPTSubCompVecStruct);
+  
+  private:
+    uint64_t  subcompBegin;
+    SST::Output    output;        ///< SST output handler
+    unsigned clocks;
+    size_t max;
+    unsigned seed;
+    std::vector<struct_t> tut;     // type under test
+    std::vector<struct_t> tutini;  // initial values for type under test
+    SST::RNG::Random* rng;
+    uint64_t subcompEnd;
+  
+  }; //class CPTSubCompAPI
+
 // subcomponent implementation for std::pair<struct,struct>
 class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
 

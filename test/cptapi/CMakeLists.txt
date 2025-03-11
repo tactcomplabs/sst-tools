@@ -48,19 +48,25 @@ set_tests_properties(cpt-restore
 )
 
 #  
-# Checkpoint Save/Restore -- --subcomp=grid.CPTSubCompVecInt
+# Subcomponent/Type Checkpoint Save/Restore Tests
 #
-add_test(NAME grid.CPTSubCompVecInt
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND test-subcomp.sh grid.CPTSubCompVecInt ${SST_TOOLS_CLEAN_TESTS}
-)
-set_tests_properties(grid.CPTSubCompVecInt
-  PROPERTIES
-  TIMEOUT 60
-  LABELS "cptapi"
-  PASS_REGULAR_EXPRESSION "${passRegex}"
-  FAIL_REGULAR_EXPRESSION "${failRegex}"
-)
+
+# TODO std:pair needs to be fixed
+# set(subcomps grid.CPTSubCompVecInt grid.CPTSubCompVecStruct grid.CPTSubCompPairOfStructs)
+set(subcomps grid.CPTSubCompVecInt grid.CPTSubCompVecStruct)
+foreach(subcomp IN ITEMS ${subcomps})
+  add_test(NAME ${subcomp}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND test-subcomp.sh ${subcomp} ${SST_TOOLS_CLEAN_TESTS}
+  )
+  set_tests_properties(${subcomp}
+    PROPERTIES
+    TIMEOUT 60
+    LABELS "cptapi"
+    PASS_REGULAR_EXPRESSION "${passRegex}"
+    FAIL_REGULAR_EXPRESSION "${failRegex}"
+  )
+endforeach()
 
 #
 # schema testing ( requires tcl sst-core schema branch, version -dev-schema)

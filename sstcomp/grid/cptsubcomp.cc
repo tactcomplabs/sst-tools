@@ -62,6 +62,8 @@ void CPTSubCompVecInt::finish()
 
 int CPTSubCompVecInt::check()
 {
+    assert(tut.size() == tutini.size());
+    assert(tut.size() == max);
     for (size_t i=0;i<max; i++) {
         output.verbose(CALL_INFO, 3, 0, "Comparing %x %x\n", tut[i], tutini[i]);
         if (tut[i] != tutini[i] + (int32_t)clocks) 
@@ -193,6 +195,82 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serial
         SST_SER4(tutini[i].second, s_tutisecond.str(), typeid(struct_t{}).hash_code(), typeid(struct_t{}).name());
         #endif
     }
+    SST_SER(rng);
+    SST_SER(subcompEnd);
+}
+
+SST::CPTSubComp::CPTSubCompVecStruct::CPTSubCompVecStruct(ComponentId_t id, Params &params)  : CPTSubCompAPI(id, params), clocks(0) 
+{
+    uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
+    output.init(
+      "CPTSubCompVecStruct[" + getName() + ":@p:@t]: ",
+      Verbosity, 0, SST::Output::STDOUT
+    );
+    max = params.find<size_t>("max", 1);
+    seed = params.find<unsigned>("seed", 1223);
+    output.verbose(CALL_INFO, 1, 0, "max=%lx seed=%" PRIu32 "\n", max, seed);
+    assert(max>0);
+    rng = new SST::RNG::MersenneRNG(seed);
+    tut.resize(max);
+    tutini.resize(max);
+    for (size_t i=0; i<max; i++) {
+        uint64_t n = rng->generateNextUInt64();
+        tut[i] = n;
+        tutini[i] = n;
+    }
+    subcompBegin = 0xcccb00000000bccc;
+    subcompEnd = 0xccce00000000eccc;
+}
+
+SST::CPTSubComp::CPTSubCompVecStruct::~CPTSubCompVecStruct()
+{
+    if (rng) delete rng;
+}
+
+void SST::CPTSubComp::CPTSubCompVecStruct::setup()
+{
+    output.verbose(CALL_INFO, 2, 0, "setup() clocks %d check %s\n", clocks, tut[0].toString().c_str());
+}
+
+void SST::CPTSubComp::CPTSubCompVecStruct::finish()
+{
+    output.verbose(CALL_INFO, 2, 0, "finish() clocks %d check %s\n", clocks, tut[0].toString().c_str());
+    if (check())
+        output.fatal(CALL_INFO, -1, "final check failed\n");
+
+}
+
+int SST::CPTSubComp::CPTSubCompVecStruct::check()
+{
+    assert(tut.size() == tutini.size());
+    assert(tut.size() == max);
+    for (size_t i=0;i<max; i++) {
+        output.verbose(CALL_INFO, 3, 0, 
+            "Comparing {%s} against {%s} + %" PRId32 "\n", 
+            tut[i].toString().c_str(), tutini[i].toString().c_str(), clocks);
+        if (tut[i] != tutini[i] + clocks) 
+            return 1;
+    }
+    return 0;
+}
+
+void SST::CPTSubComp::CPTSubCompVecStruct::update()
+{
+    clocks++;
+    for (size_t i=0;i<max; i++)
+        tut[i]++;
+}
+
+void SST::CPTSubComp::CPTSubCompVecStruct::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+    SST_SER(subcompBegin);
+    SST_SER(output);
+    SST_SER(clocks);
+    SST_SER(max);
+    SST_SER(seed);
+    assert(tut.size()==tutini.size());
+    SST_SER(tut);
+    SST_SER(tutini);
     SST_SER(rng);
     SST_SER(subcompEnd);
 }
