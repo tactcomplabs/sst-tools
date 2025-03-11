@@ -57,7 +57,7 @@ set(subcomps grid.CPTSubCompVecInt grid.CPTSubCompVecStruct)
 foreach(subcomp IN ITEMS ${subcomps})
   add_test(NAME ${subcomp}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMAND test-subcomp.sh ${subcomp} ${SST_TOOLS_CLEAN_TESTS}
+    COMMAND test-subcomp.sh ${subcomp} ${TCL_SCHEMA} ${SST_TOOLS_CLEAN_TESTS}
   )
   set_tests_properties(${subcomp}
     PROPERTIES

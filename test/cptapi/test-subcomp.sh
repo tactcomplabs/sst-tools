@@ -1,11 +1,15 @@
 #!/bin/bash
 
 subcomp=$1
-cleanup=$2
+en_schema=$2
+cleanup=$3
+
 threads=2
 
 schema=""
-#schema="--gen-checkpoint-schema"
+if [ "$en_schema" == "ON" ]; then
+    schema="--gen-checkpoint-schema"
+fi
 
 regex_list=()
 if [ "${subcomp}" == "grid.CPTSubCompVecInt" ]; then
