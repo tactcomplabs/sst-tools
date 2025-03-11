@@ -1,6 +1,9 @@
 #!/bin/bash -x
 
 cleanup=$1
+threads=1
+schema="--gen-checkpoint-schema"
+#schema=""
 
 regex_list=()
 # regex_list+=( 'GridNode[cp_0_1:finish:10000000]: cp_0_1 finish() clocks 10000 check 0xcc6800' )
@@ -33,7 +36,7 @@ mkdir -p $logs
 gridlib=$(realpath ../../build/sstcomp/grid)
 
 echo "### creating checkpoints"
-sst --checkpoint-prefix=2d_SAVE_PairOfStructs --num-threads=2 --checkpoint-period=1us \
+sst ${schema} --checkpoint-prefix=2d_SAVE_PairOfStructs --num-threads=${threads} --checkpoint-period=1us \
     --add-lib-path=${gridlib} \
     2d.py -- --x=2 --y=2 --subcomp=grid.CPTSubCompPairOfStructs --verbose=2 > ${logs}/save.log
 if [ $? != 0 ]; then
@@ -51,12 +54,16 @@ do
     cpt=${pfx}_${i}000000
     echo "### loading checkpoint ${cpt}"
     sst --load-checkpoint ${pfx}/${cpt}/${cpt}.sstcpt \
-        --num-threads=2 \
+        --num-threads=${threads} \
         --add-lib-path=${gridlib} > ${logs}/${i}.log
+    if [ $? != 0 ]; then
+        echo "error: checkpoint load failed for  ${cpt}"
+        exit 11
+    fi
     check ${logs}/${i}.log
     if [ $? != 0 ]; then
         echo "error: restore check failed for ${cpt}"
-        exit 11
+        exit 12
     fi
 done
 

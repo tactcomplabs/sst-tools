@@ -116,17 +116,18 @@ struct struct_t : public SST::Core::Serialization::serializable {
   uint16_t u16;
   uint32_t u32;
   uint64_t u64;
-  std::string toString() {
-    std::stringstream s; 
-    s << std::hex << "0x" << (uint16_t)u8 << " 0x" << u16 << " 0x" << u32 << " 0x" << u64;
-    return s.str();
-  };
   struct_t(uint64_t n) {
     u8 = uint8_t(n);
     u16 = uint16_t(n);
     u32 = uint32_t(n);
     u64 = uint64_t(n);
   }
+  // helpers
+  std::string toString() {
+    std::stringstream s; 
+    s << std::hex << "0x" << (uint16_t)u8 << " 0x" << u16 << " 0x" << u32 << " 0x" << u64;
+    return s.str();
+  };
   struct_t operator++(int) {
     struct_t old = *this;
     u8++; u16++; u32++; u64++;
@@ -156,7 +157,6 @@ struct struct_t : public SST::Core::Serialization::serializable {
   inline bool operator!=(const struct_t& rhs) {
     return !(*this == rhs);
   }
-  
   // serialization
   struct_t() {};
   void serialize_order(SST::Core::Serialization::serializer& ser) override {
@@ -165,6 +165,7 @@ struct struct_t : public SST::Core::Serialization::serializable {
     SST_SER(u32);
     SST_SER(u64);
   };
+  // This has public and private sections. Put last!
   ImplementSerializable(SST::CPTSubComp::struct_t) ;
 };
 

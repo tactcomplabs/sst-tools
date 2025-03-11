@@ -173,23 +173,24 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serial
     SST_SER(seed);
     assert(tut.size()==tutini.size());
     for (size_t i=0;i<tut.size();i++) {
-        #ifdef TCL_SCHEMA
-        // TODO how to deal with [-Werror,-Wpotentially-evaluated-expression] for schema
-        // This will serialize but not deserialize
-        // We can add type as an argument to the macro.
-        struct_t tfirst = tut[i].first;
-        struct_t tsecond = tut[i].second;
-        struct_t tifirst = tut[i].first;
-        struct_t tisecond = tut[i].second;
-        SST_SER(tfirst);
-        SST_SER(tsecond);
-        SST_SER(tifirst);
-        SST_SER(tisecond);
-        #else
+        #ifndef TCL_SCHEMA
         SST_SER(tut[i].first);
         SST_SER(tut[i].second);
         SST_SER(tutini[i].first);
         SST_SER(tutini[i].second);
+        #else
+        // The macro cannot get the typeid resulting in [-Werror,-Wpotentially-evaluated-expression] for schema.
+        // So added added this explicitely to the macro to help debugging.
+        // Crude but effective.
+        std::stringstream s_tutfirst, s_tutsecond, s_tutifirst, s_tutisecond;
+        s_tutfirst   << "tut["    << i << "].first";
+        s_tutsecond  << "tut["    << i << "].second";
+        s_tutifirst  << "tutini[" << i << "].first";
+        s_tutisecond << "tutini[" << i << "].second";
+        SST_SER4(tut[i].first,     s_tutfirst.str(),   typeid(struct_t{}).hash_code(), typeid(struct_t{}).name());
+        SST_SER4(tut[i].second,    s_tutsecond.str(),  typeid(struct_t{}).hash_code(), typeid(struct_t{}).name());
+        SST_SER4(tutini[i].first,  s_tutifirst.str(),  typeid(struct_t{}).hash_code(), typeid(struct_t{}).name());
+        SST_SER4(tutini[i].second, s_tutisecond.str(), typeid(struct_t{}).hash_code(), typeid(struct_t{}).name());
         #endif
     }
     SST_SER(rng);
