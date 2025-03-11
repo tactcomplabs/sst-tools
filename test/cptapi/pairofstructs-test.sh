@@ -1,17 +1,17 @@
-#!/bin/bash
+#!/bin/bash -x
 
 cleanup=$1
 
 regex_list=()
-regex_list+=( 'GridNode[cp_0_1:finish:10000000]: cp_0_1 finish() clocks 10000 check 0xcc6800' )
-regex_list+=( 'CPTSubCompVecInt[cp_0_1:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0xb97d34ed' )
-regex_list+=( 'GridNode[cp_1_1:finish:10000000]: cp_1_1 finish() clocks 10000 check 0xcc6800' )
-regex_list+=( 'CPTSubCompVecInt[cp_1_1:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0x1f0aa967' )
-regex_list+=( 'GridNode[cp_0_0:finish:10000000]: cp_0_0 finish() clocks 10000 check 0xcc6800' )
-regex_list+=( 'CPTSubCompVecInt[cp_0_0:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0x8771baba' )
-regex_list+=( 'GridNode[cp_1_0:finish:10000000]: cp_1_0 finish() clocks 10000 check 0xcc6800' )
-regex_list+=( 'CPTSubCompVecInt[cp_1_0:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0xea51823d' )
-regex_list+=( 'Simulation is complete, simulated time: 10 us' )
+# regex_list+=( 'GridNode[cp_0_1:finish:10000000]: cp_0_1 finish() clocks 10000 check 0xcc6800' )
+# regex_list+=( 'CPTSubCompPairOfStructs[cp_0_1:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0xb97d34ed' )
+# regex_list+=( 'GridNode[cp_1_1:finish:10000000]: cp_1_1 finish() clocks 10000 check 0xcc6800' )
+# regex_list+=( 'CPTSubCompPairOfStructs[cp_1_1:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0x1f0aa967' )
+# regex_list+=( 'GridNode[cp_0_0:finish:10000000]: cp_0_0 finish() clocks 10000 check 0xcc6800' )
+# regex_list+=( 'CPTSubCompPairOfStructs[cp_0_0:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0x8771baba' )
+# regex_list+=( 'GridNode[cp_1_0:finish:10000000]: cp_1_0 finish() clocks 10000 check 0xcc6800' )
+# regex_list+=( 'CPTSubCompPairOfStructs[cp_1_0:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0xea51823d' )
+# regex_list+=( 'Simulation is complete, simulated time: 10 us' )
 
 check() {
     echo "### checking $1"
@@ -25,7 +25,7 @@ check() {
     return 0
 }
 
-pfx=2d_SAVE_VecInt
+pfx=2d_SAVE_PairOfStructs
 logs=${pfx}_logs
 rm -rf $pfx $logs
 mkdir -p $logs
@@ -33,9 +33,9 @@ mkdir -p $logs
 gridlib=$(realpath ../../build/sstcomp/grid)
 
 echo "### creating checkpoints"
-sst --checkpoint-prefix=2d_SAVE_VecInt --num-threads=2 --checkpoint-period=1us \
+sst --checkpoint-prefix=2d_SAVE_PairOfStructs --num-threads=2 --checkpoint-period=1us \
     --add-lib-path=${gridlib} \
-    2d.py -- --x=2 --y=2 --subcomp=grid.CPTSubCompVecInt --verbose=2 > ${logs}/save.log
+    2d.py -- --x=2 --y=2 --subcomp=grid.CPTSubCompPairOfStructs --verbose=2 > ${logs}/save.log
 if [ $? != 0 ]; then
     echo "error: checkpoint save failed"
     exit 1

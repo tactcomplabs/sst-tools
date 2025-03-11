@@ -19,4 +19,5 @@ target_include_directories(grid PUBLIC ${SST_INSTALL_DIR}/include)
 install(TARGETS grid DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 install(CODE "execute_process(COMMAND sst-register grid             grid_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 install(CODE "execute_process(COMMAND sst-register CPTSubCompVecInt grid_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register CPTSubCompPairOfStructs grid_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 # EOF

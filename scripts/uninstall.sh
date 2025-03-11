@@ -4,6 +4,7 @@
 #
 
 #-- unregister it
+sst-register -u CPTSubCompPairOfStructs
 sst-register -u CPTSubCompVecInt
 sst-register -u dbgcli
 sst-register -u grid
@@ -12,6 +13,7 @@ sst-register -u grid
 CONFIG=~/.sst/sstsimulator.conf
 if test -f "$CONFIG"; then
   echo "Removing configuration from local config=$CONFIG"
+  sed -i.bak '/CPTSubCompPairOfStructs/d' $CONFIG
   sed -i.bak '/CPTSubCompVecInt/d' $CONFIG
   sed -i.bak '/dbgcli/d' $CONFIG
   sed -i.bak '/grid/d' $CONFIG

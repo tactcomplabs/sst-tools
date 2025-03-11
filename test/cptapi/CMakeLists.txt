@@ -72,7 +72,7 @@ set_tests_properties(${testName}_VECINT
 #
 # schema testing ( requires tcl sst-core schema branch)
 #
-if( ${SST_SCHEMA_TESTING} )
+if( ${TCL_SCHEMA} )
   add_test(NAME SCHEMA_TEST
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND ./schema-test.sh)

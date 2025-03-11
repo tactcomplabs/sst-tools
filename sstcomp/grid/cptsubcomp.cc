@@ -14,8 +14,14 @@
 using namespace SST;
 using namespace SST::CPTSubComp;
 
-// cptSubCompVecInt
-CPTSubCompVecInt::CPTSubCompVecInt(ComponentId_t id, Params& params) : CPTSubCompAPI(id, params), clocks(0) {
+
+CPTSubCompAPI::CPTSubCompAPI(ComponentId_t id, Params& params) : SubComponent(id)
+{
+    tcldbg::spinner("CPTSUB_SPINNER");
+}
+
+CPTSubCompVecInt::CPTSubCompVecInt(ComponentId_t id, Params& params) : CPTSubCompAPI(id, params), clocks(0) 
+{
     uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
     output.init(
       "CPTSubCompVecInt[" + getName() + ":@p:@t]: ",
@@ -84,13 +90,11 @@ void CPTSubCompVecInt::serialize_order(SST::Core::Serialization::serializer &ser
     SST_SER(subcompEnd);
 }
 
-
-
-SST::CPTSubComp::CPTSubCompPairOfStructs::CPTSubCompPairOfStructs(ComponentId_t id, Params &params)
+SST::CPTSubComp::CPTSubCompPairOfStructs::CPTSubCompPairOfStructs(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params), clocks(0)
 {
     uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
     output.init(
-      "CPTSubCompVecInt[" + getName() + ":@p:@t]: ",
+      "CPTSubCompPairOfStructs[" + getName() + ":@p:@t]: ",
       Verbosity, 0, SST::Output::STDOUT
     );
     max = params.find<size_t>("max", 1);
@@ -101,7 +105,7 @@ SST::CPTSubComp::CPTSubCompPairOfStructs::CPTSubCompPairOfStructs(ComponentId_t 
     tut.resize(max);
     tutini.resize(max);
     for (size_t i=0; i<max; i++) {
-        int32_t n = rng->generateNextInt32();
+        uint64_t n = rng->generateNextUInt64();
         tut[i].first = struct_t{n};
         tut[i].second = struct_t{n*n};
         tutini[i].first = tut[i].first;
@@ -134,26 +138,19 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::finish()
 
 int SST::CPTSubComp::CPTSubCompPairOfStructs::check()
 {
-    for (size_t i=0;i<max; i++) {
-        output.verbose(CALL_INFO, 3, 0, "Comparing %s %s\n", tut[i].first.toString().c_str(), tutini[i].first.toString().c_str());
-        if (tut[i].first.u8 != tutini[i].first.u8 + (uint8_t)clocks) 
+    assert(tut.size() == tutini.size());
+    assert(tut.size() == max);
+    for (size_t i=0;i<tut.size(); i++) {
+        output.verbose(CALL_INFO, 3, 0, 
+            "Checking tut[%zu].first {%s} against tutini[%zu].first {%s} + %" PRId32 " clocks\n", 
+            i, tut[i].first.toString().c_str(), i, tutini[i].first.toString().c_str(), clocks);
+        if (tut[i].first != tutini[i].first + clocks)
             return 1;
-        if (tut[i].first.u16 != tutini[i].first.u16 + (uint16_t)clocks) 
+        output.verbose(CALL_INFO, 3, 0, 
+            "Checking tut[%zu].second {%s} against tutini[%zu].second {%s} + %" PRId32 " clocks\n", 
+            i, tut[i].second.toString().c_str(), i, tutini[i].second.toString().c_str(), clocks);
+        if (tut[i].second != tutini[i].second + clocks)
             return 1;
-        if (tut[i].first.u32 != tutini[i].first.u32 + (uint32_t)clocks) 
-            return 1;
-        if (tut[i].first.u64 != tutini[i].first.u64 + (uint32_t)clocks) 
-            return 1;
-        output.verbose(CALL_INFO, 3, 0, "Comparing %s %s\n", tut[i].second.toString().c_str(), tutini[i].second.toString().c_str());
-        if (tut[i].second.u8 != tutini[i].second.u8 + (uint8_t)clocks) 
-            return 1;
-        if (tut[i].second.u16 != tutini[i].second.u16 + (uint16_t)clocks) 
-            return 1;
-        if (tut[i].second.u32 != tutini[i].second.u32 + (uint32_t)clocks) 
-            return 1;
-        if (tut[i].second.u64 != tutini[i].second.u64 + (uint32_t)clocks) 
-            return 1;
-
     }
     return 0;
 }
@@ -176,7 +173,7 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serial
     SST_SER(seed);
     assert(tut.size()==tutini.size());
     for (size_t i=0;i<tut.size();i++) {
-        #if 1
+        #ifdef TCL_SCHEMA
         // TODO how to deal with [-Werror,-Wpotentially-evaluated-expression] for schema
         // This will serialize but not deserialize
         // We can add type as an argument to the macro.

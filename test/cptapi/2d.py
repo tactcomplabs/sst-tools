@@ -54,8 +54,10 @@ comp_params = {
 }
 
 SUPPORTED_SUBCOMPONENTS = [
-  "grid.CPTSubCompVecInt"
+  "grid.CPTSubCompVecInt",
+  "grid.CPTSubCompPairOfStructs"
 ]
+
 class GRIDNODE():
   def __init__(self, x, y):
     id = f"cp_{x}_{y}"

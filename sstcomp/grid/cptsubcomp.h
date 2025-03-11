@@ -50,7 +50,7 @@ public:
   SST_ELI_REGISTER_SUBCOMPONENT_API(SST::CPTSubComp::CPTSubCompAPI)
 
   // Constructor/Destructor
-  CPTSubCompAPI(ComponentId_t id, Params& params) : SubComponent(id) { }
+  CPTSubCompAPI(ComponentId_t id, Params& params);
   virtual ~CPTSubCompAPI() {}
 
   // API
@@ -118,21 +118,45 @@ struct struct_t : public SST::Core::Serialization::serializable {
   uint64_t u64;
   std::string toString() {
     std::stringstream s; 
-    s << std::hex << "0x" << u8 << " 0x" << u16 << " 0x" << u32 << " 0x " << u64;
+    s << std::hex << "0x" << (uint16_t)u8 << " 0x" << u16 << " 0x" << u32 << " 0x" << u64;
     return s.str();
   };
-  struct_t(int32_t n) {
+  struct_t(uint64_t n) {
     u8 = uint8_t(n);
     u16 = uint16_t(n);
     u32 = uint32_t(n);
     u64 = uint64_t(n);
   }
-  // postfix increment
   struct_t operator++(int) {
     struct_t old = *this;
     u8++; u16++; u32++; u64++;
     return old;
   }
+  struct_t operator+=(const struct_t& rhs) {
+    u8 += rhs.u8;
+    u16 += rhs.u16;
+    u32 += rhs.u32;
+    u64 += rhs.u64;
+    return *this;
+  }
+  friend struct_t operator+(struct_t lhs, const uint32_t& rhs) {
+    lhs.u8 += uint8_t(rhs);
+    lhs.u16 += uint16_t(rhs);
+    lhs.u32 += uint32_t(rhs);
+    lhs.u64 += uint64_t(rhs);
+    return lhs;
+  }
+  inline bool operator==(const struct_t& rhs) {
+    bool e8 = (u8==rhs.u8);
+    bool e16 = (u16==rhs.u16);
+    bool e32 = (u32==rhs.u32);
+    bool e64 = (u64==rhs.u64);
+    return e8 && e16 && e32 && e64;
+  }
+  inline bool operator!=(const struct_t& rhs) {
+    return !(*this == rhs);
+  }
+  
   // serialization
   struct_t() {};
   void serialize_order(SST::Core::Serialization::serializer& ser) override {
@@ -153,7 +177,7 @@ class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
       "grid",               // Library name, the 'lib' in SST's lib.name format
       "CPTSubCompPairOfStructs",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
       SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
-      "SubComponent for checkpoint type std::vector<int>", // Description
+      "SubComponent for checkpoint type std::pair<struct_t, struct_t>", // Description
       SST::CPTSubComp::CPTSubCompAPI // Fully qualified name of the API this subcomponent implements
     )
     SST_ELI_DOCUMENT_PARAMS( 
