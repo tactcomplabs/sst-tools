@@ -132,8 +132,7 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::finish()
 {
     output.verbose(CALL_INFO, 2, 0, 
         "finish() clocks %d check {%s} : {%s}\n", 
-        clocks, tut[0].first.toString().c_str(), tut[0].second.toString().c_str()
-    );
+        clocks, tut[0].first.toString().c_str(), tut[0].second.toString().c_str());
     if (check())
         output.fatal(CALL_INFO, -1, "final check failed\n");  
 }
@@ -271,6 +270,79 @@ void SST::CPTSubComp::CPTSubCompVecStruct::serialize_order(SST::Core::Serializat
     assert(tut.size()==tutini.size());
     SST_SER(tut);
     SST_SER(tutini);
+    SST_SER(rng);
+    SST_SER(subcompEnd);
+}
+
+SST::CPTSubComp::CPTSubCompPair::CPTSubCompPair(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params), clocks(0)
+{
+    uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
+    output.init(
+      "CPTSubCompPairOfStructs[" + getName() + ":@p:@t]: ",
+      Verbosity, 0, SST::Output::STDOUT
+    );
+    //max = params.find<size_t>("max", 1);
+    seed = params.find<unsigned>("seed", 1223);
+    output.verbose(CALL_INFO, 1, 0, "seed=%" PRIu32 "\n", seed);
+    rng = new SST::RNG::MersenneRNG(seed);
+    unsigned n = rng->generateNextUInt32();
+    tut.first = n; tut.second = n*n;
+    tutini.first = n; tutini.second = n*n;
+    subcompBegin = 0xcccb00000000bccc;
+    subcompEnd = 0xccce00000000eccc;
+}
+
+SST::CPTSubComp::CPTSubCompPair::~CPTSubCompPair()
+{
+    if (rng) delete rng;
+}
+
+void SST::CPTSubComp::CPTSubCompPair::setup()
+{
+    output.verbose(CALL_INFO, 2, 0, 
+        "setup() clocks %d check {0x%" PRIx32 " 0x%" PRIx32 "}\n", 
+        clocks, tut.first, tut.second);
+}
+
+void SST::CPTSubComp::CPTSubCompPair::finish()
+{
+    output.verbose(CALL_INFO, 2, 0, 
+        "finish() clocks %d check {0x%" PRIx32 " 0x%" PRIx32 "}\n", 
+        clocks, tut.first, tut.second);
+    if (check())
+        output.fatal(CALL_INFO, -1, "final check failed\n");  
+}
+
+int SST::CPTSubComp::CPTSubCompPair::check()
+{
+    output.verbose(CALL_INFO, 3, 0, 
+        "Checking tut {0x%" PRIx32 " 0x%" PRIx32 " } against tutini {0x%" PRIx32 " 0x%" PRIx32 " } + %" PRId32 " clocks\n", 
+        tut.first, tut.second, tutini.first, tutini.second, clocks);
+    if (tut.first != tutini.first + clocks) 
+        return 1;
+    if (tut.second != tutini.second + clocks)
+        return 1;
+    return 0;
+}
+
+void SST::CPTSubComp::CPTSubCompPair::update()
+{
+    clocks++;
+    tut.first++;
+    tut.second++;
+}
+
+void SST::CPTSubComp::CPTSubCompPair::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+    SST_SER(subcompBegin);
+    SST_SER(output);
+    SST_SER(clocks);
+    //SST_SER(max);
+    SST_SER(seed);
+    SST_SER(tut.first);
+    SST_SER(tut.second);
+    SST_SER(tutini.first);
+    SST_SER(tutini.second);
     SST_SER(rng);
     SST_SER(subcompEnd);
 }

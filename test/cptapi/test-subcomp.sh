@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/bin/bash -x
 
 subcomp=$1
 en_schema=$2
 cleanup=$3
 
 threads=2
+verbose=3
 
 schema=""
 if [ "$en_schema" == "ON" ]; then
@@ -46,7 +47,7 @@ gridlib=$(realpath ../../build/sstcomp/grid)
 echo "### creating checkpoints"
 sst ${schema} --checkpoint-prefix=${pfx} --num-threads=${threads} --checkpoint-period=1us \
     --add-lib-path=${gridlib} \
-    2d.py -- --x=2 --y=2 --subcomp=${subcomp} --verbose=2 > ${logs}/save.log
+    2d.py -- --x=2 --y=2 --subcomp=${subcomp} --verbose=${verbose} > ${logs}/save.log
 if [ $? != 0 ]; then
     echo "error: checkpoint save failed"
     exit 1
@@ -65,7 +66,7 @@ do
         --num-threads=${threads} \
         --add-lib-path=${gridlib} > ${logs}/${i}.log
     if [ $? != 0 ]; then
-        echo "error: checkpoint load failed for  ${cpt}"
+        echo "error: checkpoint load failed for ${cpt}"
         exit 11
     fi
     check ${logs}/${i}.log

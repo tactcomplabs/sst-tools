@@ -32,9 +32,9 @@ parser.add_argument("--subcomp", type=str, help="subcomponent for CPTSubComp (ex
 parser.add_argument("--submax", type=int, help="subcomponent max param)", default=100)
 args = parser.parse_args()
 
-print("2d grid test SST Simulation Configuration:")
+print("[2d.py] 2d grid test SST Simulation Configuration:")
 for arg in vars(args):
-  print("\t", arg, " = ", getattr(args, arg))
+  print("[2d.py]\t", arg, " = ", getattr(args, arg))
 
 # the number of ports must always be 8 but may change this later
 PORTS = 8
@@ -54,6 +54,7 @@ comp_params = {
 }
 
 SUPPORTED_SUBCOMPONENTS = [
+  "grid.CPTSubCompPair",
   "grid.CPTSubCompVecInt",
   "grid.CPTSubCompVecStruct",
   "grid.CPTSubCompPairOfStructs"
@@ -68,7 +69,7 @@ class GRIDNODE():
     # Provide subcomponent if specified as well as sanity check the slot actually loads
     if args.subcomp != None:
       if args.subcomp not in SUPPORTED_SUBCOMPONENTS:
-        sys.exit(f"subcomp must be one of: {SUPPORTED_SUBCOMPONENTS}")
+        sys.exit(f"[2d.py] subcomp must be one of: {SUPPORTED_SUBCOMPONENTS}")
       subcomp=self.comp.setSubComponent("CPTSubComp", args.subcomp )
       subcomp.addParam("max", args.submax)
       subcomp.addParam("verbose", args.verbose)
@@ -95,7 +96,7 @@ if args.x==2 and args.y==1:
   cp1.addParams(comp_params)
   link = [None] * PORTS
   for i in range(0, PORTS):
-      print(f"Creating link {i}")
+      print(f"[2d.py] Creating link {i}")
       link[i] = sst.Link(f"link{i}")
       link[i].connect( (cp0, f"port{i}", "1us"), (cp1, f"port{i}", "1us") )
 else:
@@ -110,7 +111,7 @@ else:
   #  send: up=0, down=1, left=2, right=3
   #  rcv:  up=4, down=5, left=6, right=7
   for node in grid:
-    print(f"Connecting {node}")
+    print(f"[2d.py] Connecting {node}")
     tile = grid[node]
     comp=tile.comp
     tile.upLink.connect(    (comp, f"port{0}", "1us"), (grid[tile.neighbor['u']].comp, f"port{5}", "1us") )

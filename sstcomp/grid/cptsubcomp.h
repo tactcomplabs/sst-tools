@@ -40,77 +40,8 @@
 namespace SST::CPTSubComp{
 
 // -------------------------------------------------------
-// CPTSubComp
-// -------------------------------------------------------
-
-class CPTSubCompAPI : public SST::SubComponent
-{
-public:
-  // Register subcomponent API
-  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::CPTSubComp::CPTSubCompAPI)
-
-  // Constructor/Destructor
-  CPTSubCompAPI(ComponentId_t id, Params& params);
-  virtual ~CPTSubCompAPI() {}
-
-  // API
-  // Subcomponent self-checking returns 0 if no errors
-  virtual int check() = 0;
-  // Update the subcomponent internal state
-  virtual void update() = 0;
-
-  // Serialization
-  CPTSubCompAPI() {};
-  ImplementVirtualSerializable(SST::CPTSubComp::CPTSubCompAPI);
-};
-
-// subcomponent implementation for std::vector<int>
-class CPTSubCompVecInt final : public CPTSubCompAPI {
-public:
-  SST_ELI_REGISTER_SUBCOMPONENT(
-    CPTSubCompVecInt,     // Class name
-    "grid",               // Library name, the 'lib' in SST's lib.name format
-    "CPTSubCompVecInt",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
-    SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
-    "SubComponent for checkpoint type std::vector<int>", // Description
-    SST::CPTSubComp::CPTSubCompAPI // Fully qualified name of the API this subcomponent implements
-  )
-  SST_ELI_DOCUMENT_PARAMS( 
-    {"verbose", "Sets the verbosity level of output", "0" },
-    { "max", "Maximum number of test elements", "100" },
-    { "seed","Initial seed for data generation", "1223"}
-  )
-
-  CPTSubCompVecInt(ComponentId_t id, Params& params);
-  virtual ~CPTSubCompVecInt();
-
-  // subcomponent overrides
-  virtual void setup() override;
-  virtual void finish() override;
-
-  // API members
-  int check() override;
-  void update() override;
-
-  // Serialization
-  CPTSubCompVecInt() : CPTSubCompAPI() {};
-  void serialize_order(SST::Core::Serialization::serializer& ser) override;
-  ImplementSerializable(SST::CPTSubComp::CPTSubCompVecInt);
-
-private:
-  uint64_t  subcompBegin;
-  SST::Output    output;        ///< SST output handler
-  unsigned clocks;
-  size_t max;
-  unsigned seed;
-  std::vector<int32_t> tut;     // type under test
-  std::vector<int32_t> tutini;  // initial values for type under test
-  SST::RNG::Random* rng;
-  uint64_t subcompEnd;
-
-}; //class CPTSubCompAPI
-
 // test struct
+// -------------------------------------------------------
 struct struct_t : public SST::Core::Serialization::serializable {
   uint8_t u8;
   uint16_t u16;
@@ -167,8 +98,80 @@ struct struct_t : public SST::Core::Serialization::serializable {
   };
   // This has public and private sections. Put last!
   ImplementSerializable(SST::CPTSubComp::struct_t) ;
-};
+}; // struct struct_t
 
+
+// -------------------------------------------------------
+// CPTSubCompAPI
+// -------------------------------------------------------
+
+class CPTSubCompAPI : public SST::SubComponent
+{
+public:
+  // Register subcomponent API
+  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::CPTSubComp::CPTSubCompAPI)
+
+  // Constructor/Destructor
+  CPTSubCompAPI(ComponentId_t id, Params& params);
+  virtual ~CPTSubCompAPI() {}
+
+  // API
+  // Subcomponent self-checking returns 0 if no errors
+  virtual int check() = 0;
+  // Update the subcomponent internal state
+  virtual void update() = 0;
+
+  // Serialization
+  CPTSubCompAPI() {};
+  ImplementVirtualSerializable(SST::CPTSubComp::CPTSubCompAPI);
+}; // class CTPSubCompAPI
+
+// subcomponent implementation for std::vector<int>
+class CPTSubCompVecInt final : public CPTSubCompAPI {
+public:
+  SST_ELI_REGISTER_SUBCOMPONENT(
+    CPTSubCompVecInt,     // Class name
+    "grid",               // Library name, the 'lib' in SST's lib.name format
+    "CPTSubCompVecInt",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
+    SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
+    "SubComponent for checkpoint type std::vector<int>", // Description
+    SST::CPTSubComp::CPTSubCompAPI // Fully qualified name of the API this subcomponent implements
+  )
+  SST_ELI_DOCUMENT_PARAMS( 
+    {"verbose", "Sets the verbosity level of output", "0" },
+    { "max", "Maximum number of test elements", "100" },
+    { "seed","Initial seed for data generation", "1223"}
+  )
+
+  CPTSubCompVecInt(ComponentId_t id, Params& params);
+  virtual ~CPTSubCompVecInt();
+
+  // subcomponent overrides
+  virtual void setup() override;
+  virtual void finish() override;
+
+  // API members
+  int check() override;
+  void update() override;
+
+  // Serialization
+  CPTSubCompVecInt() : CPTSubCompAPI() {};
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  ImplementSerializable(SST::CPTSubComp::CPTSubCompVecInt);
+
+private:
+  uint64_t  subcompBegin;
+  SST::Output    output;        ///< SST output handler
+  unsigned clocks;
+  size_t max;
+  unsigned seed;
+  std::vector<int32_t> tut;     // type under test
+  std::vector<int32_t> tutini;  // initial values for type under test
+  SST::RNG::Random* rng;
+  uint64_t subcompEnd;
+
+}; //class CPTSubCompVecInt
+ 
 // subcomponent implementation for std::vector<struct>
 class CPTSubCompVecStruct final : public CPTSubCompAPI {
 
@@ -214,7 +217,7 @@ class CPTSubCompVecStruct final : public CPTSubCompAPI {
     SST::RNG::Random* rng;
     uint64_t subcompEnd;
   
-  }; //class CPTSubCompAPI
+  }; //class CPTSubCompVecStruct
 
 // subcomponent implementation for std::pair<struct,struct>
 class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
@@ -261,8 +264,54 @@ class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
     SST::RNG::Random* rng;
     uint64_t subcompEnd;
   
-  }; //class CPTSubCompAPI
+  }; //class CPTSubCompPairOfStructs
+
+// std:pair<unsigned,unsigned>
+class CPTSubCompPair final : public CPTSubCompAPI {
+  public:
+    SST_ELI_REGISTER_SUBCOMPONENT(
+      CPTSubCompPair,     // Class name
+      "grid",             // Library name, the 'lib' in SST's lib.name format
+      "CPTSubCompPair",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
+      SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
+      "SubComponent for simple std::pair<unsigned,unsigned>", // Description
+      SST::CPTSubComp::CPTSubCompAPI // Fully qualified name of the API this subcomponent implements
+    )
+    SST_ELI_DOCUMENT_PARAMS( 
+      {"verbose", "Sets the verbosity level of output", "0" },
+      { "seed","Initial seed for data generation", "1223"}
+    )
   
+    CPTSubCompPair(ComponentId_t id, Params& params);
+    virtual ~CPTSubCompPair();
+  
+    // subcomponent overrides
+    virtual void setup() override;
+    virtual void finish() override;
+  
+    // API members
+    int check() override;
+    void update() override;
+  
+    // Serialization
+    CPTSubCompPair() : CPTSubCompAPI() {};
+    void serialize_order(SST::Core::Serialization::serializer& ser) override;
+    ImplementSerializable(SST::CPTSubComp::CPTSubCompPair);
+  
+  private:
+    uint64_t  subcompBegin;
+    SST::Output    output;        ///< SST output handler
+    unsigned clocks;
+    //size_t max;
+    unsigned seed;
+    std::pair<unsigned,unsigned> tut;      // type under test
+    std::pair<unsigned,unsigned> tutini;   // type under test
+    SST::RNG::Random* rng;
+    uint64_t subcompEnd;
+  
+  }; //class CPTSubCompVecInt
+ 
+
 } // namespace SST::CPTSubComp
 
 #endif  // _SST_CPTSUBCOMP_H_
