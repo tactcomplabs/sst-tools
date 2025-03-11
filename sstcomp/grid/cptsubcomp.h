@@ -220,15 +220,15 @@ class CPTSubCompVecStruct final : public CPTSubCompAPI {
   }; //class CPTSubCompVecStruct
 
 // subcomponent implementation for std::pair<struct,struct>
-class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
+class CPTSubCompVecPairOfStructs final : public CPTSubCompAPI {
 
   public:
     SST_ELI_REGISTER_SUBCOMPONENT(
-      CPTSubCompPairOfStructs,     // Class name
+      CPTSubCompVecPairOfStructs,     // Class name
       "grid",               // Library name, the 'lib' in SST's lib.name format
-      "CPTSubCompPairOfStructs",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
+      "CPTSubCompVecPairOfStructs",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
       SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
-      "SubComponent for checkpoint type std::pair<struct_t, struct_t>", // Description
+      "SubComponent for checkpoint type std::vector<std::pair<struct_t, struct_t>>", // Description
       SST::CPTSubComp::CPTSubCompAPI // Fully qualified name of the API this subcomponent implements
     )
     SST_ELI_DOCUMENT_PARAMS( 
@@ -237,8 +237,8 @@ class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
       { "seed","Initial seed for data generation", "1223"}
     )
   
-    CPTSubCompPairOfStructs(ComponentId_t id, Params& params);
-    virtual ~CPTSubCompPairOfStructs();
+    CPTSubCompVecPairOfStructs(ComponentId_t id, Params& params);
+    virtual ~CPTSubCompVecPairOfStructs();
   
     // subcomponent overrides
     virtual void setup() override;
@@ -249,9 +249,9 @@ class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
     void update() override;
   
     // Serialization
-    CPTSubCompPairOfStructs() : CPTSubCompAPI() {};
+    CPTSubCompVecPairOfStructs() : CPTSubCompAPI() {};
     void serialize_order(SST::Core::Serialization::serializer& ser) override;
-    ImplementSerializable(SST::CPTSubComp::CPTSubCompPairOfStructs);
+    ImplementSerializable(SST::CPTSubComp::CPTSubCompVecPairOfStructs);
   
   private:
     uint64_t  subcompBegin;

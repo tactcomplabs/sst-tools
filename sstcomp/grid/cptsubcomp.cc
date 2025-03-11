@@ -92,11 +92,11 @@ void CPTSubCompVecInt::serialize_order(SST::Core::Serialization::serializer &ser
     SST_SER(subcompEnd);
 }
 
-SST::CPTSubComp::CPTSubCompPairOfStructs::CPTSubCompPairOfStructs(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params), clocks(0)
+SST::CPTSubComp::CPTSubCompVecPairOfStructs::CPTSubCompVecPairOfStructs(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params), clocks(0)
 {
     uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
     output.init(
-      "CPTSubCompPairOfStructs[" + getName() + ":@p:@t]: ",
+      "CPTSubCompVecPairOfStructs[" + getName() + ":@p:@t]: ",
       Verbosity, 0, SST::Output::STDOUT
     );
     max = params.find<size_t>("max", 1);
@@ -117,18 +117,18 @@ SST::CPTSubComp::CPTSubCompPairOfStructs::CPTSubCompPairOfStructs(ComponentId_t 
     subcompEnd = 0xccce00000000eccc;
 }
 
-SST::CPTSubComp::CPTSubCompPairOfStructs::~CPTSubCompPairOfStructs()
+SST::CPTSubComp::CPTSubCompVecPairOfStructs::~CPTSubCompVecPairOfStructs()
 {
     if (rng) delete rng;
 }
 
-void SST::CPTSubComp::CPTSubCompPairOfStructs::setup()
+void SST::CPTSubComp::CPTSubCompVecPairOfStructs::setup()
 {
     output.verbose(CALL_INFO, 2, 0, "setup() clocks %d check {%s} : {%s}\n", 
         clocks, tut[0].first.toString().c_str(), tut[0].second.toString().c_str());
 }
 
-void SST::CPTSubComp::CPTSubCompPairOfStructs::finish()
+void SST::CPTSubComp::CPTSubCompVecPairOfStructs::finish()
 {
     output.verbose(CALL_INFO, 2, 0, 
         "finish() clocks %d check {%s} : {%s}\n", 
@@ -137,7 +137,7 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::finish()
         output.fatal(CALL_INFO, -1, "final check failed\n");  
 }
 
-int SST::CPTSubComp::CPTSubCompPairOfStructs::check()
+int SST::CPTSubComp::CPTSubCompVecPairOfStructs::check()
 {
     assert(tut.size() == tutini.size());
     assert(tut.size() == max);
@@ -156,7 +156,7 @@ int SST::CPTSubComp::CPTSubCompPairOfStructs::check()
     return 0;
 }
 
-void SST::CPTSubComp::CPTSubCompPairOfStructs::update()
+void SST::CPTSubComp::CPTSubCompVecPairOfStructs::update()
 {
     clocks++;
     for (size_t i=0; i<max; i++) {
@@ -165,7 +165,7 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::update()
     }
 }
 
-void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serialization::serializer &ser)
+void SST::CPTSubComp::CPTSubCompVecPairOfStructs::serialize_order(SST::Core::Serialization::serializer &ser)
 {
     SST_SER(subcompBegin);
     SST_SER(output);

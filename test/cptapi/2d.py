@@ -57,7 +57,7 @@ SUPPORTED_SUBCOMPONENTS = [
   "grid.CPTSubCompPair",
   "grid.CPTSubCompVecInt",
   "grid.CPTSubCompVecStruct",
-  "grid.CPTSubCompPairOfStructs"
+  "grid.CPTSubCompVecPairOfStructs"
 ]
 
 class GRIDNODE():
