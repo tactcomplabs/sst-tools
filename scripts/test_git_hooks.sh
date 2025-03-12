@@ -1,5 +1,7 @@
 #!/bin/sh
 
+exit 0
+
 exec >&2
 
 if [ -z ${NO_COLOR+x} ] && tty -s <&2; then
