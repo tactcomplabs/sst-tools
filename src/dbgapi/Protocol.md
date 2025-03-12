@@ -8,6 +8,23 @@
 * Client should track outstanding requests and buffer commands until previous commands are completed
 
 ## Protocol
+### Protocol Basis
+
+All protocol requests are in the form of vectors of elements where the first
+vector or array element is the command and all subsequent elements are the command
+arguments.  We define all the requests in terms of the vector element
+
+V[0] : COMMAND
+V[1] : ARG
+
+#### Request Structure
+V[0] : REQUEST_COMMAND
+V[1] : ARG
+
+#### Response Structure
+V[0] : RESPONSE_COMMAND
+V[1] : ARG
+
 ### Connect Security
 The probe component/subcomponent should contain an extra parameter that 
 is a security key read in from the SDL model file.  This key should be 
@@ -66,5 +83,9 @@ that accidental connections are rare.
 * Client: send the probepurge request, no response
 
 ### I/O for Checkpoint Files
+* Do we send I/O requests for checkpoint files over the socket?
+* Do we send file locations?
+* Do we rely upon shared filesystems and user knowledge?
 
 ### Custom Commands
+* Need an internal struct to describe custom probe commands
