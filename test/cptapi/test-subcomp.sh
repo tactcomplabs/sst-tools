@@ -5,7 +5,8 @@ en_schema=$2
 cleanup=$3
 
 threads=2
-verbose=3
+# verbose must be set to 2 for regex checks below
+verbose=2
 
 schema=""
 if [ "$en_schema" == "ON" ]; then
@@ -13,7 +14,7 @@ if [ "$en_schema" == "ON" ]; then
 fi
 
 regex_list=()
-if [ "${subcomp}" == "grid.CPTSubCompVecInt" ]; then
+if [ "${subcomp}" = "grid.CPTSubCompVecInt" ]; then
     regex_list+=( 'GridNode[cp_0_1:finish:10000000]: cp_0_1 finish() clocks 10000 check 0xcc6800' )
     regex_list+=( 'CPTSubCompVecInt[cp_0_1:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0xb97d34ed' )
     regex_list+=( 'GridNode[cp_1_1:finish:10000000]: cp_1_1 finish() clocks 10000 check 0xcc6800' )
@@ -82,7 +83,7 @@ if [ $? != 0 ]; then
 fi
 
 # optional clean
-if [ "$cleanup" == "ON" ]; then
+if [ "$cleanup" = "ON" ]; then
     echo "Cleaning " ${logs} ${pfx}
     rm -rf ${logs} ${pfx}
 fi

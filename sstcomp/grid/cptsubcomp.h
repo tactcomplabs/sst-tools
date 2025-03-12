@@ -113,16 +113,25 @@ public:
 
   // Constructor/Destructor
   CPTSubCompAPI(ComponentId_t id, Params& params);
-  virtual ~CPTSubCompAPI() {}
+  virtual ~CPTSubCompAPI();
 
   // API
   // Subcomponent self-checking returns 0 if no errors
   virtual int check() = 0;
   // Update the subcomponent internal state
-  virtual void update() = 0;
+  virtual void update()= 0;
+
+  protected:
+  SST::Output    output;
+  unsigned clocks = 0;
+  size_t max = 0;
+  unsigned seed = 0;
+  SST::RNG::Random* rng = nullptr;
 
   // Serialization
+  public:
   CPTSubCompAPI() {};
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
   ImplementVirtualSerializable(SST::CPTSubComp::CPTSubCompAPI);
 }; // class CTPSubCompAPI
 
@@ -144,7 +153,7 @@ public:
   )
 
   CPTSubCompVecInt(ComponentId_t id, Params& params);
-  virtual ~CPTSubCompVecInt();
+  ~CPTSubCompVecInt() {};
 
   // subcomponent overrides
   virtual void setup() override;
@@ -161,13 +170,8 @@ public:
 
 private:
   uint64_t  subcompBegin;
-  SST::Output    output;        ///< SST output handler
-  unsigned clocks;
-  size_t max;
-  unsigned seed;
   std::vector<int32_t> tut;     // type under test
   std::vector<int32_t> tutini;  // initial values for type under test
-  SST::RNG::Random* rng;
   uint64_t subcompEnd;
 
 }; //class CPTSubCompVecInt
@@ -191,7 +195,7 @@ class CPTSubCompVecStruct final : public CPTSubCompAPI {
     )
   
     CPTSubCompVecStruct(ComponentId_t id, Params& params);
-    virtual ~CPTSubCompVecStruct();
+    ~CPTSubCompVecStruct() {};
   
     // subcomponent overrides
     virtual void setup() override;
@@ -208,13 +212,8 @@ class CPTSubCompVecStruct final : public CPTSubCompAPI {
   
   private:
     uint64_t  subcompBegin;
-    SST::Output    output;        ///< SST output handler
-    unsigned clocks;
-    size_t max;
-    unsigned seed;
     std::vector<struct_t> tut;     // type under test
     std::vector<struct_t> tutini;  // initial values for type under test
-    SST::RNG::Random* rng;
     uint64_t subcompEnd;
   
   }; //class CPTSubCompVecStruct
@@ -238,7 +237,7 @@ class CPTSubCompVecPairOfStructs final : public CPTSubCompAPI {
     )
   
     CPTSubCompVecPairOfStructs(ComponentId_t id, Params& params);
-    virtual ~CPTSubCompVecPairOfStructs();
+    ~CPTSubCompVecPairOfStructs() {};
   
     // subcomponent overrides
     virtual void setup() override;
@@ -255,13 +254,8 @@ class CPTSubCompVecPairOfStructs final : public CPTSubCompAPI {
   
   private:
     uint64_t  subcompBegin;
-    SST::Output    output;        ///< SST output handler
-    unsigned clocks;
-    size_t max;
-    unsigned seed;
     std::vector<std::pair<struct_t, struct_t>> tut;     // type under test
     std::vector<std::pair<struct_t, struct_t>> tutini;  // initial values for type under test
-    SST::RNG::Random* rng;
     uint64_t subcompEnd;
   
   }; //class CPTSubCompPairOfStructs
@@ -283,7 +277,7 @@ class CPTSubCompPair final : public CPTSubCompAPI {
     )
   
     CPTSubCompPair(ComponentId_t id, Params& params);
-    virtual ~CPTSubCompPair();
+    ~CPTSubCompPair() {};
   
     // subcomponent overrides
     virtual void setup() override;
@@ -300,13 +294,8 @@ class CPTSubCompPair final : public CPTSubCompAPI {
   
   private:
     uint64_t  subcompBegin;
-    SST::Output    output;        ///< SST output handler
-    unsigned clocks;
-    //size_t max;
-    unsigned seed;
     std::pair<unsigned,unsigned> tut;      // type under test
     std::pair<unsigned,unsigned> tutini;   // type under test
-    SST::RNG::Random* rng;
     uint64_t subcompEnd;
   
   }; //class CPTSubCompVecInt
@@ -330,7 +319,7 @@ class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
     )
   
     CPTSubCompPairOfStructs(ComponentId_t id, Params& params);
-    virtual ~CPTSubCompPairOfStructs();
+    ~CPTSubCompPairOfStructs() {};
   
     // subcomponent overrides
     virtual void setup() override;
@@ -347,12 +336,8 @@ class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
   
   private:
     uint64_t  subcompBegin;
-    SST::Output    output;        ///< SST output handler
-    unsigned clocks;
-    unsigned seed;
     std::pair<struct_t, struct_t> tut;     // type under test
     std::pair<struct_t, struct_t> tutini;  // initial values for type under test
-    SST::RNG::Random* rng;
     uint64_t subcompEnd;
   
   }; //class CPTSubCompPairOfStructs
@@ -376,7 +361,7 @@ class CPTSubCompVecPair final : public CPTSubCompAPI {
     )
   
     CPTSubCompVecPair(ComponentId_t id, Params& params);
-    virtual ~CPTSubCompVecPair();
+    ~CPTSubCompVecPair() {};
   
     // subcomponent overrides
     virtual void setup() override;
@@ -393,13 +378,8 @@ class CPTSubCompVecPair final : public CPTSubCompAPI {
   
   private:
     uint64_t  subcompBegin;
-    SST::Output    output;        ///< SST output handler
-    unsigned clocks;
-    size_t max;
-    unsigned seed;
     std::vector<std::pair<unsigned, unsigned>> tut;     // type under test
     std::vector<std::pair<unsigned, unsigned>> tutini;  // initial values for type under test
-    SST::RNG::Random* rng;
     uint64_t subcompEnd;
   
   }; //class CPTSubCompPair

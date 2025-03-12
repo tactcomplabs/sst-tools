@@ -20,7 +20,21 @@ CPTSubCompAPI::CPTSubCompAPI(ComponentId_t id, Params& params) : SubComponent(id
     tcldbg::spinner("CPTSUB_SPINNER");
 }
 
-CPTSubCompVecInt::CPTSubCompVecInt(ComponentId_t id, Params& params) : CPTSubCompAPI(id, params), clocks(0) 
+CPTSubCompAPI::~CPTSubCompAPI()
+{
+    if (rng) delete rng;
+}
+
+void CPTSubCompAPI::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+    SST_SER(output);
+    SST_SER(clocks);
+    SST_SER(max);
+    SST_SER(seed);
+    SST_SER(rng);
+}
+
+CPTSubCompVecInt::CPTSubCompVecInt(ComponentId_t id, Params& params) : CPTSubCompAPI(id, params) 
 {
     uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
     output.init(
@@ -43,10 +57,6 @@ CPTSubCompVecInt::CPTSubCompVecInt(ComponentId_t id, Params& params) : CPTSubCom
     subcompEnd = 0xccce00000000eccc;
 }
 
-CPTSubCompVecInt::~CPTSubCompVecInt()
-{
-    if (rng) delete rng;
-}
 
 void SST::CPTSubComp::CPTSubCompVecInt::setup()
 {
@@ -81,18 +91,14 @@ void CPTSubCompVecInt::update()
 
 void CPTSubCompVecInt::serialize_order(SST::Core::Serialization::serializer &ser)
 {
+    CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
-    SST_SER(output);
-    SST_SER(clocks);
-    SST_SER(max);
-    SST_SER(seed);
     SST_SER(tut);
     SST_SER(tutini);
-    SST_SER(rng);
     SST_SER(subcompEnd);
 }
 
-SST::CPTSubComp::CPTSubCompVecPairOfStructs::CPTSubCompVecPairOfStructs(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params), clocks(0)
+SST::CPTSubComp::CPTSubCompVecPairOfStructs::CPTSubCompVecPairOfStructs(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params)
 {
     uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
     output.init(
@@ -115,11 +121,6 @@ SST::CPTSubComp::CPTSubCompVecPairOfStructs::CPTSubCompVecPairOfStructs(Componen
     }
     subcompBegin = 0xcccb00000000bccc;
     subcompEnd = 0xccce00000000eccc;
-}
-
-SST::CPTSubComp::CPTSubCompVecPairOfStructs::~CPTSubCompVecPairOfStructs()
-{
-    if (rng) delete rng;
 }
 
 void SST::CPTSubComp::CPTSubCompVecPairOfStructs::setup()
@@ -167,6 +168,7 @@ void SST::CPTSubComp::CPTSubCompVecPairOfStructs::update()
 
 void SST::CPTSubComp::CPTSubCompVecPairOfStructs::serialize_order(SST::Core::Serialization::serializer &ser)
 {
+    CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
     SST_SER(output);
     SST_SER(clocks);
@@ -194,11 +196,10 @@ void SST::CPTSubComp::CPTSubCompVecPairOfStructs::serialize_order(SST::Core::Ser
         SST_SER4(tutini[i].second, s_tutisecond.str(), typeid(struct_t{}).hash_code(), typeid(struct_t{}).name());
         #endif
     }
-    SST_SER(rng);
     SST_SER(subcompEnd);
 }
 
-SST::CPTSubComp::CPTSubCompVecStruct::CPTSubCompVecStruct(ComponentId_t id, Params &params)  : CPTSubCompAPI(id, params), clocks(0) 
+SST::CPTSubComp::CPTSubCompVecStruct::CPTSubCompVecStruct(ComponentId_t id, Params &params)  : CPTSubCompAPI(id, params) 
 {
     uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
     output.init(
@@ -221,10 +222,6 @@ SST::CPTSubComp::CPTSubCompVecStruct::CPTSubCompVecStruct(ComponentId_t id, Para
     subcompEnd = 0xccce00000000eccc;
 }
 
-SST::CPTSubComp::CPTSubCompVecStruct::~CPTSubCompVecStruct()
-{
-    if (rng) delete rng;
-}
 
 void SST::CPTSubComp::CPTSubCompVecStruct::setup()
 {
@@ -262,6 +259,7 @@ void SST::CPTSubComp::CPTSubCompVecStruct::update()
 
 void SST::CPTSubComp::CPTSubCompVecStruct::serialize_order(SST::Core::Serialization::serializer &ser)
 {
+    CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
     SST_SER(output);
     SST_SER(clocks);
@@ -270,11 +268,10 @@ void SST::CPTSubComp::CPTSubCompVecStruct::serialize_order(SST::Core::Serializat
     assert(tut.size()==tutini.size());
     SST_SER(tut);
     SST_SER(tutini);
-    SST_SER(rng);
     SST_SER(subcompEnd);
 }
 
-SST::CPTSubComp::CPTSubCompPair::CPTSubCompPair(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params), clocks(0)
+SST::CPTSubComp::CPTSubCompPair::CPTSubCompPair(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params)
 {
     uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
     output.init(
@@ -292,10 +289,6 @@ SST::CPTSubComp::CPTSubCompPair::CPTSubCompPair(ComponentId_t id, Params &params
     subcompEnd = 0xccce00000000eccc;
 }
 
-SST::CPTSubComp::CPTSubCompPair::~CPTSubCompPair()
-{
-    if (rng) delete rng;
-}
 
 void SST::CPTSubComp::CPTSubCompPair::setup()
 {
@@ -334,6 +327,7 @@ void SST::CPTSubComp::CPTSubCompPair::update()
 
 void SST::CPTSubComp::CPTSubCompPair::serialize_order(SST::Core::Serialization::serializer &ser)
 {
+    CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
     SST_SER(output);
     SST_SER(clocks);
@@ -343,11 +337,10 @@ void SST::CPTSubComp::CPTSubCompPair::serialize_order(SST::Core::Serialization::
     SST_SER(tut.second);
     SST_SER(tutini.first);
     SST_SER(tutini.second);
-    SST_SER(rng);
     SST_SER(subcompEnd);
 }
 
-SST::CPTSubComp::CPTSubCompPairOfStructs::CPTSubCompPairOfStructs(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params), clocks(0)
+SST::CPTSubComp::CPTSubCompPairOfStructs::CPTSubCompPairOfStructs(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params)
 {
     uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
     output.init(
@@ -367,10 +360,6 @@ SST::CPTSubComp::CPTSubCompPairOfStructs::CPTSubCompPairOfStructs(ComponentId_t 
     subcompEnd = 0xccce00000000eccc;    
 }
 
-SST::CPTSubComp::CPTSubCompPairOfStructs::~CPTSubCompPairOfStructs()
-{
-    if (rng) delete rng;
-}
 
 void SST::CPTSubComp::CPTSubCompPairOfStructs::setup()
 {
@@ -412,6 +401,7 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::update()
 
 void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serialization::serializer &ser)
 {
+    CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
     SST_SER(output);
     SST_SER(clocks);
@@ -420,11 +410,10 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serial
     SST_SER(tut.second);
     SST_SER(tutini.first);
     SST_SER(tutini.second);
-    SST_SER(rng);
     SST_SER(subcompEnd);     
 }
 
-SST::CPTSubComp::CPTSubCompVecPair::CPTSubCompVecPair(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params), clocks(0)
+SST::CPTSubComp::CPTSubCompVecPair::CPTSubCompVecPair(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params)
 {
     uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
     output.init(
@@ -447,11 +436,6 @@ SST::CPTSubComp::CPTSubCompVecPair::CPTSubCompVecPair(ComponentId_t id, Params &
     }
     subcompBegin = 0xcccb00000000bccc;
     subcompEnd = 0xccce00000000eccc;
-}
-
-SST::CPTSubComp::CPTSubCompVecPair::~CPTSubCompVecPair()
-{
-    if (rng) delete rng;
 }
 
 void SST::CPTSubComp::CPTSubCompVecPair::setup()
@@ -524,6 +508,5 @@ void SST::CPTSubComp::CPTSubCompVecPair::serialize_order(SST::Core::Serializatio
         SST_SER4(tutini[i].second, s_tutisecond.str(), typeid(unsigned{}).hash_code(), typeid(unsigned{}).name());
         #endif
     }
-    SST_SER(rng);
     SST_SER(subcompEnd);
 }
