@@ -14,16 +14,16 @@ All protocol requests are in the form of vectors of elements where the first
 vector or array element is the command and all subsequent elements are the command
 arguments.  We define all the requests in terms of the vector element
 
-V[0] : COMMAND
-V[1] : ARG
+- V[0] : COMMAND
+- V[1] : ARG
 
 #### Request Structure
-V[0] : REQUEST_COMMAND
-V[1] : ARG
+- V[0] : REQUEST_COMMAND
+- V[1] : ARG
 
 #### Response Structure
-V[0] : RESPONSE_COMMAND
-V[1] : ARG
+- V[0] : RESPONSE_COMMAND
+- V[1] : ARG
 
 ### Connect Security
 The probe component/subcomponent should contain an extra parameter that 
