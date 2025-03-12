@@ -170,10 +170,6 @@ void SST::CPTSubComp::CPTSubCompVecPairOfStructs::serialize_order(SST::Core::Ser
 {
     CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
-    SST_SER(output);
-    SST_SER(clocks);
-    SST_SER(max);
-    SST_SER(seed);
     assert(tut.size()==tutini.size());
     for (size_t i=0;i<tut.size();i++) {
         #ifndef TCL_SCHEMA
@@ -261,10 +257,6 @@ void SST::CPTSubComp::CPTSubCompVecStruct::serialize_order(SST::Core::Serializat
 {
     CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
-    SST_SER(output);
-    SST_SER(clocks);
-    SST_SER(max);
-    SST_SER(seed);
     assert(tut.size()==tutini.size());
     SST_SER(tut);
     SST_SER(tutini);
@@ -329,10 +321,6 @@ void SST::CPTSubComp::CPTSubCompPair::serialize_order(SST::Core::Serialization::
 {
     CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
-    SST_SER(output);
-    SST_SER(clocks);
-    //SST_SER(max);
-    SST_SER(seed);
     SST_SER(tut.first);
     SST_SER(tut.second);
     SST_SER(tutini.first);
@@ -403,9 +391,6 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serial
 {
     CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
-    SST_SER(output);
-    SST_SER(clocks);
-    SST_SER(seed);
     SST_SER(tut.first);
     SST_SER(tut.second);
     SST_SER(tutini.first);
@@ -486,9 +471,6 @@ void SST::CPTSubComp::CPTSubCompVecPair::update()
 void SST::CPTSubComp::CPTSubCompVecPair::serialize_order(SST::Core::Serialization::serializer &ser)
 {
     SST_SER(subcompBegin);
-    SST_SER(output);
-    SST_SER(clocks);
-    SST_SER(seed);
     for (size_t i=0; i<tut.size(); i++) {
         #ifndef TCL_SCHEMA
         SST_SER(tut[i].first);
