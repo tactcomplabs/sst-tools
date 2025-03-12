@@ -424,7 +424,7 @@ void SST::CPTSubComp::CPTSubCompPairOfStructs::serialize_order(SST::Core::Serial
     SST_SER(subcompEnd);     
 }
 
-SST::CPTSubComp::CPTSubCompVecPair::CPTSubCompVecPair(ComponentId_t id, Params &params)
+SST::CPTSubComp::CPTSubCompVecPair::CPTSubCompVecPair(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params), clocks(0)
 {
     uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
     output.init(

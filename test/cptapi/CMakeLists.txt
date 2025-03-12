@@ -52,9 +52,10 @@ set_tests_properties(cpt-restore
 #
 
 set(subcomps grid.CPTSubCompPair grid.CPTSubCompPairOfStructs grid.CPTSubCompVecInt grid.CPTSubCompVecStruct)
-# TODO sst bugs?
+# TODO These fail on checkpoint load with 
+# 'class id 817462545 is not a valid serializable id'
 list(APPEND subcomps grid.CPTSubCompVecPairOfStructs)
-# list(APPEND subcomps grid.CPTSubCompVecPair)
+list(APPEND subcomps grid.CPTSubCompVecPair)
 foreach(subcomp IN ITEMS ${subcomps})
   add_test(NAME ${subcomp}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
