@@ -42,7 +42,7 @@ namespace SST::CPTSubComp{
 // -------------------------------------------------------
 // test struct
 // -------------------------------------------------------
-struct struct_t : public SST::Core::Serialization::serializable {
+struct struct_t final : public SST::Core::Serialization::serializable {
   uint8_t u8;
   uint16_t u16;
   uint32_t u32;
