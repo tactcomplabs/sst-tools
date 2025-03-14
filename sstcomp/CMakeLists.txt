@@ -20,5 +20,7 @@ message(STATUS "[SST-TOOLS] Enabling dbgcli")
 add_subdirectory(dbgcli)
 message(STATUS "[SST-TOOLS] Enabling grid")
 add_subdirectory(grid)
+message(STATUS "[SST-TOOLS] Enabling igrid")
+add_subdirectory(igrid)
 
 # EOF

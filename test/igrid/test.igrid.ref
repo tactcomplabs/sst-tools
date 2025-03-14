@@ -1,0 +1,130 @@
+-- Test 1 --
+sst --add-lib-path=../../sstcomp/igrid --interactive-console=sst.interactive.simpledebug igrid2d.py -- --clock 1060 --breakEnable
+
+Interactive 2d grid test SST Simulation Configuration:
+	 x  =  2
+	 y  =  1
+	 numBytes  =  16384
+	 minData  =  10
+	 maxData  =  256
+	 clocks  =  1060
+	 minDelay  =  50
+	 maxDelay  =  100
+	 rngSeed  =  1223
+	 demoBug  =  0
+	 breakEnable  =  True
+	 verbose  =  1
+Creating link 0
+Creating link 1
+Creating link 2
+Creating link 3
+Creating link 4
+Creating link 5
+Creating link 6
+Creating link 7
+Entering interactive mode at time 1054000 
+	Break to interactive console from event handler
+
+> Entering interactive mode at time 1054000 
+	Break to interactive console from event handler
+
+> Entering interactive mode at time 1054000 
+	Break to interactive console from event handler
+
+> Entering interactive mode at time 1054000 
+	Break to interactive console from event handler
+
+> IGridNode[cp0:clockTick:1060000]: cp0 ready to end simulation
+IGridNode[cp1:clockTick:1060000]: cp1 ready to end simulation
+Simulation is complete, simulated time: 1.06 us
+
+-- Test 2 --
+sst --add-lib-path=../../sstcomp/igrid --interactive-console=sst.interactive.simpledebug igrid2d.py -- --clock 1060 --breakEnable
+
+Interactive 2d grid test SST Simulation Configuration:
+	 x  =  2
+	 y  =  1
+	 numBytes  =  16384
+	 minData  =  10
+	 maxData  =  256
+	 clocks  =  1060
+	 minDelay  =  50
+	 maxDelay  =  100
+	 rngSeed  =  1223
+	 demoBug  =  0
+	 breakEnable  =  True
+	 verbose  =  1
+Creating link 0
+Creating link 1
+Creating link 2
+Creating link 3
+Creating link 4
+Creating link 5
+Creating link 6
+Creating link 7
+Entering interactive mode at time 1054000 
+	Break to interactive console from event handler
+
+> Entering interactive mode at time 1054000 
+	Break to interactive console from event handler
+
+> > > > > > IGridNode[cp0:clockTick:1060000]: cp0 ready to end simulation
+IGridNode[cp1:clockTick:1060000]: cp1 ready to end simulation
+Simulation is complete, simulated time: 1.06 us
+
+-- Test 3 --
+sst --add-lib-path=../../sstcomp/igrid igrid2d.py -- --clock 1060 --breakEnable
+
+Interactive 2d grid test SST Simulation Configuration:
+	 x  =  2
+	 y  =  1
+	 numBytes  =  16384
+	 minData  =  10
+	 maxData  =  256
+	 clocks  =  1060
+	 minDelay  =  50
+	 maxDelay  =  100
+	 rngSeed  =  1223
+	 demoBug  =  0
+	 breakEnable  =  True
+	 verbose  =  1
+Creating link 0
+Creating link 1
+Creating link 2
+Creating link 3
+Creating link 4
+Creating link 5
+Creating link 6
+Creating link 7
+IGridNode[cp0:clockTick:1060000]: cp0 ready to end simulation
+IGridNode[cp1:clockTick:1060000]: cp1 ready to end simulation
+Simulation is complete, simulated time: 1.06 us
+
+-- Test 4 --
+sst --add-lib-path=../../sstcomp/igrid igrid2d.py -- --clock 1060
+
+Interactive 2d grid test SST Simulation Configuration:
+	 x  =  2
+	 y  =  1
+	 numBytes  =  16384
+	 minData  =  10
+	 maxData  =  256
+	 clocks  =  1060
+	 minDelay  =  50
+	 maxDelay  =  100
+	 rngSeed  =  1223
+	 demoBug  =  0
+	 breakEnable  =  False
+	 verbose  =  1
+Creating link 0
+Creating link 1
+Creating link 2
+Creating link 3
+Creating link 4
+Creating link 5
+Creating link 6
+Creating link 7
+IGridNode[cp0:clockTick:1060000]: cp0 ready to end simulation
+IGridNode[cp1:clockTick:1060000]: cp1 ready to end simulation
+Simulation is complete, simulated time: 1.06 us
+
