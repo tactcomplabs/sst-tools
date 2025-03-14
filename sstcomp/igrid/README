@@ -1,0 +1,19 @@
+Interactive Console Break Example
+
+This code provides an example of breaking into an interactive console from
+a component (in this case in the event handler). It defines a breakEnable
+variable that can be set from the command line. It can also be set from
+the interactive console to turn the break capability on/off during execution.
+Note that setting breakEnable from the command line enables it for all
+components. However, modifying it from the interactive console must be done 
+for each component. So, for example, you could "set breakEnable 0" for the 
+instance in component 0 but it would still be enabled in other components. 
+
+This version uses the BaseComponent::initiateInteractive() functionality
+to break into the interactive console. This is different from the 
+interactive_rt branch which used the realtime action directly. (This is an
+invalid use of realtime actions per Sandia.)
+
+This example could be expanded to support more complex debugging funtionality.
+
+
