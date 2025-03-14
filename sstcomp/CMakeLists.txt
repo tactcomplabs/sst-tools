@@ -8,17 +8,14 @@
 #
 
 #-- Include Paths
-include_directories(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
-
-#-- SST Compile Options
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SST_LDFLAGS}" )
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 #-- Components
 message(STATUS "[SST-TOOLS] Enabling dbgcli")
 add_subdirectory(dbgcli)
-message(STATUS "[SST-TOOLS] Enabling grid")
-add_subdirectory(grid)
+
+#-- Components
+message(STATUS "[SST-TOOLS] Enabling igrid")
+add_subdirectory(igrid)
 
 # EOF
