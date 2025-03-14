@@ -4,7 +4,7 @@ subcomp=$1
 en_schema=$2
 cleanup=$3
 
-threads=1
+threads=2
 # verbose must be set to 2 for regex checks below
 verbose=2
 
