@@ -36,10 +36,6 @@
 #include <sst/core/rng/rng.h>
 #include <sst/core/rng/mersenne.h>
 
-//SKK
-//#include <sst/core/realtimeAction.h>
-//#include <sst/core/realtime.h>
-
 namespace SST::IGridNode{
 
 // -------------------------------------------------------
@@ -122,7 +118,7 @@ public:
     {"clockFreq",       "Clock frequency",                      "1GHz"},
     {"rngSeed",         "Mersenne RNG Seed",                    "1223"},
     {"demoBug",         "Induce bug for debug demo",               "0"},
-    {"breakEnable",     "Enables break to interactive console from code", "False"},
+    {"breakEnable",     "Enables break to interactive console from code", "0"},
 
   )
 
@@ -191,7 +187,7 @@ private:
   // Interactive Console Debug Example
   // Break into interactive console for debug
   // Can be enabled with cmd line parameter or modified from interactive console
-  volatile bool breakEnable;
+  volatile int breakEnable;
 
   // -- private methods
   /// event handler

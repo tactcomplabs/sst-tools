@@ -23,7 +23,7 @@ IGridNode::IGridNode(SST::ComponentId_t id, const SST::Params& params ) :
   
   kgdbg::spinner("GRIDSPINNER");
 
-  const int Verbosity = params.find< int >( "verbose", 0 );
+  const unsigned Verbosity = params.find< unsigned >( "verbose", 0 );
   output.init(
     "IGridNode[" + getName() + ":@p:@t]: ",
     Verbosity, 0, SST::Output::STDOUT );
@@ -43,7 +43,7 @@ IGridNode::IGridNode(SST::ComponentId_t id, const SST::Params& params ) :
   clocks = params.find<uint64_t>("clocks", 1000);
   rngSeed = params.find<unsigned>("rngSeed", 1223);
   demoBug = params.find<unsigned>("demoBug", 0);
-  breakEnable = params.find<bool>("breakEnable", 0);
+  breakEnable = (int) params.find<bool>("breakEnable", 0);
   // bug injection
   dataMax += demoBug;
 
@@ -83,13 +83,13 @@ IGridNode::IGridNode(SST::ComponentId_t id, const SST::Params& params ) :
     // Each port has unique random sequence.
     // However, across components the data for each corresponding port will be the same.
     // To add the complimentary port's component info to the seed could be a future enhancement.
-    int n = i<4 ? i : neighbor(i);
+    unsigned n = i<4 ? i : neighbor(i);
     rng.insert( {portname[i], new SST::RNG::MersenneRNG(n + rngSeed)} );
     #endif
   }
   
   // local random number generator. These can run independently for each component.
-  localRNG = new SST::RNG::MersenneRNG(id + rngSeed);
+  localRNG = new SST::RNG::MersenneRNG((uint32_t) (id + rngSeed));
   clkDelay = localRNG->generateNextUInt32() % (maxDelay-minDelay+1) + minDelay;
 
   // constructor complete
@@ -167,24 +167,24 @@ void IGridNode::handleEvent(SST::Event *ev){
   assert(send_port < (portname.size()/2)); // TODO unrestrict bidirectional links
   unsigned rcv_port = neighbor(send_port);
   auto portRNG = rng[portname[rcv_port]];
-  unsigned range = maxData - minData + 1;
-  unsigned r = portRNG->generateNextUInt32() % range + minData;
+  uint64_t range = maxData - minData + 1;
+  uint64_t r = portRNG->generateNextUInt32() % range + minData;
   if (r != data.size()) {
     output.fatal(CALL_INFO, -1,
-                  "%s expected data size %" PRIu32 " does not match actual size %" PRIu64 "\n",
+                  "%s expected data size %" PRIu64 " does not match actual size %" PRIu64 "\n",
                   getName().c_str(), r, data.size());
   }
   if (r != data[1]) {
     output.fatal(CALL_INFO, -1,
-              "%s expected data[0] %" PRIu32 " does not match actual %" PRIu32 "\n",
+              "%s expected data[0] %" PRIu64 " does not match actual %" PRIu32 "\n",
               getName().c_str(), r, data[0]);
   }
   for (unsigned i=2; i<r; i++){
     // checked is slightly different from how send data is generated to induce an error.
-    unsigned d = (unsigned)portRNG->generateNextUInt32() & dataMask; 
+    uint64_t d = (unsigned)portRNG->generateNextUInt32() & dataMask; 
     if ( d != data[i] ) {
       output.fatal(CALL_INFO, -1,
-          "%s expected data[%" PRIu32 "] %" PRIu32 " does not match actual %" PRIu32 "\n",
+          "%s expected data[%" PRIu32 "] %" PRIu64 " does not match actual %" PRIu32 "\n",
           getName().c_str(), i, d, data[i]);
     }
   }
@@ -192,7 +192,7 @@ void IGridNode::handleEvent(SST::Event *ev){
   // Interactive Console Debug Example
   // breakEnable can be set from interactive console to enable/disable as long it is serialized 
   // Could also add triggers etc to control when to break
-  if (breakEnable == true) {
+  if (breakEnable) {
     std::string message = "\tBreak to interactive console from event handler\n";
     SST::BaseComponent::initiateInteractive(message.c_str());
   }
@@ -207,20 +207,20 @@ void IGridNode::sendData(){
   for( unsigned port=0; port<(numPorts/2); port++ ){
     // generate a new payload
     std::vector<unsigned> data;
-    unsigned range = maxData - minData + 1;
-    unsigned r = rng[portname[port]]->generateNextUInt32() % range + minData;
+    uint64_t range = maxData - minData + 1;
+    uint64_t r = rng[portname[port]]->generateNextUInt32() % range + minData;
     // Outbound data sequence
     // [0] sending port number
     // [1] number of ints
     // [2:r-1] random data
     data.push_back(port);
-    data.push_back(r);
+    data.push_back((uint32_t) r);
     for( unsigned i=2; i<r; i++ ){
       uint64_t d = (unsigned)(rng[portname[port]]->generateNextUInt32());
       // This is to introduce an infrequent mismatch between sender and receiver
       d = d & ( 0xfULL | (dataMask<<4) );
       if (d > dataMax) d = d & dataMask;
-      data.push_back(d);
+      data.push_back((uint32_t) d);
     }
     output.verbose(CALL_INFO, 5, 0,
                    "%s: sending %zu unsigned values on link %d\n",
