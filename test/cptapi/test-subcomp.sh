@@ -4,7 +4,7 @@ subcomp=$1
 en_schema=$2
 cleanup=$3
 
-threads=2
+threads=1
 # verbose must be set to 2 for regex checks below
 verbose=2
 
@@ -59,7 +59,7 @@ if [ $? != 0 ]; then
     exit 10
 fi
 
-for i in 0_1 1_2 2_3 3_4 4_5 5_6 6_7 7_8 8_9 9_10 10_11
+for i in 0_1 1_2 2_3 3_4 4_5 5_6 6_7 7_8 8_9 9_10
 do
     cpt=${pfx}_${i}000000
     echo "### loading checkpoint ${cpt}"

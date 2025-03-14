@@ -10,6 +10,7 @@
 
 #include "cptsubcomp.h"
 #include "tcldbg.h"
+#include <sst/core/serialization/serialize.h>
 
 using namespace SST;
 using namespace SST::CPTSubComp;
@@ -171,27 +172,20 @@ void SST::CPTSubComp::CPTSubCompVecPairOfStructs::serialize_order(SST::Core::Ser
     CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
     assert(tut.size()==tutini.size());
-    for (size_t i=0;i<tut.size();i++) {
-        #ifndef TCL_SCHEMA
-        SST_SER(tut[i].first);
-        SST_SER(tut[i].second);
-        SST_SER(tutini[i].first);
-        SST_SER(tutini[i].second);
-        #else
-        // The macro cannot get the typeid resulting in [-Werror,-Wpotentially-evaluated-expression] for schema.
-        // So added added this explicitely to the macro to help debugging.
-        // Crude but effective.
-        std::stringstream s_tutfirst, s_tutsecond, s_tutifirst, s_tutisecond;
-        s_tutfirst   << "tut["    << i << "].first";
-        s_tutsecond  << "tut["    << i << "].second";
-        s_tutifirst  << "tutini[" << i << "].first";
-        s_tutisecond << "tutini[" << i << "].second";
-        SST_SER4(tut[i].first,     s_tutfirst.str(),   typeid(struct_t{}).hash_code(), typeid(struct_t{}).name());
-        SST_SER4(tut[i].second,    s_tutsecond.str(),  typeid(struct_t{}).hash_code(), typeid(struct_t{}).name());
-        SST_SER4(tutini[i].first,  s_tutifirst.str(),  typeid(struct_t{}).hash_code(), typeid(struct_t{}).name());
-        SST_SER4(tutini[i].second, s_tutisecond.str(), typeid(struct_t{}).hash_code(), typeid(struct_t{}).name());
-        #endif
+    // See comments in CPTSubCompVecPair::serialize_order
+    #if 0
+    SST_SER(tut);
+    SST_SER(tutini);
+    #else
+    if (ser.mode() == Core::Serialization::serializer::MAP) {
+        // Here are the culprits
+        // Core::Serialization::serialize<std::vector<std::pair<struct_t, struct_t>>>()(tut, ser, "tut");
+        // Core::Serialization::serialize<std::vector<std::pair<struct_t, struct_t>>>()(tutini, ser, "tutini");
+    } else {
+        Core::Serialization::serialize<std::vector<std::pair<struct_t, struct_t>>>()(tut,ser);
+        Core::Serialization::serialize<std::vector<std::pair<struct_t, struct_t>>>()(tutini,ser);
     }
+    #endif
     SST_SER(subcompEnd);
 }
 
@@ -470,25 +464,48 @@ void SST::CPTSubComp::CPTSubCompVecPair::update()
 
 void SST::CPTSubComp::CPTSubCompVecPair::serialize_order(SST::Core::Serialization::serializer &ser)
 {
+        // This test case is in sst-core
+        // from /Users/kgriesser/work/sst-core-tcl/src/sst/core/testElements/coreTest_Serialization.cc
+        //   std::map<std::string, uintptr_t> map2vec_in = {
+        //       { "s1", 1 }, { "s2", 2 }, { "s3", 3 }, { "s4", 4 }, { "s5", 5 }
+        //   };
+        //   std::vector<std::pair<std::string, uintptr_t>> map2vec_out;
+        //   auto buffer = SST::Comms::serialize(map2vec_in);
+        //   SST::Comms::deserialize(buffer, map2vec_out);
+
+    CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
-    for (size_t i=0; i<tut.size(); i++) {
-        #ifndef TCL_SCHEMA
-        SST_SER(tut[i].first);
-        SST_SER(tut[i].second);
-        SST_SER(tutini[i].first);
-        SST_SER(tutini[i].second);
-        #else
-        // debug hack
-        std::stringstream s_tutfirst, s_tutsecond, s_tutifirst, s_tutisecond;
-        s_tutfirst   << "tut["    << i << "].first";
-        s_tutsecond  << "tut["    << i << "].second";
-        s_tutifirst  << "tutini[" << i << "].first";
-        s_tutisecond << "tutini[" << i << "].second";
-        SST_SER4(tut[i].first,     s_tutfirst.str(),   typeid(unsigned{}).hash_code(), typeid(unsigned{}).name());
-        SST_SER4(tut[i].second,    s_tutsecond.str(),  typeid(unsigned{}).hash_code(), typeid(unsigned{}).name());
-        SST_SER4(tutini[i].first,  s_tutifirst.str(),  typeid(unsigned{}).hash_code(), typeid(unsigned{}).name());
-        SST_SER4(tutini[i].second, s_tutisecond.str(), typeid(unsigned{}).hash_code(), typeid(unsigned{}).name());
-        #endif
+    #if 0
+        // This results in the following compiler error
+        // serialize.h:133:78: error: no matching function for call to object of type 'serialize_impl<pair<unsigned int, unsigned int>>
+        SST_SER(tut);
+        SST_SER(tutini);
+    #else
+    // From serialize.h:
+    //    template <class T>
+    //    inline void
+    //    sst_map_object(serializer& ser, T& t, const char* name)
+    //    {
+    //        // This function is only used in mapping mode.  If we're not in
+    //        // mapping mode, we will just call into the basic
+    //        // serialize<T>()(t,ser) path.
+    //        if ( ser.mode() == serializer::MAP ) { serialize<T>()(t, ser, name); }
+    //        else {
+    //            serialize<T>()(t, ser);
+    //        }
+    //   
+    //    #define SST_SER(obj)        sst_map_object(ser, obj, #obj);
+
+    // So, skipping the MAP phase and calling serialize directly compiles
+    if (ser.mode() == Core::Serialization::serializer::MAP) {
+        // Here are the culprits
+        // Core::Serialization::serialize<std::vector<std::pair<unsigned, unsigned>>>()(tut, ser, "tut");
+        // Core::Serialization::serialize<std::vector<std::pair<unsigned, unsigned>>>()(tutini, ser, "tutini");
+    } else {
+        Core::Serialization::serialize<std::vector<std::pair<unsigned, unsigned>>>()(tut,ser);
+        Core::Serialization::serialize<std::vector<std::pair<unsigned, unsigned>>>()(tutini,ser);
     }
+    #endif
     SST_SER(subcompEnd);
 }
+
