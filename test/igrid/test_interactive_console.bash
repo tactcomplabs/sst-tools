@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Test sigusr1/2 real with interactive console real time actions
+# Test interactive console real time actions
 #
 # 0) Set up pipe
 # 1) launch the program in the background
