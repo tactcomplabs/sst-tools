@@ -1,0 +1,98 @@
+Interactive 2d grid test SST Simulation Configuration:
+	 x  =  2
+	 y  =  1
+	 numBytes  =  16384
+	 minData  =  10
+	 maxData  =  256
+	 clocks  =  400000
+	 minDelay  =  50
+	 maxDelay  =  100
+	 rngSeed  =  1223
+	 demoBug  =  0
+	 breakEnable  =  False
+	 verbose  =  1
+Creating link 0
+Creating link 1
+Creating link 2
+Creating link 3
+Creating link 4
+Creating link 5
+Creating link 6
+Creating link 7
+1 us
+Entering interactive mode at time 1000000 
+Interactive start at 1000000
+>  ()
+> cp1/ (SST::IGridNode::IGridNode)
+cp0/ (SST::IGridNode::IGridNode)
+> > my_info/ ()
+clockHandler/ (SST::SSTHandler2<bool, unsigned long, SST::IGridNode::IGridNode, void, &SST::IGridNode::IGridNode::clockTick>)
+numBytes = 16384 (unsigned long)
+numPorts = 8 (unsigned int)
+minData = 10 (unsigned long)
+maxData = 256 (unsigned long)
+minDelay = 50 (unsigned long)
+maxDelay = 100 (unsigned long)
+clkDelay = 10 (unsigned long)
+clocks = 400000 (unsigned long)
+rngSeed = 1223 (unsigned int)
+state/ (std::vector<unsigned int, std::allocator<unsigned int> >)
+curCycle = 7 (unsigned long)
+portname/ (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)
+localRNG/ (SST::RNG::MersenneRNG)
+linkHandlers/ (std::vector<SST::Link*, std::allocator<SST::Link*> >)
+demoBug = 0 (unsigned int)
+dataMask = 33554431 (unsigned long)
+dataMax = 33554431 (unsigned long)
+breakEnable = 0 (int)
+> cp0 (SST::IGridNode::IGridNode)
+> my_info ()
+ id = 0 (unsigned long)
+ type = igrid.IGridNode (std::string)
+ defaultTimeBase = 1 ns (SST::TimeConverter)
+> current time = 1000000
+> > my_info/ ()
+clockHandler/ (SST::SSTHandler2<bool, unsigned long, SST::IGridNode::IGridNode, void, &SST::IGridNode::IGridNode::clockTick>)
+numBytes = 16384 (unsigned long)
+numPorts = 8 (unsigned int)
+minData = 10 (unsigned long)
+maxData = 100 (unsigned long)
+minDelay = 50 (unsigned long)
+maxDelay = 100 (unsigned long)
+clkDelay = 10 (unsigned long)
+clocks = 400000 (unsigned long)
+rngSeed = 1223 (unsigned int)
+state/ (std::vector<unsigned int, std::allocator<unsigned int> >)
+curCycle = 7 (unsigned long)
+portname/ (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)
+localRNG/ (SST::RNG::MersenneRNG)
+linkHandlers/ (std::vector<SST::Link*, std::allocator<SST::Link*> >)
+demoBug = 0 (unsigned int)
+dataMask = 33554431 (unsigned long)
+dataMax = 33554431 (unsigned long)
+breakEnable = 0 (int)
+> > my_info/ ()
+clockHandler/ (SST::SSTHandler2<bool, unsigned long, SST::IGridNode::IGridNode, void, &SST::IGridNode::IGridNode::clockTick>)
+numBytes = 16384 (unsigned long)
+numPorts = 8 (unsigned int)
+minData = 10 (unsigned long)
+maxData = 256 (unsigned long)
+minDelay = 50 (unsigned long)
+maxDelay = 100 (unsigned long)
+clkDelay = 10 (unsigned long)
+clocks = 400000 (unsigned long)
+rngSeed = 1223 (unsigned int)
+state/ (std::vector<unsigned int, std::allocator<unsigned int> >)
+curCycle = 7 (unsigned long)
+portname/ (std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >)
+localRNG/ (SST::RNG::MersenneRNG)
+linkHandlers/ (std::vector<SST::Link*, std::allocator<SST::Link*> >)
+demoBug = 0 (unsigned int)
+dataMask = 33554431 (unsigned long)
+dataMax = 33554431 (unsigned long)
+breakEnable = 0 (int)
+> Entering interactive mode at time 2000000 
+Running clock 1000000 sim cycles
+> IGridNode[cp0:clockTick:400000000]: cp0 ready to end simulation
+IGridNode[cp1:clockTick:400000000]: cp1 ready to end simulation
+Simulation is complete, simulated time: 400 us
