@@ -157,36 +157,36 @@ void GridNode::printStatus( Output& out ){
 void GridNode::serialize_order(SST::Core::Serialization::serializer& ser){
   SST::Component::serialize_order(ser);
   // Start of serialized members
-  SST_SER(cptBegin)
+  SST_SER(cptBegin);
   // -- SST handlers
-  SST_SER(output)
-  SST_SER(timeConverter)
-  SST_SER(clockHandler)
-  SST_SER(CPTSubComp)
+  SST_SER(output);
+  SST_SER(timeConverter);
+  SST_SER(clockHandler);
+  SST_SER(CPTSubComp);
   // -- parameters
-  SST_SER(numBytes)
-  SST_SER(numPorts)
-  SST_SER(minData)
-  SST_SER(maxData)
-  SST_SER(minDelay)
-  SST_SER(maxDelay)
-  SST_SER(clocks)
-  SST_SER(rngSeed)
-  SST_SER(curCycle)
+  SST_SER(numBytes);
+  SST_SER(numPorts);
+  SST_SER(minData);
+  SST_SER(maxData);
+  SST_SER(minDelay);
+  SST_SER(maxDelay);
+  SST_SER(clocks);
+  SST_SER(rngSeed);
+  SST_SER(curCycle);
   // Bug injection
-  SST_SER(demoBug)
-  SST_SER(dataMask)
-  SST_SER(dataMax)
+  SST_SER(demoBug);
+  SST_SER(dataMask);
+  SST_SER(dataMax);
   // -- internal state
-  SST_SER(clkDelay)
-  SST_SER(portname)
-  SST_SER(linkHandlers)
-  SST_SER(state)
-  SST_SER(initialCheck)
-  SST_SER(rng)
-  SST_SER(localRNG)
+  SST_SER(clkDelay);
+  SST_SER(portname);
+  SST_SER(linkHandlers);
+  SST_SER(state);
+  SST_SER(initialCheck);
+  SST_SER(rng);
+  SST_SER(localRNG);
   // -- End of checkpointed members
-  SST_SER(cptEnd)
+  SST_SER(cptEnd);
 }
 
 void GridNode::handleEvent(SST::Event *ev){

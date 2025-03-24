@@ -55,7 +55,7 @@ private:
   /// DbgCLIEvent: serialization method
   void serialize_order(SST::Core::Serialization::serializer& ser) override{
     Event::serialize_order(ser);
-    SST_SER(data)
+    SST_SER(data);
   }
 
   /// DbgCLIEvent: serialization implementor

@@ -104,15 +104,15 @@ void DbgCLI::printStatus( SST::Output& out ){
 
 void DbgCLI::serialize_order(SST::Core::Serialization::serializer& ser){
   SST::Component::serialize_order(ser);
-  SST_SER(clockHandler)
-  SST_SER(numPorts)
-  SST_SER(minData)
-  SST_SER(maxData)
-  SST_SER(clockDelay)
-  SST_SER(clocks)
-  SST_SER(curCycle)
-  SST_SER(mersenne)
-  SST_SER(linkHandlers)
+  SST_SER(clockHandler);
+  SST_SER(numPorts);
+  SST_SER(minData);
+  SST_SER(maxData);
+  SST_SER(clockDelay);
+  SST_SER(clocks);
+  SST_SER(curCycle);
+  SST_SER(mersenne);
+  SST_SER(linkHandlers);
 
   if ( (cliType==0) && (ser.mode() == SST::Core::Serialization::serializer::PACK) ) {
     handle_chkpt_probe_action();
