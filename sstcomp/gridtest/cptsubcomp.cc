@@ -172,20 +172,8 @@ void SST::CPTSubComp::CPTSubCompVecPairOfStructs::serialize_order(SST::Core::Ser
     CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
     assert(tut.size()==tutini.size());
-    // See comments in CPTSubCompVecPair::serialize_order
-    #if 0
     SST_SER(tut);
     SST_SER(tutini);
-    #else
-    if (ser.mode() == Core::Serialization::serializer::MAP) {
-        // Here are the culprits
-        // Core::Serialization::serialize<std::vector<std::pair<struct_t, struct_t>>>()(tut, ser, "tut");
-        // Core::Serialization::serialize<std::vector<std::pair<struct_t, struct_t>>>()(tutini, ser, "tutini");
-    } else {
-        Core::Serialization::serialize<std::vector<std::pair<struct_t, struct_t>>>()(tut,ser);
-        Core::Serialization::serialize<std::vector<std::pair<struct_t, struct_t>>>()(tutini,ser);
-    }
-    #endif
     SST_SER(subcompEnd);
 }
 
@@ -475,37 +463,8 @@ void SST::CPTSubComp::CPTSubCompVecPair::serialize_order(SST::Core::Serializatio
 
     CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
-    #if 0
-        // This results in the following compiler error
-        // serialize.h:133:78: error: no matching function for call to object of type 'serialize_impl<pair<unsigned int, unsigned int>>
         SST_SER(tut);
         SST_SER(tutini);
-    #else
-    // From serialize.h:
-    //    template <class T>
-    //    inline void
-    //    sst_map_object(serializer& ser, T& t, const char* name)
-    //    {
-    //        // This function is only used in mapping mode.  If we're not in
-    //        // mapping mode, we will just call into the basic
-    //        // serialize<T>()(t,ser) path.
-    //        if ( ser.mode() == serializer::MAP ) { serialize<T>()(t, ser, name); }
-    //        else {
-    //            serialize<T>()(t, ser);
-    //        }
-    //   
-    //    #define SST_SER(obj)        sst_map_object(ser, obj, #obj);
-
-    // So, skipping the MAP phase and calling serialize directly compiles
-    if (ser.mode() == Core::Serialization::serializer::MAP) {
-        // Here are the culprits
-        // Core::Serialization::serialize<std::vector<std::pair<unsigned, unsigned>>>()(tut, ser, "tut");
-        // Core::Serialization::serialize<std::vector<std::pair<unsigned, unsigned>>>()(tutini, ser, "tutini");
-    } else {
-        Core::Serialization::serialize<std::vector<std::pair<unsigned, unsigned>>>()(tut,ser);
-        Core::Serialization::serialize<std::vector<std::pair<unsigned, unsigned>>>()(tutini,ser);
-    }
-    #endif
     SST_SER(subcompEnd);
 }
 
