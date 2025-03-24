@@ -24,13 +24,9 @@
 
 // clang-format off
 // -- Standard Headers
-// #include <map>
-// #include <vector>
-// #include <queue>
-// #include <random>
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <time.h>
+#include <list>
+#include <vector>
+
 
 // -- SST Headers
 #include "SST.h"
@@ -182,7 +178,7 @@ class CPTSubCompVecStruct final : public CPTSubCompAPI {
   public:
     SST_ELI_REGISTER_SUBCOMPONENT(
       CPTSubCompVecStruct,            // Class name
-      "gridtest",                         // Library name, the 'lib' in SST's lib.name format
+      "gridtest",                     // Library name, the 'lib' in SST's lib.name format
       "CPTSubCompVecStruct",          // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
       SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
       "SubComponent for checkpoint type std::vector<struct_t>", // Description
@@ -382,7 +378,49 @@ class CPTSubCompVecPair final : public CPTSubCompAPI {
     std::vector<std::pair<unsigned, unsigned>> tutini;  // initial values for type under test
     uint64_t subcompEnd;
   
-  }; //class CPTSubCompPair
+  }; //class CPTSubCompVecPair
+
+// subcomponent implementation for std::list<std::pair<struct_t,struct_t>>
+class CPTSubCompListPairOfStructs final : public CPTSubCompAPI {
+
+  public:
+    SST_ELI_REGISTER_SUBCOMPONENT(
+      CPTSubCompListPairOfStructs,
+      "gridtest",
+      "CPTSubCompListPairOfStructs", 
+      SST_ELI_ELEMENT_VERSION(1,0,0), 
+      "SubComponent for checkpoint type std::list<std::pair<struct_t, struct_t>>",
+      SST::CPTSubComp::CPTSubCompAPI 
+    )
+    SST_ELI_DOCUMENT_PARAMS( 
+      {"verbose", "Sets the verbosity level of output", "0" },
+      { "max", "Maximum number of test elements", "100" },
+      { "seed","Initial seed for data generation", "1223"}
+    )
+  
+    CPTSubCompListPairOfStructs(ComponentId_t id, Params& params);
+    ~CPTSubCompListPairOfStructs() {};
+  
+    // subcomponent overrides
+    virtual void setup() override;
+    virtual void finish() override;
+  
+    // API members
+    int check() override;
+    void update() override;
+  
+    // Serialization
+    CPTSubCompListPairOfStructs() : CPTSubCompAPI() {};
+    void serialize_order(SST::Core::Serialization::serializer& ser) override;
+    ImplementSerializable(SST::CPTSubComp::CPTSubCompListPairOfStructs);
+  
+  private:
+    uint64_t  subcompBegin;
+    std::list<std::pair<struct_t, struct_t>> tut;     // type under test
+    std::list<std::pair<struct_t, struct_t>> tutini;  // initial values for type under test
+    uint64_t subcompEnd;
+  
+  }; //class CPTSubCompListPairOfStructs
 
 } // namespace SST::CPTSubComp
 

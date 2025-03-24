@@ -56,6 +56,7 @@ comp_params = {
 SUPPORTED_SUBCOMPONENTS = [
   "gridtest.CPTSubCompPair",
   "gridtest.CPTSubCompPairOfStructs",
+  "gridtest.CPTSubCompListPairOfStructs",
   "gridtest.CPTSubCompVecInt",
   "gridtest.CPTSubCompVecStruct",
   "gridtest.CPTSubCompVecPairOfStructs",

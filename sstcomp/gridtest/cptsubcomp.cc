@@ -452,15 +452,6 @@ void SST::CPTSubComp::CPTSubCompVecPair::update()
 
 void SST::CPTSubComp::CPTSubCompVecPair::serialize_order(SST::Core::Serialization::serializer &ser)
 {
-        // This test case is in sst-core
-        // from /Users/kgriesser/work/sst-core-tcl/src/sst/core/testElements/coreTest_Serialization.cc
-        //   std::map<std::string, uintptr_t> map2vec_in = {
-        //       { "s1", 1 }, { "s2", 2 }, { "s3", 3 }, { "s4", 4 }, { "s5", 5 }
-        //   };
-        //   std::vector<std::pair<std::string, uintptr_t>> map2vec_out;
-        //   auto buffer = SST::Comms::serialize(map2vec_in);
-        //   SST::Comms::deserialize(buffer, map2vec_out);
-
     CPTSubCompAPI::serialize_order(ser);
     SST_SER(subcompBegin);
         SST_SER(tut);
@@ -468,3 +459,86 @@ void SST::CPTSubComp::CPTSubCompVecPair::serialize_order(SST::Core::Serializatio
     SST_SER(subcompEnd);
 }
 
+SST::CPTSubComp::CPTSubCompListPairOfStructs::CPTSubCompListPairOfStructs(ComponentId_t id, Params &params) : CPTSubCompAPI(id, params)
+{
+    uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
+    output.init(
+      "CPTSubCompListPairOfStructs[" + getName() + ":@p:@t]: ",
+      Verbosity, 0, SST::Output::STDOUT
+    );
+    max = params.find<size_t>("max", 1);
+    seed = params.find<unsigned>("seed", 1223);
+    output.verbose(CALL_INFO, 1, 0, "max=%lx seed=%" PRIu32 "\n", max, seed);
+    assert(max>0);
+    rng = new SST::RNG::MersenneRNG(seed);
+    for (size_t i=0; i<max; i++) {
+        uint64_t n = rng->generateNextUInt64();
+        tut.push_back({struct_t{n},struct_t{n*n}});
+        tutini.push_back({struct_t{n},struct_t{n*n}});
+    }
+    assert(tut.size()==max);
+    assert(tutini.size()==max);
+    subcompBegin = 0xcccb00000000bccc;
+    subcompEnd = 0xccce00000000eccc;    
+}
+
+void SST::CPTSubComp::CPTSubCompListPairOfStructs::setup()
+{
+    auto it = tut.begin();
+    output.verbose(CALL_INFO, 2, 0, "setup() clocks %d check {%s} : {%s}\n", 
+        clocks, it->first.toString().c_str(), it->second.toString().c_str());
+}
+
+void SST::CPTSubComp::CPTSubCompListPairOfStructs::finish()
+{
+    auto it = tut.begin();
+    output.verbose(CALL_INFO, 2, 0, 
+        "finish() clocks %d check {%s} : {%s}\n", 
+        clocks, it->first.toString().c_str(),it->second.toString().c_str());
+    if (check())
+        output.fatal(CALL_INFO, -1, "final check failed\n");  
+}
+
+int SST::CPTSubComp::CPTSubCompListPairOfStructs::check()
+{
+    assert(tut.size() == tutini.size());
+    assert(tut.size() == max);
+    // convert lists to vectors for checking
+    std::vector<std::pair<struct_t, struct_t>> v_tut(tut.begin(), tut.end());
+    std::vector<std::pair<struct_t, struct_t>> v_tutini(tutini.begin(), tutini.end());
+
+    //TODO make checking more generic
+    for (size_t i=0;i<tut.size(); i++) {
+        output.verbose(CALL_INFO, 3, 0, 
+            "Checking tut[%zu].first {%s} against tutini[%zu].first {%s} + %" PRId32 " clocks\n", 
+            i, v_tut[i].first.toString().c_str(), i, v_tutini[i].first.toString().c_str(), clocks);
+        if (v_tut[i].first != v_tutini[i].first + clocks)
+            return 1;
+        output.verbose(CALL_INFO, 3, 0, 
+            "Checking tut[%zu].second {%s} against tutini[%zu].second {%s} + %" PRId32 " clocks\n", 
+            i, v_tut[i].second.toString().c_str(), i, v_tutini[i].second.toString().c_str(), clocks);
+        if (v_tut[i].second != v_tutini[i].second + clocks)
+            return 1;
+    }
+    return 0;
+}
+
+void SST::CPTSubComp::CPTSubCompListPairOfStructs::update()
+{
+    clocks++;
+    assert(tut.size()==max);
+    for (auto it = tut.begin(); it != tut.end(); ++it) {
+        it->first++;
+        it->second++;
+    }
+}
+
+void SST::CPTSubComp::CPTSubCompListPairOfStructs::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+    CPTSubCompAPI::serialize_order(ser);
+    SST_SER(subcompBegin);
+    assert(tut.size()==tutini.size());
+    SST_SER(tut);
+    SST_SER(tutini);
+    SST_SER(subcompEnd);
+}
