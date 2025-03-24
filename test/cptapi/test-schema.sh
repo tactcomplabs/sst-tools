@@ -13,7 +13,7 @@ if [[ "$version" != "90" ]]; then
 fi
 
 # generate checkpoints and json files from sst
-${SCRIPTS}/sst-chkpt.sh 1 cpt.schema --verbose=1 --num-threads=4 --add-lib-path=${LIBGRID} 2d.py --checkpoint-period=1us --gen-checkpoint-schema -- --x=2 --y=2 --subcomp=gridnode.CPTSubCompVecInt
+${SCRIPTS}/sst-chkpt.sh 1 cpt.schema --verbose=1 --num-threads=4 --add-lib-path=${LIBGRID} 2d.py --checkpoint-period=1us --gen-checkpoint-schema -- --x=2 --y=2 --subcomp=gridtest.CPTSubCompVecInt
 
 # run checkpoint json files through c++filt
 for j in $(find cpt.schema -name '*.json')
