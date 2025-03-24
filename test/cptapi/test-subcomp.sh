@@ -14,14 +14,14 @@ if [ "$en_schema" == "ON" ]; then
 fi
 
 regex_list=()
-if [ "${subcomp}" = "grid.CPTSubCompVecInt" ]; then
-    regex_list+=( 'GridNode[cp_0_1:finish:10000000]: cp_0_1 finish() clocks 10000 check 0xcc6800' )
+if [ "${subcomp}" = "gridtest.CPTSubCompVecInt" ]; then
+    regex_list+=( 'GridTestNode[cp_0_1:finish:10000000]: cp_0_1 finish() clocks 10000 check 0xcc6800' )
     regex_list+=( 'CPTSubCompVecInt[cp_0_1:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0xb97d34ed' )
-    regex_list+=( 'GridNode[cp_1_1:finish:10000000]: cp_1_1 finish() clocks 10000 check 0xcc6800' )
+    regex_list+=( 'GridTestNode[cp_1_1:finish:10000000]: cp_1_1 finish() clocks 10000 check 0xcc6800' )
     regex_list+=( 'CPTSubCompVecInt[cp_1_1:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0x1f0aa967' )
-    regex_list+=( 'GridNode[cp_0_0:finish:10000000]: cp_0_0 finish() clocks 10000 check 0xcc6800' )
+    regex_list+=( 'GridTestNode[cp_0_0:finish:10000000]: cp_0_0 finish() clocks 10000 check 0xcc6800' )
     regex_list+=( 'CPTSubCompVecInt[cp_0_0:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0x8771baba' )
-    regex_list+=( 'GridNode[cp_1_0:finish:10000000]: cp_1_0 finish() clocks 10000 check 0xcc6800' )
+    regex_list+=( 'GridTestNode[cp_1_0:finish:10000000]: cp_1_0 finish() clocks 10000 check 0xcc6800' )
     regex_list+=( 'CPTSubCompVecInt[cp_1_0:CPTSubComp:finish:10000000]: finish() clocks 10000 check 0xea51823d' )
     regex_list+=( 'Simulation is complete, simulated time: 10 us' )
 fi
@@ -43,11 +43,11 @@ logs=${pfx}.logs
 rm -rf $pfx $logs
 mkdir -p $logs
 
-gridlib=$(realpath ../../build/sstcomp/grid)
+gridtestlib=$(realpath ../../build/sstcomp/gridtest)
 
 echo "### creating checkpoints"
 sst ${schema} --checkpoint-prefix=${pfx} --num-threads=${threads} --checkpoint-period=1us \
-    --add-lib-path=${gridlib} \
+    --add-lib-path=${gridtestlib} \
     2d.py -- --x=2 --y=2 --subcomp=${subcomp} --verbose=${verbose} > ${logs}/save.log
 if [ $? != 0 ]; then
     echo "error: checkpoint save failed"
@@ -65,7 +65,7 @@ do
     echo "### loading checkpoint ${cpt}"
     sst --load-checkpoint ${pfx}/${cpt}/${cpt}.sstcpt \
         --num-threads=${threads} \
-        --add-lib-path=${gridlib} > ${logs}/${i}.log
+        --add-lib-path=${gridtestlib} > ${logs}/${i}.log
     if [ $? != 0 ]; then
         echo "error: checkpoint load failed for ${cpt}"
         exit 11

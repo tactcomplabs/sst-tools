@@ -140,7 +140,7 @@ class CPTSubCompVecInt final : public CPTSubCompAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
     CPTSubCompVecInt,     // Class name
-    "grid",               // Library name, the 'lib' in SST's lib.name format
+    "gridtest",               // Library name, the 'lib' in SST's lib.name format
     "CPTSubCompVecInt",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
     SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
     "SubComponent for checkpoint type std::vector<int>", // Description
@@ -182,7 +182,7 @@ class CPTSubCompVecStruct final : public CPTSubCompAPI {
   public:
     SST_ELI_REGISTER_SUBCOMPONENT(
       CPTSubCompVecStruct,            // Class name
-      "grid",                         // Library name, the 'lib' in SST's lib.name format
+      "gridtest",                         // Library name, the 'lib' in SST's lib.name format
       "CPTSubCompVecStruct",          // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
       SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
       "SubComponent for checkpoint type std::vector<struct_t>", // Description
@@ -224,7 +224,7 @@ class CPTSubCompVecPairOfStructs final : public CPTSubCompAPI {
   public:
     SST_ELI_REGISTER_SUBCOMPONENT(
       CPTSubCompVecPairOfStructs,     // Class name
-      "grid",               // Library name, the 'lib' in SST's lib.name format
+      "gridtest",               // Library name, the 'lib' in SST's lib.name format
       "CPTSubCompVecPairOfStructs",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
       SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
       "SubComponent for checkpoint type std::vector<std::pair<struct_t, struct_t>>", // Description
@@ -265,7 +265,7 @@ class CPTSubCompPair final : public CPTSubCompAPI {
   public:
     SST_ELI_REGISTER_SUBCOMPONENT(
       CPTSubCompPair,     // Class name
-      "grid",             // Library name, the 'lib' in SST's lib.name format
+      "gridtest",             // Library name, the 'lib' in SST's lib.name format
       "CPTSubCompPair",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
       SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
       "SubComponent for simple std::pair<unsigned,unsigned>", // Description
@@ -306,7 +306,7 @@ class CPTSubCompPairOfStructs final : public CPTSubCompAPI {
   public:
     SST_ELI_REGISTER_SUBCOMPONENT(
       CPTSubCompPairOfStructs,     // Class name
-      "grid",               // Library name, the 'lib' in SST's lib.name format
+      "gridtest",               // Library name, the 'lib' in SST's lib.name format
       "CPTSubCompPairOfStructs",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
       SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
       "SubComponent for checkpoint type std::pair<struct_t, struct_t>", // Description
@@ -348,7 +348,7 @@ class CPTSubCompVecPair final : public CPTSubCompAPI {
   public:
     SST_ELI_REGISTER_SUBCOMPONENT(
       CPTSubCompVecPair,     // Class name
-      "grid",               // Library name, the 'lib' in SST's lib.name format
+      "gridtest",               // Library name, the 'lib' in SST's lib.name format
       "CPTSubCompVecPair",   // Name used to refer to this subcomponent, the 'name' in SST's lib.name format
       SST_ELI_ELEMENT_VERSION(1,0,0), // A version number
       "SubComponent for checkpoint type std::vector<std::pair<struct_t, struct_t>>", // Description

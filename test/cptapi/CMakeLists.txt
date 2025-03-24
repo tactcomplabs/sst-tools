@@ -51,11 +51,11 @@ set_tests_properties(cpt-restore
 # Subcomponent/Type Checkpoint Save/Restore Tests
 #
 
-set(subcomps grid.CPTSubCompPair grid.CPTSubCompPairOfStructs grid.CPTSubCompVecInt grid.CPTSubCompVecStruct)
+set(subcomps gridtest.CPTSubCompPair gridtest.CPTSubCompPairOfStructs gridtest.CPTSubCompVecInt gridtest.CPTSubCompVecStruct)
 # TODO These fail on checkpoint load with 
 # 'class id 817462545 is not a valid serializable id'
-list(APPEND subcomps grid.CPTSubCompVecPairOfStructs)
-list(APPEND subcomps grid.CPTSubCompVecPair)
+list(APPEND subcomps gridtest.CPTSubCompVecPairOfStructs)
+list(APPEND subcomps gridtest.CPTSubCompVecPair)
 foreach(subcomp IN ITEMS ${subcomps})
   add_test(NAME ${subcomp}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

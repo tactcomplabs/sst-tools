@@ -54,19 +54,19 @@ comp_params = {
 }
 
 SUPPORTED_SUBCOMPONENTS = [
-  "grid.CPTSubCompPair",
-  "grid.CPTSubCompPairOfStructs",
-  "grid.CPTSubCompVecInt",
-  "grid.CPTSubCompVecStruct",
-  "grid.CPTSubCompVecPairOfStructs",
-  "grid.CPTSubCompVecPair"
+  "gridtest.CPTSubCompPair",
+  "gridtest.CPTSubCompPairOfStructs",
+  "gridtest.CPTSubCompVecInt",
+  "gridtest.CPTSubCompVecStruct",
+  "gridtest.CPTSubCompVecPairOfStructs",
+  "gridtest.CPTSubCompVecPair"
 ]
 
-class GRIDNODE():
+class GRIDTESTNODE():
   def __init__(self, x, y):
     id = f"cp_{x}_{y}"
     self.id = id
-    self.comp = sst.Component(id, "grid.GridNode" )
+    self.comp = sst.Component(id, "gridtest.GridTestNode" )
     self.comp.addParams(comp_params)
     # Provide subcomponent if specified as well as sanity check the slot actually loads
     if args.subcomp != None:
@@ -92,9 +92,9 @@ class GRIDNODE():
 
 if args.x==2 and args.y==1:
   # for known good check
-  cp0 = sst.Component("cp0", "grid.GridNode")
+  cp0 = sst.Component("cp0", "gridtest.GridTestNode")
   cp0.addParams(comp_params)
-  cp1 = sst.Component("cp1", "grid.GridNode")
+  cp1 = sst.Component("cp1", "gridtest.GridTestNode")
   cp1.addParams(comp_params)
   link = [None] * PORTS
   for i in range(0, PORTS):
@@ -106,7 +106,7 @@ else:
   grid = {}
   for x in range(args.x):
     for y in range(args.y):
-      comp = GRIDNODE(x,y)
+      comp = GRIDTESTNODE(x,y)
       grid[comp.id] = comp
 
   # connect send ports to adjacent rcv ports. Edge nodes wrap around

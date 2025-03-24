@@ -1,5 +1,5 @@
 //
-// _gridnode_h_
+// _gridtestnode_h_
 //
 // Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
@@ -8,8 +8,8 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#ifndef _SST_GRIDNODE_H_
-#define _SST_GRIDNODE_H_
+#ifndef _SST_GRIDTESTNODE_H_
+#define _SST_GRIDTESTNODE_H_
 
 // clang-format off
 // -- Standard Headers
@@ -32,74 +32,74 @@
 
 // clang-format on
 
-namespace SST::GridNode{
+namespace SST::GridTestNode{
 
 // -------------------------------------------------------
-// GridNodeEvent
+// GridTestNodeEvent
 // -------------------------------------------------------
-class GridNodeEvent : public SST::Event{
+class GridTestNodeEvent : public SST::Event{
 public:
-  /// GridNodeEvent : standard constructor
-  GridNodeEvent() : SST::Event() {}
+  /// GridTestNodeEvent : standard constructor
+  GridTestNodeEvent() : SST::Event() {}
 
-  /// GridNodeEvent: constructor
-  GridNodeEvent(std::vector<unsigned> d) : SST::Event(), data(d) {}
+  /// GridTestNodeEvent: constructor
+  GridTestNodeEvent(std::vector<unsigned> d) : SST::Event(), data(d) {}
 
-  /// GridNodeEvent: destructor
-  virtual ~GridNodeEvent() {}
+  /// GridTestNodeEvent: destructor
+  virtual ~GridTestNodeEvent() {}
 
-  /// GridNodeEvent: retrieve the data
+  /// GridTestNodeEvent: retrieve the data
   std::vector<unsigned> const getData() { return data; }
 
 private:
-  std::vector<unsigned> data;     ///< GridNodeEvent: data payload
+  std::vector<unsigned> data;     ///< GridTestNodeEvent: data payload
 
-  /// GridNodeEvent: serialization method
+  /// GridTestNodeEvent: serialization method
   void serialize_order(SST::Core::Serialization::serializer& ser) override{
     Event::serialize_order(ser);
     SST_SER(data);
   }
 
-  /// GridNodeEvent: serialization implementor
-  ImplementSerializable(SST::GridNode::GridNodeEvent);
+  /// GridTestNodeEvent: serialization implementor
+  ImplementSerializable(SST::GridTestNode::GridTestNodeEvent);
 
-};  // class GridNodeEvent
+};  // class GridTestNodeEvent
 
 // -------------------------------------------------------
-// GridNode
+// GridTestNode
 // -------------------------------------------------------
-class GridNode : public SST::Component{
+class GridTestNode : public SST::Component{
 public:
-  /// GridNode: top-level SST component constructor
-  GridNode( SST::ComponentId_t id, const SST::Params& params );
+  /// GridTestNode: top-level SST component constructor
+  GridTestNode( SST::ComponentId_t id, const SST::Params& params );
 
-  /// GridNode: top-level SST component destructor
-  ~GridNode();
+  /// GridTestNode: top-level SST component destructor
+  ~GridTestNode();
 
-  /// GridNode: standard SST component 'setup' function
+  /// GridTestNode: standard SST component 'setup' function
   void setup() override;
 
-  /// GridNode: standard SST component 'finish' function
+  /// GridTestNode: standard SST component 'finish' function
   void finish() override;
 
-  /// GridNode: standard SST component init function
+  /// GridTestNode: standard SST component init function
   void init( unsigned int phase ) override;
 
-  /// GridNode: standard SST component printStatus
+  /// GridTestNode: standard SST component printStatus
   void printStatus(Output& out) override;
 
-  /// GridNode: standard SST component clock function
+  /// GridTestNode: standard SST component clock function
   bool clockTick( SST::Cycle_t currentCycle );
 
   // -------------------------------------------------------
-  // GridNode Component Registration Data
+  // GridTestNode Component Registration Data
   // -------------------------------------------------------
-  /// GridNode: Register the component with the SST core
-  SST_ELI_REGISTER_COMPONENT( GridNode,     // component class
-                              "grid",       // component library
-                              "GridNode",   // component name
+  /// GridTestNode: Register the component with the SST core
+  SST_ELI_REGISTER_COMPONENT( GridTestNode,     // component class
+                              "gridtest",       // component library
+                              "GridTestNode",   // component name
                               SST_ELI_ELEMENT_VERSION( 1, 0, 0 ),
-                              "GRIDNODE SST COMPONENT",
+                              "GRIDTESTNODE SST COMPONENT",
                               COMPONENT_CATEGORY_UNCATEGORIZED )
 
   SST_ELI_DOCUMENT_PARAMS(
@@ -118,17 +118,17 @@ public:
   )
 
   // -------------------------------------------------------
-  // GridNode Component Port Data
+  // GridTestNode Component Port Data
   // -------------------------------------------------------
   SST_ELI_DOCUMENT_PORTS(
     {"port%(num_ports)d",
       "Ports which connect to endpoints.",
-      {"chkpnt.GridNodeEvent", ""}
+      {"chkpnt.GridTestNodeEvent", ""}
     }
   )
 
   // -------------------------------------------------------
-  // GridNode SubComponent Parameter Data
+  // GridTestNode SubComponent Parameter Data
   // -------------------------------------------------------
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
     { "CPTSubComp",
@@ -138,21 +138,21 @@ public:
   )
 
   // -------------------------------------------------------
-  // GridNode Component Statistics Data
+  // GridTestNode Component Statistics Data
   // -------------------------------------------------------
   SST_ELI_DOCUMENT_STATISTICS()
 
   // -------------------------------------------------------
-  // GridNode Component Checkpoint Methods
+  // GridTestNode Component Checkpoint Methods
   // -------------------------------------------------------
-  /// GridNode: serialization constructor
-  GridNode() : SST::Component() {}
+  /// GridTestNode: serialization constructor
+  GridTestNode() : SST::Component() {}
 
-  /// GridNode: serialization
+  /// GridTestNode: serialization
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
 
-  /// GridNode: serialization implementations
-  ImplementSerializable(SST::GridNode::GridNode)
+  /// GridTestNode: serialization implementations
+  ImplementSerializable(SST::GridTestNode::GridTestNode)
 
 private:
   // Start of serialized members
@@ -195,9 +195,9 @@ private:
   /// calculates the port number for the receiver
   unsigned neighbor(unsigned n);
 
-};  // class GridNode
-}   // namespace SST::GridNode
+};  // class GridTestNode
+}   // namespace SST::GridTestNode
 
-#endif  // _SST_GRIDNODE_H_
+#endif  // _SST_GRIDTESTNODE_H_
 
 // EOF

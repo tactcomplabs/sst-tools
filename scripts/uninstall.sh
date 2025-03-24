@@ -10,7 +10,7 @@ sst-register -u CPTSubCompVecPairOfStructs
 sst-register -u CPTSubCompVecInt
 sst-register -u CPTSubCompVecStruct
 sst-register -u dbgcli
-sst-register -u grid
+sst-register -u gridtest
 
 #-- forcible remove it from the local script
 CONFIG=~/.sst/sstsimulator.conf
@@ -22,6 +22,6 @@ if test -f "$CONFIG"; then
   sed -i.bak '/CPTSubCompVecPairOfStructs/d' $CONFIG
   sed -i.bak '/CPTSubCompVecInt/d' $CONFIG
   sed -i.bak '/dbgcli/d' $CONFIG
-  sed -i.bak '/grid/d' $CONFIG
+  sed -i.bak '/gridtest/d' $CONFIG
 fi
 
