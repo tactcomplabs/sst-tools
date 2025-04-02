@@ -75,7 +75,7 @@ execute_process(COMMAND ${SCRIPTS}/sst-minor-version.sh
 message(STATUS "SST MAJOR VERSION=${SST_MAJOR_VERSION}")
 
 #-- Compiler Options
-option(SST_TOOLS_WERROR "Compile with warnings as errors" ON)
+option(SST_TOOLS_WERROR "Compile with warnings as errors" OFF)
 if (SST_TOOLS_WERROR)
   set(WERROR_FLAG "-Werror")
 endif()

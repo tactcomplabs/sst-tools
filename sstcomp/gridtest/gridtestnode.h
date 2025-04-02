@@ -23,9 +23,6 @@
 
 // -- SST Headers
 #include "SST.h"
-#include <sst/core/rng/distrib.h>
-#include <sst/core/rng/rng.h>
-#include <sst/core/rng/mersenne.h>
 
 // -- SubComponent API
 #include "cptsubcomp.h"

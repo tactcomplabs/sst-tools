@@ -21,7 +21,6 @@
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 
-
 #if defined( __GNUC__ ) && !defined( __clang__ )
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wsuggest-final-methods"
@@ -30,6 +29,7 @@
 #pragma GCC diagnostic ignored "-Wimplicit-int-conversion"
 #pragma GCC diagnostic ignored "-Wshorten-64-to-32"
 #pragma GCC diagnostic ignored "-Winconsistent-missing-override"
+#pragma GCC diagnostic ignored "-Wmissing-noreturn"
 #endif
 
 // The #include order is important, so we prevent clang-format from reordering
@@ -44,7 +44,11 @@
 #include <sst/core/subcomponent.h>
 #include <sst/core/timeConverter.h>
 #include <sst/core/model/element_python.h>
+#include <sst/core/rng/distrib.h>
+#include <sst/core/rng/rng.h>
 #include <sst/core/rng/mersenne.h>
+#include <sst/core/serialization/serialize.h>
+
 // clang-format on
 
 #pragma GCC diagnostic pop

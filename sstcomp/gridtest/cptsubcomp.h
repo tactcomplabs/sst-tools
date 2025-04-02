@@ -30,7 +30,6 @@
 
 // -- SST Headers
 #include "SST.h"
-#include "sst/core/subcomponent.h"
 // clang-format on
 
 namespace SST::CPTSubComp{

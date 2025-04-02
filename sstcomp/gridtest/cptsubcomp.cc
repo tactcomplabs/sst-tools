@@ -10,7 +10,6 @@
 
 #include "cptsubcomp.h"
 #include "tcldbg.h"
-#include <sst/core/serialization/serialize.h>
 
 using namespace SST;
 using namespace SST::CPTSubComp;
