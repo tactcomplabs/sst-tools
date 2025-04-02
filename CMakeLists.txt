@@ -75,7 +75,7 @@ execute_process(COMMAND ${SCRIPTS}/sst-minor-version.sh
 message(STATUS "SST MAJOR VERSION=${SST_MAJOR_VERSION}")
 
 #-- Compiler Options
-option(SST_TOOLS_WERROR "Compile with warnings as errors" OFF)
+option(SST_TOOLS_WERROR "Compile with warnings as errors" ON)
 if (SST_TOOLS_WERROR)
   set(WERROR_FLAG "-Werror")
 endif()
@@ -89,7 +89,9 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-format-attribute -Wsuggest-final-methods -Wsuggest-final-types -Wvolatile")
 endif()
 
-set(CMAKE_CXX_FLAGS "-std=c++17 ${FP_MODE_FLAG} -O2 -Wall -Wextra -Wsuggest-override -Wmissing-noreturn -Wvla -Wuninitialized -Wdouble-promotion -Wsign-conversion -Wconversion -Wno-unused-parameter -Wno-deprecated-declarations -Wno-macro-redefined ${WERROR_FLAG} ${CMAKE_CXX_FLAGS} -I./ ${LDFLAGS}")
+#set(CMAKE_CXX_FLAGS "-std=c++17 ${FP_MODE_FLAG} -O2 -Wall -Wextra -Wsuggest-override -Wmissing-noreturn -Wvla -Wuninitialized -Wdouble-promotion -Wsign-conversion -Wconversion -Wno-unused-parameter -Wno-deprecated-declarations -Wno-macro-redefined ${WERROR_FLAG} ${CMAKE_CXX_FLAGS} -I./ ${LDFLAGS}")
+set(CMAKE_CXX_FLAGS "-std=c++17 ${FP_MODE_FLAG} -O2 -Wall -Wextra -Wsuggest-override -Wvla -Wuninitialized -Wdouble-promotion -Wsign-conversion -Wconversion -Wno-unused-parameter -Wno-deprecated-declarations -Wno-macro-redefined ${WERROR_FLAG} ${CMAKE_CXX_FLAGS} -I./ ${LDFLAGS}")
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall")
 
