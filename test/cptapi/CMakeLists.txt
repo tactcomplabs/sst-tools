@@ -36,7 +36,7 @@ set_tests_properties(cpt-save
 
 add_test(NAME cpt-restore
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} cpt.save cpt.save/cpt.save_800_8010000/cpt.save_800_8010000.sstcpt --num-threads=2 ${UserLibs}
+  COMMAND ${SCRIPTS}/sst-restore.sh ${SST_TOOLS_CLEAN_TESTS} ${nmpi} cpt.save cpt.save/cpt.save_801_8010000/cpt.save_801_8010000.sstcpt --num-threads=2 ${UserLibs}
 )
 set_tests_properties(cpt-restore
   PROPERTIES

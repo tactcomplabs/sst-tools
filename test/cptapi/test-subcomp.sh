@@ -59,7 +59,7 @@ if [ $? != 0 ]; then
     exit 10
 fi
 
-for i in 0_1 1_2 2_3 3_4 4_5 5_6 6_7 7_8 8_9 9_10
+for i in 1_1 2_2 3_3 4_4 5_5 6_6 7_7 8_8 9_9 10_10
 do
     cpt=${pfx}_${i}000000
     echo "### loading checkpoint ${cpt}"
