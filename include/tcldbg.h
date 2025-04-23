@@ -14,7 +14,7 @@
 namespace tcldbg {
 
   static inline void spin(const char* id = "") {
-  std::cout << id << " spinning" << std::endl;
+    std::cout << id << " spinning PID " << getpid() << std::endl;
   unsigned long spinner = 1;
   while( spinner > 0 ) {
     spinner++;
