@@ -48,7 +48,12 @@
 #include <sst/core/rng/rng.h>
 #include <sst/core/rng/mersenne.h>
 #include <sst/core/serialization/serialize.h>
-
+#if 1 // Used for interactive console
+#include <sst/core/baseComponent.h>
+#include <sst/core/stringize.h>
+#include <sst/core/interactiveConsole.h>
+#include <sst/core/watchPoint.h>
+#endif
 // clang-format on
 
 #pragma GCC diagnostic pop
