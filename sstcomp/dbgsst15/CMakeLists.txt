@@ -12,8 +12,8 @@ set(DbgSST15Srcs
   dbgsst15.h
   ICDbgSST15.cc
   ICDbgSST15.h
-  #probe.cc
-  #probe.h
+  probe.cc
+  probe.h
 )
 
 add_library(dbgsst15 SHARED ${DbgSST15Srcs})
@@ -26,7 +26,7 @@ install(CODE "execute_process(COMMAND sst-register dbgsst15 dbgsst15_LIBDIR=${CM
 #install(TARGETS icdbg DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 #install(CODE "execute_process(COMMAND sst-register icdbg icdbg_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 
-#install(CODE "execute_process(COMMAND sst-register ICDebugSST15 icdbg_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register ICDebugSST15 dgbsst15_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 
 
 # EOF

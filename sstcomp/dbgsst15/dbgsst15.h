@@ -26,11 +26,14 @@
 // -- Debug Probe
 #include "probe.h"
 
-#if 0
+#define PROBE 1
+#define SOCKET 0
+
+#if PROBE
 using namespace SSTDEBUG::Probe;
 #endif
 namespace SSTDEBUG::DbgSST15 {
-#if 0
+#if PROBE
 class DbgSST15_Probe;
 #endif
 // -------------------------------------------------------
@@ -97,7 +100,7 @@ public:
   // -------------------------------------------------------
   /// DbgSST15: Register the component with the SST core
   SST_ELI_REGISTER_COMPONENT( DbgSST15,     // component class
-                              "dbgcli",   // component library
+                              "dbgsst15",   // component library
                               "DbgSST15",   // component name
                               SST_ELI_ELEMENT_VERSION( 1, 0, 0 ),
                               "CHKPNT SST COMPONENT",
@@ -115,7 +118,7 @@ public:
     // component specific probe controls
     {"traceMode",       "0-none, 1-send, 2-recv",                   "0"},
     // TODO Should get rest into base class. Component extends Probe instead of instantiating it
-#if 0
+#if PROBE
     {"probeMode",       "0-Disabled,1-Checkpoint based, >1-rsv",    "0"},
     {"probeStartCycle", "Use with checkpoint-sim-period",           "0"},
     {"probeEndCycle",   "Cycle probing disable. 0 is no limit",     "0"},
@@ -179,7 +182,7 @@ private:
   // -- probing
   unsigned traceMode;                             ///< 0-none, 1-send, 2-recv, 3-both
   unsigned cliType;                               ///< 0-serializer-entry, 1-initiateInteractive
-#if 0
+#if PROBE
   // -- Component probe state object
  std::unique_ptr<DbgSST15_Probe> probe_;
 #endif
@@ -196,7 +199,7 @@ private:
   void sendData();
 
 };  // class DbgSST15
-#if 0
+#if PROBE
 // -------------------------------------------------------
 // Debug Control State 
 // -------------------------------------------------------
@@ -234,6 +237,19 @@ public:
       return os;
     }
   };
+
+  // -------------------------------------------------------
+  // DbgSST15i_Probe Component Checkpoint Methods
+  // -------------------------------------------------------
+  /// DbgSST15_Prove: serialization constructor
+  //DbgSST15_Probe() {}
+
+  /// DbgSST15: serialization
+  //void serialize_order(SST::Core::Serialization::serializer& ser);
+  
+  /// DbgSST15: serialization implementations
+  //ImplementSerializable(SSTDEBUG::DbgSST15::DbgSST15_Probe)
+
   // trace buffer
   std::shared_ptr<ProbeBuffer<event_atts_t>> probeBuffer;
 

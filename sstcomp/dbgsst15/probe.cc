@@ -14,6 +14,10 @@
 
 namespace SSTDEBUG::Probe {
 
+//-----------------------------------------
+//  ProbeControl
+//-----------------------------------------
+
 ProbeControl::ProbeControl( SST::Component * comp, SST::Output * out,
     int mode, SST::SimTime_t startCycle, SST::SimTime_t  endCycle, int bufferSize, 
     int port, int postDelay, uint64_t cliControl) : 
@@ -252,6 +256,11 @@ ProbeControl::updateCLI()
     }
 }
 
+//-----------------------------------------
+//  ProbeBufCtl
+//-----------------------------------------
+
+
 ProbeBufCtl::ProbeBufCtl(size_t sz) : sz_(sz) {
     tags.resize(sz);
 };
@@ -330,6 +339,10 @@ void ProbeBufCtl::render_buffer(std::ostream& os) {
         os << std::endl;
     }
 }
+
+//-----------------------------------------
+//  ProbeSocket
+//-----------------------------------------
 
 ProbeSocket::ProbeSocket(uint16_t port, ProbeControl * probeControl, SST::Component * comp, SST::Output* out) 
     : port_(port), probeControl_(probeControl), comp_(comp), out_(out) 

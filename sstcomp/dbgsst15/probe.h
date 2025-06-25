@@ -107,6 +107,7 @@ public:
     ProbeControl& operator=( const ProbeControl& ) = delete;
     /// child class provides controls to buffer
     void setBufferControls(std::shared_ptr<ProbeBufCtl>);
+    //skk void setBufferControls(ProbeBufCtl);
     /// Call back for sync points for high level controller updates
     void updateSyncState(SST::SimTime_t cycle);
     /// Called at end of component's clock cycle and end of updateSyncState
@@ -132,6 +133,8 @@ public:
     /// Access functions for testing and CLI support 
     SST::Component * comp() { return comp_; };
     std::shared_ptr<ProbeBufCtl> buf() { return probeBufCtl_;}
+    //skk ProbeBufCtl buf() { return probeBufCtl_;}
+    
     /// CLI server may run only when active and a probe port has been provided.
     void updateCLI();
  
@@ -148,6 +151,7 @@ public:
     Actions probeActions_ = {};                 ///< Common actions to perform on probe event
     std::shared_ptr<ProbeBufCtl> probeBufCtl_;  ///< Controls for probe buffer
 
+
     // -- Component probe parameters
     int      mode_;                             ///< 0-disable, 1-checkpoint-mode, >1-reserved
     SST::SimTime_t      startCycle_;            ///< When checkpoint >= probeStartCycle sampling begins
@@ -158,7 +162,7 @@ public:
     int      postDelayInitCount_;               ///< Delay counter initial value
     CLI_CTRL cliControl_ = 0;                   ///< controls for breaking into interactive mode
     bool     useDelayCounter_;                  ///< when 0 post-trigger sampling continues until checkpoint.
-};
+};  // calss ProbeControl
 
 // splits generic control from templatized data capture for Probe Buffer
 class ProbeBufCtl {
@@ -191,7 +195,7 @@ protected:
     int samples_lost = 0;            // number of samples sampled but overwritten in circular buffer
     TRIGGER_STATE state;             // current state of triggering sequence  
     std::vector<TRIGGER_STATE> tags; // state associated with each entry.
-};
+};  // class ProbeBufCtl
 
 // Simple template wrapper for buffer data
 template<typename T> class ProbeBuffer final : public ProbeBufCtl {
@@ -215,7 +219,7 @@ public:
 private:
     std::vector<T> buf;     // the circular buffer
     T trigger_rec;          // copy of record associated with triggered cycle
-};
+};  // class ProbeBuffer
 
 class ProbeSocket final {
 

@@ -11,6 +11,9 @@
 #include "dbgsst15.h"
 #include "tcldbg.h"
 
+//#define PROBE 1
+//#define SOCKET 1
+
 namespace SSTDEBUG::DbgSST15{
 
 //------------------------------------------
@@ -69,7 +72,7 @@ DbgSST15::DbgSST15(SST::ComponentId_t id, const SST::Params& params ) :
                                          new SST::Event::Handler2<DbgSST15,
                                          &DbgSST15::handleEvent>(this)));
   }
-#if 0
+#if PROBE
   // Debug Probe Parameters
   int probeMode       = params.find<int>("probeMode", 0);
   int probeStartCycle = params.find<int>("probeStartCycle",0);
@@ -113,6 +116,13 @@ void DbgSST15::serialize_order(SST::Core::Serialization::serializer& ser){
   SST_SER(curCycle);
   SST_SER(mersenne);
   SST_SER(linkHandlers);
+
+#if 1
+  SST_SER(traceMode);
+  SST_SER(cliType);
+  //SST_SER(*probe_);
+#endif
+
 #if 0
   if ( (cliType==0) && (ser.mode() == SST::Core::Serialization::serializer::PACK) ) {
     handle_chkpt_probe_action();
@@ -209,13 +219,20 @@ bool DbgSST15::clockTick( SST::Cycle_t currentCycle ){
 
   return rc;
 }
-#if 0
+
+
+//------------------------------------------
+// DbgSST15_Probe
+//------------------------------------------
+
+#if PROBE
 DbgSST15_Probe::DbgSST15_Probe(SST::Component * comp, SST::Output * out, 
   int mode, SST::SimTime_t startCycle, SST::SimTime_t endCycle, int bufferSize, 
   int port, int postDelay, uint64_t cliControl)
  : ProbeControl(comp, out, mode, startCycle, endCycle, bufferSize, port, postDelay, cliControl)
 {
   probeBuffer = std::make_shared<ProbeBuffer<event_atts_t>>(bufferSize);
+  //probeBuffer = ProbeBuffer<event_atts_t>(bufferSize);
   setBufferControls(probeBuffer);
 }
 
@@ -228,6 +245,20 @@ void DbgSST15_Probe::capture_event_atts(uint64_t cycle, uint64_t sz, DbgSST15Eve
   // Finally call base class to update counters
   ProbeControl::sample();
 }
+
+#if 0
+std::vector<event_atts_t> getRawBuffer() {
+  return 
+}
+#endif
+
+
+#if 0
+void DbgSST15_Probe::serialize_order(SST::Core::Serialization::serializer& ser){
+  //SST_SER(probeBuffer);
+}
+#endif
+
 #endif
 
 } // namespace SSTDEBUG::DbgSST15
