@@ -87,6 +87,28 @@ DbgSST15::DbgSST15(SST::ComponentId_t id, const SST::Params& params ) :
           probeStartCycle, probeEndCycle, probeBufferSize, 
           probePort, probePostDelay, cliControl);
 #endif
+#if TESTSER
+  test_uptr = std::make_unique<int>(5);
+  DP_uptr = std::make_unique<DP>(7);
+  PC_uptr = std::make_unique<PC>(8);
+  PCser_uptr = std::make_unique<PC>(9);
+  DPser_uptr = std::make_unique<DP>(10);
+
+  test_sptr = std::make_unique<int>(15);
+  DP_sptr = std::make_unique<DP>(17);
+  PC_sptr = std::make_unique<PC>(18);
+  PCser_sptr = std::make_unique<PC>(19);
+  DPser_sptr = std::make_unique<DP>(20);
+  
+  test_DP = new DP(21);
+  test_myPB = new myPB<int>(22);
+  #if 0
+  test_probe = DbgSST15_Probe(
+                this, &output, probeMode,
+                 probeStartCycle, probeEndCycle, probeBufferSize,
+          probePort, probePostDelay, cliControl);
+  #endif
+#endif
   // constructor completeå
   output.verbose( CALL_INFO, 5, 0, "Constructor complete\n" );
 }
@@ -121,6 +143,23 @@ void DbgSST15::serialize_order(SST::Core::Serialization::serializer& ser){
   SST_SER(traceMode);
   SST_SER(cliType);
   //SST_SER(*probe_);
+
+#endif
+#if TESTSER
+  SST_SER(*test_uptr);
+  SST_SER(PC_uptr->start);
+  SST_SER(DP_uptr->start);
+  SST_SER(*PCser_uptr);
+  SST_SER(*DPser_uptr);
+
+  SST_SER(*test_sptr);
+  SST_SER(PC_sptr->start);
+  SST_SER(DP_sptr->start);
+  SST_SER(*PCser_sptr);
+  SST_SER(*DPser_sptr);
+
+  SST_SER(*test_DP);
+  SST_SER(*test_myPB);  // SKK build ERROR triggered here
 #endif
 
 #if 0
@@ -232,7 +271,9 @@ DbgSST15_Probe::DbgSST15_Probe(SST::Component * comp, SST::Output * out,
  : ProbeControl(comp, out, mode, startCycle, endCycle, bufferSize, port, postDelay, cliControl)
 {
   probeBuffer = std::make_shared<ProbeBuffer<event_atts_t>>(bufferSize);
-  //probeBuffer = ProbeBuffer<event_atts_t>(bufferSize);
+#if TESTSER
+  testPB = new ProbeBuffer<int>(bufferSize);
+#endif
   setBufferControls(probeBuffer);
 }
 
@@ -252,12 +293,6 @@ std::vector<event_atts_t> getRawBuffer() {
 }
 #endif
 
-
-#if 0
-void DbgSST15_Probe::serialize_order(SST::Core::Serialization::serializer& ser){
-  //SST_SER(probeBuffer);
-}
-#endif
 
 #endif
 

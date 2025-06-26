@@ -133,11 +133,11 @@ public:
     /// Access functions for testing and CLI support 
     SST::Component * comp() { return comp_; };
     std::shared_ptr<ProbeBufCtl> buf() { return probeBufCtl_;}
-    //skk ProbeBufCtl buf() { return probeBufCtl_;}
     
     /// CLI server may run only when active and a probe port has been provided.
     void updateCLI();
- 
+
+
  private:
     SST::Component * comp_;                     ///< Component associated with this controller
     SST::Output * out_;                         ///< Component output stream
@@ -162,7 +162,14 @@ public:
     int      postDelayInitCount_;               ///< Delay counter initial value
     CLI_CTRL cliControl_ = 0;                   ///< controls for breaking into interactive mode
     bool     useDelayCounter_;                  ///< when 0 post-trigger sampling continues until checkpoint.
-};  // calss ProbeControl
+
+public:
+    // ProbeControl serialization function for object map
+    void serialize_order(SST::Core::Serialization::serializer& ser) {
+      //SST_SER(*probeBufCtl_);
+      SST_SER(startCycle_);
+    }
+};  // class ProbeControl
 
 // splits generic control from templatized data capture for Probe Buffer
 class ProbeBufCtl {
@@ -186,6 +193,14 @@ public:
     // cli support
     char getTrigStateChar() { return trig2char.at(state); };
     size_t getNumRecs() { return num_recs; }
+
+#if 1
+    // ProbeBufCtl serialization function for object map
+    void serialize_order(SST::Core::Serialization::serializer& ser) {
+    }
+#endif
+
+
 protected:
     void capture();                  // Called by child after capture record
     size_t sz_;                      // defined size
@@ -216,9 +231,48 @@ public:
     void render_trigger_rec(std::ostream& os, char pfx) override {
         os << pfx << ' ' << trigger_rec;
     }
-private:
+//private:
     std::vector<T> buf;     // the circular buffer
-    T trigger_rec;          // copy of record associated with triggered cycle
+    T trigger_rec;          // copy of record associated with triggered cyclie
+
+public: 
+    // ProbeBuffer serialization function for object map
+    void serialize_order(SST::Core::Serialization::serializer& ser) {
+      //ProbeBufCtl::serialize_order(ser);
+
+#if 1
+      switch ( ser.mode() ) {
+        case SST::Core::Serialization::serializer::SIZER:
+        case SST::Core::Serialization::serializer::PACK:
+        {
+            break;
+        }
+        case SST::Core::Serialization::serializer::UNPACK:
+        {
+            break;
+        }
+        case SST::Core::Serialization::serializer::MAP:
+        {
+            // Add your code here
+            break;
+        }
+      }  // end swtich ser.mode
+#endif
+
+#if 0  // copies from serialize_adapter.h
+      struct S : std::remove_pointer_t<T> {
+        using std::remove_pointer_t<T>::c;  // access protected container
+      };
+      
+      if constexpr ( std::is_pointer_v<T> ) {
+        buf = new std::remove_pointer_t<T>;
+        SST_SER(static_cast<S&>(*buf).c); // serialize the underlying container
+      } else {      
+        SST_SER(static_cast<S&>(buf).c);
+      }
+#endif
+    }
+
 };  // class ProbeBuffer
 
 class ProbeSocket final {

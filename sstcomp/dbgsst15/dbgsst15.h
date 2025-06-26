@@ -28,6 +28,7 @@
 
 #define PROBE 1
 #define SOCKET 0
+#define TESTSER 1
 
 #if PROBE
 using namespace SSTDEBUG::Probe;
@@ -36,6 +37,49 @@ namespace SSTDEBUG::DbgSST15 {
 #if PROBE
 class DbgSST15_Probe;
 #endif
+
+#if TESTSER // Testing out serialization of unique and shared
+class PC { // represent ProbeControl
+public:
+  PC(int s) :
+    start(s)
+  { }
+  //virtual ~PC();
+  int start;
+
+  // Support for  serialization
+  void serialize_order(SST::Core::Serialization::serializer& ser) { /* override */
+    SST_SER(start);  
+  }
+};  // class PC
+
+class DP final : public PC {  // Represent DebugSST15_Probe
+public:  
+  DP(int s) : PC(s) {}
+
+  void serialize_order(SST::Core::Serialization::serializer& ser) { /* override */
+    PC::serialize_order(ser);
+  }
+}; //class DP
+
+class myPBC { // represent probe buffer control
+public:
+  myPBC(int s) :
+    size(s)
+    {}
+  int size;
+}; // class PBC
+
+template<typename T> class myPB final : public myPBC {
+public:
+  myPB(int s) : myPBC(s) {}
+private: 
+  T val;
+}; // class PB
+
+#endif
+
+
 // -------------------------------------------------------
 // DbgSST15Event
 // -------------------------------------------------------
@@ -181,22 +225,40 @@ private:
   uint64_t curCycle;                              ///< current cycle delay
   // -- probing
   unsigned traceMode;                             ///< 0-none, 1-send, 2-recv, 3-both
-  unsigned cliType;                               ///< 0-serializer-entry, 1-initiateInteractive
+unsigned cliType;                               ///< 0-serializer-entry, 1-initiateInteractive
 #if PROBE
-  // -- Component probe state object
- std::unique_ptr<DbgSST15_Probe> probe_;
+// -- Component probe state object
+std::unique_ptr<DbgSST15_Probe> probe_;
 #endif
-  // -- rng objects
-  SST::RNG::Random* mersenne;                     ///< mersenne twister object
+#if TESTSER
+// SKK Test serializing unique pointer
+std::unique_ptr<int> test_uptr;
+std::unique_ptr<DP> DP_uptr;
+std::unique_ptr<PC> PC_uptr;
+std::unique_ptr<PC> PCser_uptr;
+std::unique_ptr<DP> DPser_uptr;
 
-  std::vector<SST::Link *> linkHandlers;          ///< LinkHandler objects
+std::shared_ptr<int> test_sptr;
+std::shared_ptr<DP> DP_sptr;
+std::shared_ptr<PC> PC_sptr;
+std::shared_ptr<PC> PCser_sptr;
+std::shared_ptr<DP> DPser_sptr;
 
-  // -- private methods
-  /// event handler
-  void handleEvent(SST::Event *ev);
+DP* test_DP;
+myPB<int>* test_myPB;
+//DbgSST15_Probe test_probe;
+#endif
+// -- rng objects
+SST::RNG::Random* mersenne;                     ///< mersenne twister object
 
-  /// sends data to adjacent links
-  void sendData();
+std::vector<SST::Link *> linkHandlers;          ///< LinkHandler objects
+
+// -- private methods
+/// event handler
+void handleEvent(SST::Event *ev);
+
+/// sends data to adjacent links
+void sendData();
 
 };  // class DbgSST15
 #if PROBE
@@ -206,25 +268,25 @@ private:
 class DbgSST15_Probe final : public ProbeControl {
 
 public:
-  DbgSST15_Probe(SST::Component * comp, SST::Output * out, 
-              int mode, SST::SimTime_t startCycle, SST::SimTime_t endCycle, int bufferSize, 
-              int port, int postDelay, uint64_t cliControl);
-  // User custom sampling functions
-  void capture_event_atts(uint64_t cycle, uint64_t sz, DbgSST15Event *ev);
-  // Custom data type for samples
-  struct event_atts_t {
-    uint64_t cycle_ = 0;
-    uint64_t sz_ = 0;
-    uint64_t deliveryTime_ = 0;
-    int priority_ = 0;
-    uint64_t orderTag_ = 0; 
-    uint64_t queueOrder_ = 0;
-    event_atts_t() {};
-    event_atts_t(uint64_t c, uint64_t sz, DbgSST15Event *ev) : cycle_(c), sz_(sz)
-    { 
-      deliveryTime_ = ev->getDeliveryTime();
-      priority_ = ev->getPriority();
-      orderTag_ = ev->getOrderTag();
+DbgSST15_Probe(SST::Component * comp, SST::Output * out, 
+            int mode, SST::SimTime_t startCycle, SST::SimTime_t endCycle, int bufferSize, 
+            int port, int postDelay, uint64_t cliControl);
+// User custom sampling functions
+void capture_event_atts(uint64_t cycle, uint64_t sz, DbgSST15Event *ev);
+// Custom data type for samples
+struct event_atts_t {
+  uint64_t cycle_ = 0;
+  uint64_t sz_ = 0;
+  uint64_t deliveryTime_ = 0;
+  int priority_ = 0;
+  uint64_t orderTag_ = 0; 
+  uint64_t queueOrder_ = 0;
+  event_atts_t() {};
+  event_atts_t(uint64_t c, uint64_t sz, DbgSST15Event *ev) : cycle_(c), sz_(sz)
+  { 
+    deliveryTime_ = ev->getDeliveryTime();
+    priority_ = ev->getPriority();
+    orderTag_ = ev->getOrderTag();
       queueOrder_ = ev->getQueueOrder();
     };
     friend std::ostream & operator<<(std::ostream &os, const event_atts_t& e) {
@@ -238,23 +300,46 @@ public:
     }
   };
 
-  // -------------------------------------------------------
-  // DbgSST15i_Probe Component Checkpoint Methods
-  // -------------------------------------------------------
-  /// DbgSST15_Prove: serialization constructor
-  //DbgSST15_Probe() {}
-
-  /// DbgSST15: serialization
-  //void serialize_order(SST::Core::Serialization::serializer& ser);
-  
-  /// DbgSST15: serialization implementations
-  //ImplementSerializable(SSTDEBUG::DbgSST15::DbgSST15_Probe)
-
   // trace buffer
   std::shared_ptr<ProbeBuffer<event_atts_t>> probeBuffer;
+#if TESTSER
+  ProbeBuffer<int>* testPB;
+
+  // -------------------------------------------------------
+  // DbgSST15i_Probe Component Serialization Method
+  // -------------------------------------------------------
+  void serialize_order(SST::Core::Serialization::serializer& ser) {
+    ProbeControl::serialize_order(ser);
+    //ProbeBuffer<event_atts_t>::serialize_order(ser)    
+#if 0    
+     struct S : std::remove_pointer_t<ProbeBuffer<event_atts_t>> {
+        using std::remove_pointer_t<ProbeBuffer<event_atts_t>>::c;  // access protected container
+      };
+    SST_SER(static_cast<S&>(*probeBuffer).c); // serialize the underlying containeri
+#endif
+#if 0
+     struct S : std::remove_pointer_t<ProbeBuffer<int>> {
+        using std::remove_pointer_t<ProbeBuffer<int>>::c;  // access protected container
+    };
+    if constexpr ( std::is_pointer_v<ProbeBuffer<int>> ) { 
+        testPB = new std::remove_pointer_t<ProbeBuffer<int>>;
+        SST_SER(static_cast<S&>(*testPB).c, options); // serialize the underlying container
+    }
+    else {
+        SST_SER(static_cast<S&>(testPB).c); // serialize the underlying container
+    }
+#endif
+
+
+    //SST_SER(*probeBuffer);
+    //SST_SER(probeBuffer->buf);
+    //
+    //SST_SER(*testPB);
+  }
+#endif  // TESTSER for Probe Buffer
 
 }; // class DbgSST15_Probe
-#endif
+#endif  // PROBE
 }  // namespace SSTDEBUG::DbgSST15
 
 #endif  // _SSTDEBUG_DBGSST15_H_
