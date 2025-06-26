@@ -94,14 +94,18 @@ DbgSST15::DbgSST15(SST::ComponentId_t id, const SST::Params& params ) :
   PCser_uptr = std::make_unique<PC>(9);
   DPser_uptr = std::make_unique<DP>(10);
 
-  test_sptr = std::make_unique<int>(15);
-  DP_sptr = std::make_unique<DP>(17);
-  PC_sptr = std::make_unique<PC>(18);
-  PCser_sptr = std::make_unique<PC>(19);
-  DPser_sptr = std::make_unique<DP>(20);
+  test_sptr = std::make_shared<int>(15);
+  DP_sptr = std::make_shared<DP>(17);
+  PC_sptr = std::make_shared<PC>(18);
+  PCser_sptr = std::make_shared<PC>(19);
+  DPser_sptr = std::make_shared<DP>(20);
   
   test_DP = new DP(21);
   test_myPB = new myPB<int>(22);
+  test_myPB->set(122);
+  test_smyPB = std::make_shared<myPB<int>>(23);
+  test_smyPB->set(123);
+
   #if 0
   test_probe = DbgSST15_Probe(
                 this, &output, probeMode,
@@ -160,6 +164,7 @@ void DbgSST15::serialize_order(SST::Core::Serialization::serializer& ser){
 
   SST_SER(*test_DP);
   SST_SER(*test_myPB);  // SKK build ERROR triggered here
+  SST_SER(*test_smyPB);
 #endif
 
 #if 0

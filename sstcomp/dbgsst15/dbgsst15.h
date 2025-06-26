@@ -68,13 +68,25 @@ public:
     size(s)
     {}
   int size;
+
+  void serialize_order(SST::Core::Serialization::serializer& ser) { /* override */
+    SST_SER(size);
+  }
+
 }; // class PBC
 
 template<typename T> class myPB final : public myPBC {
 public:
   myPB(int s) : myPBC(s) {}
+  void set(T v) { val = v; }   
+  void serialize_order(SST::Core::Serialization::serializer& ser) { /* override */
+    SST_SER(val);
+  }
+
+
 private: 
   T val;
+  std::vector<T> mybuf;
 }; // class PB
 
 #endif
@@ -246,6 +258,7 @@ std::shared_ptr<DP> DPser_sptr;
 
 DP* test_DP;
 myPB<int>* test_myPB;
+std::shared_ptr<myPB<int>> test_smyPB;
 //DbgSST15_Probe test_probe;
 #endif
 // -- rng objects
@@ -309,7 +322,7 @@ struct event_atts_t {
   // DbgSST15i_Probe Component Serialization Method
   // -------------------------------------------------------
   void serialize_order(SST::Core::Serialization::serializer& ser) {
-    ProbeControl::serialize_order(ser);
+    //ProbeControl::serialize_order(ser);
     //ProbeBuffer<event_atts_t>::serialize_order(ser)    
 #if 0    
      struct S : std::remove_pointer_t<ProbeBuffer<event_atts_t>> {
@@ -334,7 +347,7 @@ struct event_atts_t {
     //SST_SER(*probeBuffer);
     //SST_SER(probeBuffer->buf);
     //
-    //SST_SER(*testPB);
+    SST_SER(*testPB);
   }
 #endif  // TESTSER for Probe Buffer
 
