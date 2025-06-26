@@ -259,6 +259,8 @@ std::shared_ptr<DP> DPser_sptr;
 DP* test_DP;
 myPB<int>* test_myPB;
 std::shared_ptr<myPB<int>> test_smyPB;
+
+ProbeBuffer<int>* test_ProbeBuffer;
 //DbgSST15_Probe test_probe;
 #endif
 // -- rng objects
@@ -317,39 +319,11 @@ struct event_atts_t {
   std::shared_ptr<ProbeBuffer<event_atts_t>> probeBuffer;
 #if TESTSER
   ProbeBuffer<int>* testPB;
-
+#endif
   // -------------------------------------------------------
   // DbgSST15i_Probe Component Serialization Method
   // -------------------------------------------------------
-  void serialize_order(SST::Core::Serialization::serializer& ser) {
-    //ProbeControl::serialize_order(ser);
-    //ProbeBuffer<event_atts_t>::serialize_order(ser)    
-#if 0    
-     struct S : std::remove_pointer_t<ProbeBuffer<event_atts_t>> {
-        using std::remove_pointer_t<ProbeBuffer<event_atts_t>>::c;  // access protected container
-      };
-    SST_SER(static_cast<S&>(*probeBuffer).c); // serialize the underlying containeri
-#endif
-#if 0
-     struct S : std::remove_pointer_t<ProbeBuffer<int>> {
-        using std::remove_pointer_t<ProbeBuffer<int>>::c;  // access protected container
-    };
-    if constexpr ( std::is_pointer_v<ProbeBuffer<int>> ) { 
-        testPB = new std::remove_pointer_t<ProbeBuffer<int>>;
-        SST_SER(static_cast<S&>(*testPB).c, options); // serialize the underlying container
-    }
-    else {
-        SST_SER(static_cast<S&>(testPB).c); // serialize the underlying container
-    }
-#endif
-
-
-    //SST_SER(*probeBuffer);
-    //SST_SER(probeBuffer->buf);
-    //
-    SST_SER(*testPB);
-  }
-#endif  // TESTSER for Probe Buffer
+  void serialize_order(SST::Core::Serialization::serializer& ser);
 
 }; // class DbgSST15_Probe
 #endif  // PROBE

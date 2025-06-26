@@ -105,7 +105,8 @@ DbgSST15::DbgSST15(SST::ComponentId_t id, const SST::Params& params ) :
   test_myPB->set(122);
   test_smyPB = std::make_shared<myPB<int>>(23);
   test_smyPB->set(123);
-
+  
+  test_ProbeBuffer = new ProbeBuffer<int>(24);
   #if 0
   test_probe = DbgSST15_Probe(
                 this, &output, probeMode,
@@ -163,8 +164,10 @@ void DbgSST15::serialize_order(SST::Core::Serialization::serializer& ser){
   SST_SER(*DPser_sptr);
 
   SST_SER(*test_DP);
-  SST_SER(*test_myPB);  // SKK build ERROR triggered here
+  SST_SER(*test_myPB);
   SST_SER(*test_smyPB);
+
+  SST_SER(*test_ProbeBuffer);
 #endif
 
 #if 0
@@ -297,6 +300,36 @@ std::vector<event_atts_t> getRawBuffer() {
   return 
 }
 #endif
+ 
+ 
+void serialize_order(SST::Core::Serialization::serializer& ser) {
+    //ProbeControl::serialize_order(ser);
+    //ProbeBuffer<event_atts_t>::serialize_order(ser)
+#if 0
+     struct S : std::remove_pointer_t<ProbeBuffer<event_atts_t>> {
+        using std::remove_pointer_t<ProbeBuffer<event_atts_t>>::c;  // access protected container
+      };
+    SST_SER(static_cast<S&>(*probeBuffer).c); // serialize the underlying containeri
+#endif
+#if 0
+     struct S : std::remove_pointer_t<ProbeBuffer<int>> {
+        using std::remove_pointer_t<ProbeBuffer<int>>::c;  // access protected container
+    };
+    if constexpr ( std::is_pointer_v<ProbeBuffer<int>> ) {
+        testPB = new std::remove_pointer_t<ProbeBuffer<int>>;
+        SST_SER(static_cast<S&>(*testPB).c, options); // serialize the underlying container
+    }
+    else {
+        SST_SER(static_cast<S&>(testPB).c); // serialize the underlying container
+    }
+#endif
+
+
+    //SST_SER(*probeBuffer);
+    //SST_SER(probeBuffer->buf);
+    //
+    //SST_SER(*testPB);
+}
 
 
 #endif

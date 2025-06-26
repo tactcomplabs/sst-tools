@@ -234,13 +234,14 @@ public:
 //private:
     std::vector<T> buf;     // the circular buffer
     T trigger_rec;          // copy of record associated with triggered cyclie
-
+    int tmp = 5;
 public: 
     // ProbeBuffer serialization function for object map
     void serialize_order(SST::Core::Serialization::serializer& ser) {
       //ProbeBufCtl::serialize_order(ser);
+      SST_SER(tmp);
 
-#if 1
+#if 0
       switch ( ser.mode() ) {
         case SST::Core::Serialization::serializer::SIZER:
         case SST::Core::Serialization::serializer::PACK:
