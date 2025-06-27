@@ -216,7 +216,7 @@ protected:
 template<typename T> class ProbeBuffer final : public ProbeBufCtl {
 public:
     ProbeBuffer( size_t sz ) : ProbeBufCtl(sz) { buf.resize(sz); };
-    virtual ~ProbeBuffer() {};
+    //virtual ~ProbeBuffer() {};
     void capture(T& rec) {
         ProbeBufCtl::capture(); // update pointers and trigger capture detection
         assert(cur < sz_);
@@ -239,7 +239,7 @@ public:
     // ProbeBuffer serialization function for object map
     void serialize_order(SST::Core::Serialization::serializer& ser) {
       //ProbeBufCtl::serialize_order(ser);
-      SST_SER(tmp);
+      //SST_SER(tmp);
 
 #if 0
       switch ( ser.mode() ) {
@@ -258,19 +258,6 @@ public:
             break;
         }
       }  // end swtich ser.mode
-#endif
-
-#if 0  // copies from serialize_adapter.h
-      struct S : std::remove_pointer_t<T> {
-        using std::remove_pointer_t<T>::c;  // access protected container
-      };
-      
-      if constexpr ( std::is_pointer_v<T> ) {
-        buf = new std::remove_pointer_t<T>;
-        SST_SER(static_cast<S&>(*buf).c); // serialize the underlying container
-      } else {      
-        SST_SER(static_cast<S&>(buf).c);
-      }
 #endif
     }
 
