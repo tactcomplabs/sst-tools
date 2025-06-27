@@ -28,7 +28,7 @@
 
 #define PROBE 1
 #define SOCKET 0
-#define TESTSER 1
+#define TESTSER 0
 
 #if PROBE
 using namespace SSTDEBUG::Probe;
@@ -260,6 +260,9 @@ DP* test_DP;
 myPB<int>* test_myPB;
 std::shared_ptr<myPB<int>> test_smyPB;
 
+
+ProbeControl* test_ProbeControl;
+//ProbeBufCtl* test_ProbeBufCtl;
 ProbeBuffer<int>* test_ProbeBuffer;
 //DbgSST15_Probe test_probe;
 #endif

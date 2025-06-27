@@ -105,9 +105,16 @@ DbgSST15::DbgSST15(SST::ComponentId_t id, const SST::Params& params ) :
   test_myPB->set(122);
   test_smyPB = std::make_shared<myPB<int>>(23);
   test_smyPB->set(123);
-  
+ 
+  test_ProbeControl = new ProbeControl(this, &output, 1, 1, 1, 34, 1, 1, 1);
   test_ProbeBuffer = new ProbeBuffer<int>(24);
-  #if 0
+
+  std::cout << "Runtime type test_myPB: " << typeid(test_myPB).name() << std::endl;
+  std::cout << "Runtime type *test_myPB: " << typeid(*test_myPB).name() << std::endl;
+  std::cout << "Runtime type test_ProbeBuffer: " << typeid(test_ProbeBuffer).name() << std::endl;
+  std::cout << "Runtime type *test_ProbeBuffer: " << typeid(*test_ProbeBuffer).name() << std::endl;
+
+#if 0
   test_probe = DbgSST15_Probe(
                 this, &output, probeMode,
                  probeStartCycle, probeEndCycle, probeBufferSize,
@@ -147,7 +154,7 @@ void DbgSST15::serialize_order(SST::Core::Serialization::serializer& ser){
 #if 1
   SST_SER(traceMode);
   SST_SER(cliType);
-  //SST_SER(*probe_);
+  SST_SER(*probe_);
 
 #endif
 #if TESTSER
@@ -302,10 +309,10 @@ std::vector<event_atts_t> getRawBuffer() {
 #endif
  
  
-void serialize_order(SST::Core::Serialization::serializer& ser) {
+void DbgSST15_Probe::serialize_order(SST::Core::Serialization::serializer& ser) {
     //ProbeControl::serialize_order(ser);
 
-    //SST_SER(*probeBuffer);
+    SST_SER(*probeBuffer);
     //SST_SER(probeBuffer->buf);
     //SST_SER(*testPB);
 }

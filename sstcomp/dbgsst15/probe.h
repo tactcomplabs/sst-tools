@@ -101,7 +101,8 @@ public:
                     int probeMode, SST::SimTime_t probeStartCycle, SST::SimTime_t  probeEndCycle,
                     int probeBufferSize, int probePort,  int probePostDelay,
                     uint64_t cliControl);
-    virtual ~ProbeControl();
+    // skk virtual 
+    ~ProbeControl();
     /// Disallow copying and assignment
     ProbeControl( const ProbeControl& )            = delete;
     ProbeControl& operator=( const ProbeControl& ) = delete;
@@ -188,8 +189,10 @@ public:
     void reset_trigger();     // Clear trigger states
     void markAsTriggerRec();  // Set TRIGREC state to enable special capture
     void render_buffer(std::ostream& os);  // iterate over buffer for output
-    virtual void render(std::ostream& os, size_t idx, char pfx) = 0; // print a rec to ostream
-    virtual void render_trigger_rec(std::ostream&, char pfx) = 0; // print the saved trigger rec
+    //virtual void render(std::ostream& os, size_t idx, char pfx) = 0; // print a rec to ostream
+    void render(std::ostream& os, size_t idx, char pfx); // print a rec to ostream
+    //virtual void render_trigger_rec(std::ostream&, char pfx) = 0; // print the saved trigger rec
+    void render_trigger_rec(std::ostream&, char pfx);
     // cli support
     char getTrigStateChar() { return trig2char.at(state); };
     size_t getNumRecs() { return num_recs; }
@@ -224,14 +227,14 @@ public:
         if (tags[cur]==TRIGREC)
             trigger_rec = rec;
     }
-    void render(std::ostream& os, size_t idx, char pfx) override {
+    void render(std::ostream& os, size_t idx, char pfx) /* skk override */ {
         assert(idx<sz_);
         os << pfx << ' ' << buf.at(idx);
     }
-    void render_trigger_rec(std::ostream& os, char pfx) override {
+    void render_trigger_rec(std::ostream& os, char pfx) /* skk override */ {
         os << pfx << ' ' << trigger_rec;
     }
-//private:
+private:
     std::vector<T> buf;     // the circular buffer
     T trigger_rec;          // copy of record associated with triggered cyclie
     int tmp = 5;
