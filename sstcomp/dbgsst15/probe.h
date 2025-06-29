@@ -167,8 +167,15 @@ public:
 public:
     // ProbeControl serialization function for object map
     void serialize_order(SST::Core::Serialization::serializer& ser) {
-      //SST_SER(*probeBufCtl_);
+      SST_SER(mode_);
       SST_SER(startCycle_);
+      SST_SER(endCycle_);
+      SST_SER(bufferSize_);
+      SST_SER(port_);
+      SST_SER(postDelayCounter_);
+      SST_SER(postDelayInitCount_);
+      //SST_SER(cliControl_);
+      //SST_SER(useDelayCounter_);
     }
 };  // class ProbeControl
 
@@ -200,6 +207,13 @@ public:
 #if 1
     // ProbeBufCtl serialization function for object map
     void serialize_order(SST::Core::Serialization::serializer& ser) {
+        SST_SER(sz_);
+        SST_SER(num_recs);
+        SST_SER(cur);
+        SST_SER(first);
+        SST_SER(samples_lost);
+        SST_SER(state);
+        SST_SER(tags);
     }
 #endif
 
@@ -237,29 +251,43 @@ public:
 private:
     std::vector<T> buf;     // the circular buffer
     T trigger_rec;          // copy of record associated with triggered cyclie
-    int tmp = 5;
 public: 
     // ProbeBuffer serialization function for object map
     void serialize_order(SST::Core::Serialization::serializer& ser) {
-      //ProbeBufCtl::serialize_order(ser);
-      //SST_SER(tmp);
-
+      ProbeBufCtl::serialize_order(ser);
+      SST_SER(buf);
+      SST_SER(trigger_rec);
 #if 0
       switch ( ser.mode() ) {
         case SST::Core::Serialization::serializer::SIZER:
+        {
+            size_t size = buf.size();
+            ser.size(size);
+            break;
+        }
         case SST::Core::Serialization::serializer::PACK:
         {
+            size_t size = buf.size();
+            ser.pack(size);
             break;
         }
         case SST::Core::Serialization::serializer::UNPACK:
         {
+            size_t s;
+            ser.unpack(s);
+            buf.resize(s);
             break;
         }
         case SST::Core::Serialization::serializer::MAP:
         {
-            // Add your code here
+            
             break;
         }
+        
+        for ( size_t i = 0; i < buf.size(); ++i ) {
+            SST_SER(buf[i]);
+        }
+
       }  // end swtich ser.mode
 #endif
     }

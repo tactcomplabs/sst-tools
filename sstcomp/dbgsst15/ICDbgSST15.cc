@@ -162,8 +162,8 @@ ICDebugSST15::cmd_cd(std::vector<std::string>& tokens)
     // If we don't already have the top level component, check to see
     // if this is it
     if ( nullptr == base_comp_ ) {
-        Core::Serialization::ObjectMapArray<BaseComponent>* base_comp =
-            dynamic_cast<Core::Serialization::ObjectMapArray<BaseComponent>*>(obj_);
+        Core::Serialization::ObjectMapDeferred<BaseComponent>* base_comp =
+            dynamic_cast<Core::Serialization::ObjectMapDeferred<BaseComponent>*>(obj_);
         if ( base_comp ) base_comp_ = base_comp;
     }
 

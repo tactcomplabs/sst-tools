@@ -48,7 +48,7 @@ private:
     bool                                 done = false;
 
     // Keep a pointer to the ObjectMap for the top level Component
-    SST::Core::Serialization::ObjectMapArray<BaseComponent>* base_comp_ = nullptr;
+    SST::Core::Serialization::ObjectMapDeferred<BaseComponent>* base_comp_ = nullptr;
     
     // Keep track of all the WatchPoints
     std::vector<std::pair<WatchPoint*, BaseComponent*>> watch_points_;

@@ -151,12 +151,10 @@ void DbgSST15::serialize_order(SST::Core::Serialization::serializer& ser){
   SST_SER(mersenne);
   SST_SER(linkHandlers);
 
-#if 1
   SST_SER(traceMode);
   SST_SER(cliType);
   SST_SER(*probe_);
 
-#endif
 #if TESTSER
   SST_SER(*test_uptr);
   SST_SER(PC_uptr->start);
@@ -286,9 +284,6 @@ DbgSST15_Probe::DbgSST15_Probe(SST::Component * comp, SST::Output * out,
  : ProbeControl(comp, out, mode, startCycle, endCycle, bufferSize, port, postDelay, cliControl)
 {
   probeBuffer = std::make_shared<ProbeBuffer<event_atts_t>>(bufferSize);
-#if TESTSER
-  testPB = new ProbeBuffer<int>(bufferSize);
-#endif
   setBufferControls(probeBuffer);
 }
 
@@ -310,11 +305,8 @@ std::vector<event_atts_t> getRawBuffer() {
  
  
 void DbgSST15_Probe::serialize_order(SST::Core::Serialization::serializer& ser) {
-    //ProbeControl::serialize_order(ser);
-
+    ProbeControl::serialize_order(ser);
     SST_SER(*probeBuffer);
-    //SST_SER(probeBuffer->buf);
-    //SST_SER(*testPB);
 }
 
 

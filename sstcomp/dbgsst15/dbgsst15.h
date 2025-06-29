@@ -306,8 +306,8 @@ struct event_atts_t {
     priority_ = ev->getPriority();
     orderTag_ = ev->getOrderTag();
       queueOrder_ = ev->getQueueOrder();
-    };
-    friend std::ostream & operator<<(std::ostream &os, const event_atts_t& e) {
+  };
+  friend std::ostream & operator<<(std::ostream &os, const event_atts_t& e) {
       os << std::dec << "cycle=" << e.cycle_ 
         << " sz=" << e.sz_ 
         << " deliveryTime=" << e.deliveryTime_ 
@@ -315,14 +315,20 @@ struct event_atts_t {
         << " orderTag=" << e.orderTag_ 
         << " queueOrder=" << e.queueOrder_;
       return os;
-    }
-  };
+  }
+  // Serialize function to support object map access to buffer
+  void serialize_order(SST::Core::Serialization::serializer& ser) { 
+    SST_SER(cycle_);
+    SST_SER(sz_);
+    SST_SER(deliveryTime_);
+    SST_SER(priority_);
+    SST_SER(orderTag_);
+    SST_SER(queueOrder_);
+  }
+}; // strcut event_atts_t
 
   // trace buffer
   std::shared_ptr<ProbeBuffer<event_atts_t>> probeBuffer;
-#if TESTSER
-  ProbeBuffer<int>* testPB;
-#endif
   // -------------------------------------------------------
   // DbgSST15i_Probe Component Serialization Method
   // -------------------------------------------------------
