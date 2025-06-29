@@ -183,10 +183,12 @@ void DbgSST15::serialize_order(SST::Core::Serialization::serializer& ser){
 
 }
 
-#if 0
+#if 1
 void DbgSST15::handle_chkpt_probe_action()
 {
   auto c = getCurrentSimCycle();
+  printf("handle chkpt probe action @ cycle %ld\n", c);
+
   probe_->updateSyncState(c); 
   probe_->updateProbeState(c); // ensure states update before next sim clock
 }
@@ -198,7 +200,7 @@ void DbgSST15::handleEvent(SST::Event *ev){
                  "%s: received %zu unsigned values\n",
                  getName().c_str(),
                  cev->getData().size());
-#if 0
+#if 1
   /// debug probe 
   if ((traceMode & 2) == 2) {
       uint64_t range = maxData - minData + 1;
@@ -219,7 +221,7 @@ void DbgSST15::sendData(){
     std::vector<unsigned> data;
     uint64_t range = maxData - minData + 1;
     uint64_t r = uint64_t(rand()) % range + minData;
-#if 0
+#if 1
     /// debug probe trigger (advance to post-trigger state)
     bool trace = (traceMode & 1) == 1;
     if (trace && probe_->triggering()) probe_->trigger(r > (range-1));
@@ -234,7 +236,7 @@ void DbgSST15::sendData(){
                    data.size(), i);
     DbgSST15Event *ev = new DbgSST15Event(data);
     linkHandlers[i]->send(ev);
-#if 0
+#if 1
     /// debug probe data capture
     if (trace && probe_->sampling()) 
       probe_->capture_event_atts(getCurrentSimCycle(), r, ev);
@@ -263,7 +265,7 @@ bool DbgSST15::clockTick( SST::Cycle_t currentCycle ){
     primaryComponentOKToEndSim();
     rc =  true;
   }
-#if 0
+#if 1
   /// Debug Probe sequencing
   if (probe_->active()) probe_->updateProbeState(currentCycle);
   ///
@@ -297,12 +299,6 @@ void DbgSST15_Probe::capture_event_atts(uint64_t cycle, uint64_t sz, DbgSST15Eve
   ProbeControl::sample();
 }
 
-#if 0
-std::vector<event_atts_t> getRawBuffer() {
-  return 
-}
-#endif
- 
  
 void DbgSST15_Probe::serialize_order(SST::Core::Serialization::serializer& ser) {
     ProbeControl::serialize_order(ser);

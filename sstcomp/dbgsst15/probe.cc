@@ -239,6 +239,10 @@ ProbeControl::setBufferControls(std::shared_ptr<ProbeBufCtl> probeBufCtl)
 void
 ProbeControl::updateCLI()
 {
+
+// interactive console here
+printf("socket\n");
+#if 0
     if (port_==0) return;
 
     // start up server if needed.
@@ -254,6 +258,7 @@ ProbeControl::updateCLI()
         if (probeSocket_->cli_handler() != ProbeSocket::RESULT::SUCCESS)
             out_->fatal( CALL_INFO, -1, "An error occured on debug port %d\n", port_);
     }
+#endif
 }
 
 //-----------------------------------------

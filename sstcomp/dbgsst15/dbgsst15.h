@@ -215,7 +215,7 @@ public:
 
   /// DbgSST15: serialization
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
-#if 0
+#if 1 
   /// DbgSST15: Update debug control state object on checkpoint
   void handle_chkpt_probe_action();
 #endif
