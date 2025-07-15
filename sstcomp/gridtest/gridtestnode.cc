@@ -1,5 +1,5 @@
 //
-// _gridnode_cc_
+// _gridtestnode_cc_
 //
 // Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
@@ -8,26 +8,26 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#include "gridnode.h"
+#include "gridtestnode.h"
 #include "tcldbg.h"
 
-namespace SST::GridNode{
+namespace SST::GridTestNode{
 
 //------------------------------------------
-// GridNode
+// GridTestNode
 //------------------------------------------
-GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
+GridTestNode::GridTestNode(SST::ComponentId_t id, const SST::Params& params ) :
   SST::Component( id ), timeConverter(nullptr), clockHandler(nullptr),
   numPorts(8), minData(10), maxData(256), minDelay(20), maxDelay(100), clocks(1000),
   curCycle(0), demoBug(0), dataMask(0x1ffffff), dataMax(0x1ffffff) 
 {
-  tcldbg::spinner("GRIDNODE_SPINNER");
+  tcldbg::spinner("GRIDTESTNODE_SPINNER");
   uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
   output.init(
-    "GridNode[" + getName() + ":@p:@t]: ",
+    "GridTestNode[" + getName() + ":@p:@t]: ",
     Verbosity, 0, SST::Output::STDOUT );
   const std::string cpuClock = params.find< std::string >("clockFreq", "1GHz");
-  clockHandler  = new SST::Clock::Handler2<GridNode,&GridNode::clockTick>(this);
+  clockHandler  = new SST::Clock::Handler2<GridTestNode,&GridTestNode::clockTick>(this);
   timeConverter = registerClock(cpuClock, clockHandler);
 
   // read the rest of the parameters
@@ -84,8 +84,8 @@ GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
   for( unsigned i=0; i<numPorts; i++ ){
     portname[i] = "port" + std::to_string(i);
     linkHandlers.push_back(configureLink("port"+std::to_string(i),
-                                         new Event::Handler2<GridNode,
-                                         &GridNode::handleEvent>(this)));
+                                         new Event::Handler2<GridTestNode,
+                                         &GridTestNode::handleEvent>(this)));
     
     // The sending link and receiving links must have the same seed for the checking to work
     // send: up=0, down=1, left=2, right=3
@@ -110,7 +110,7 @@ GridNode::GridNode(SST::ComponentId_t id, const SST::Params& params ) :
   output.verbose( CALL_INFO, 5, 0, "Constructor complete\n" );
 }
 
-GridNode::~GridNode(){
+GridTestNode::~GridTestNode(){
   if (localRNG) delete localRNG;
   for (unsigned i=0;i<numPorts; i++) {
     if (rng[portname[i]]) 
@@ -118,7 +118,7 @@ GridNode::~GridNode(){
   } 
 }
 
-void GridNode::setup(){
+void GridTestNode::setup(){
   for (auto d : state ) initialCheck += d;
   output.verbose(CALL_INFO, 2, 0, 
     "%s setup() clocks %" PRIu64 " check 0x%" PRIx64 "\n",
@@ -127,7 +127,7 @@ void GridNode::setup(){
   if (CPTSubComp) CPTSubComp->setup();
 }
 
-void GridNode::finish(){
+void GridTestNode::finish(){
   uint64_t check = 0;
   for (auto d : state ) check += d;
   output.verbose(CALL_INFO, 2, 0, 
@@ -139,7 +139,7 @@ void GridNode::finish(){
   if (CPTSubComp) CPTSubComp->finish();
 }
 
-void GridNode::init( unsigned int phase ){
+void GridTestNode::init( unsigned int phase ){
   if( phase == 0 ){
     // setup the initial data
     output.verbose(CALL_INFO, 5, 0,
@@ -151,46 +151,46 @@ void GridNode::init( unsigned int phase ){
   }
 }
 
-void GridNode::printStatus( Output& out ){
+void GridTestNode::printStatus( Output& out ){
 }
 
-void GridNode::serialize_order(SST::Core::Serialization::serializer& ser){
+void GridTestNode::serialize_order(SST::Core::Serialization::serializer& ser){
   SST::Component::serialize_order(ser);
   // Start of serialized members
-  SST_SER(cptBegin)
+  SST_SER(cptBegin);
   // -- SST handlers
-  SST_SER(output)
-  SST_SER(timeConverter)
-  SST_SER(clockHandler)
-  SST_SER(CPTSubComp)
+  SST_SER(output);
+  SST_SER(timeConverter);
+  SST_SER(clockHandler);
+  SST_SER(CPTSubComp);
   // -- parameters
-  SST_SER(numBytes)
-  SST_SER(numPorts)
-  SST_SER(minData)
-  SST_SER(maxData)
-  SST_SER(minDelay)
-  SST_SER(maxDelay)
-  SST_SER(clocks)
-  SST_SER(rngSeed)
-  SST_SER(curCycle)
+  SST_SER(numBytes);
+  SST_SER(numPorts);
+  SST_SER(minData);
+  SST_SER(maxData);
+  SST_SER(minDelay);
+  SST_SER(maxDelay);
+  SST_SER(clocks);
+  SST_SER(rngSeed);
+  SST_SER(curCycle);
   // Bug injection
-  SST_SER(demoBug)
-  SST_SER(dataMask)
-  SST_SER(dataMax)
+  SST_SER(demoBug);
+  SST_SER(dataMask);
+  SST_SER(dataMax);
   // -- internal state
-  SST_SER(clkDelay)
-  SST_SER(portname)
-  SST_SER(linkHandlers)
-  SST_SER(state)
-  SST_SER(initialCheck)
-  SST_SER(rng)
-  SST_SER(localRNG)
+  SST_SER(clkDelay);
+  SST_SER(portname);
+  SST_SER(linkHandlers);
+  SST_SER(state);
+  SST_SER(initialCheck);
+  SST_SER(rng);
+  SST_SER(localRNG);
   // -- End of checkpointed members
-  SST_SER(cptEnd)
+  SST_SER(cptEnd);
 }
 
-void GridNode::handleEvent(SST::Event *ev){
-  GridNodeEvent *cev = static_cast<GridNodeEvent*>(ev);
+void GridTestNode::handleEvent(SST::Event *ev){
+  GridTestNodeEvent *cev = static_cast<GridTestNodeEvent*>(ev);
   auto data = cev->getData();
   output.verbose(CALL_INFO, 5, 0,
                  "%s: received %zu unsigned values\n",
@@ -236,7 +236,7 @@ void GridNode::handleEvent(SST::Event *ev){
 
 }
 
-void GridNode::sendData(){
+void GridTestNode::sendData(){
   // Iterate over sending ports.
   // Treating links as unidirectional so the recieve port RNG tracks the send port.
   // TODO: create 2 RNG's per port, one for send, one for recieve
@@ -262,12 +262,12 @@ void GridNode::sendData(){
                    "%s: sending %zu unsigned values on link %d\n",
                    getName().c_str(),
                    data.size(), port);
-    GridNodeEvent *ev = new GridNodeEvent(data);
+    GridTestNodeEvent *ev = new GridTestNodeEvent(data);
     linkHandlers[port]->send(ev);
   }
 }
 
-unsigned GridNode::neighbor(unsigned n)
+unsigned GridTestNode::neighbor(unsigned n)
 {
   // send: up=0, down=1, left=2, right=3
   // rcv:  up=4, down=5, left=6, right=7
@@ -295,7 +295,7 @@ unsigned GridNode::neighbor(unsigned n)
   return 8; // invalid
 }
 
-bool GridNode::clockTick( SST::Cycle_t currentCycle ){
+bool GridTestNode::clockTick( SST::Cycle_t currentCycle ){
 
   // sanity check the array
   for( uint64_t i = 0; i < (numBytes/4ull); i++ ){
@@ -331,6 +331,6 @@ bool GridNode::clockTick( SST::Cycle_t currentCycle ){
   return false;
 }
 
-} // namespace SST::GridNode
+} // namespace SST::GridTestNode
 
 // EOF

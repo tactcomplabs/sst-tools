@@ -13,12 +13,12 @@ include_directories(
 )
 
 #-- SST Compile Options
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SST_LDFLAGS}" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TCL_SCHEMA_FLAG} ${SST_LDFLAGS}" )
 
 #-- Components
 message(STATUS "[SST-TOOLS] Enabling dbgcli")
 add_subdirectory(dbgcli)
-message(STATUS "[SST-TOOLS] Enabling grid")
-add_subdirectory(grid)
+message(STATUS "[SST-TOOLS] Enabling gridtest")
+add_subdirectory(gridtest)
 
 # EOF

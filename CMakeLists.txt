@@ -89,7 +89,9 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-format-attribute -Wsuggest-final-methods -Wsuggest-final-types -Wvolatile")
 endif()
 
-set(CMAKE_CXX_FLAGS "-std=c++17 ${FP_MODE_FLAG} -O2 -Wall -Wextra -Wsuggest-override -Wmissing-noreturn -Wvla -Wuninitialized -Wdouble-promotion -Wsign-conversion -Wconversion -Wno-unused-parameter -Wno-deprecated-declarations -Wno-macro-redefined ${WERROR_FLAG} ${CMAKE_CXX_FLAGS} -I./ ${LDFLAGS}")
+#set(CMAKE_CXX_FLAGS "-std=c++17 ${FP_MODE_FLAG} -O2 -Wall -Wextra -Wsuggest-override -Wmissing-noreturn -Wvla -Wuninitialized -Wdouble-promotion -Wsign-conversion -Wconversion -Wno-unused-parameter -Wno-deprecated-declarations -Wno-macro-redefined ${WERROR_FLAG} ${CMAKE_CXX_FLAGS} -I./ ${LDFLAGS}")
+set(CMAKE_CXX_FLAGS "-std=c++17 ${FP_MODE_FLAG} -O2 -Wall -Wextra -Wsuggest-override -Wvla -Wuninitialized -Wdouble-promotion -Wsign-conversion -Wconversion -Wno-unused-parameter -Wno-deprecated-declarations -Wno-macro-redefined ${WERROR_FLAG} ${CMAKE_CXX_FLAGS} -I./ ${LDFLAGS}")
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall")
 
@@ -125,8 +127,13 @@ option(SST_TOOLS_SOCKETS "Enable tests using sockets" ON)
 
 #-- Checkpoint Serialization build flags (temporary)
 if ( ${SST_MAJOR_VERSION} EQUAL "90" )
-  set(SST_SCHEMA_TESTING ON)
+  set(TCL_SCHEMA ON)
+  set(TCL_SCHEMA_FLAG -DTCL_SCHEMA)
+else()
+  set(TCL_SCHEMA OFF)
 endif()
+message(STATUS "[SST-TOOLS] TCL_SCHEMA is ${TCL_SCHEMA}")
+
 if(SST_TOOLS_ENABLE_TESTING)
   enable_testing()
   add_subdirectory(test)
