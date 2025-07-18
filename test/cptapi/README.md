@@ -1,6 +1,8 @@
 # SST Checkpoint JSON Schema and Python3 API
 
 ## Overview
+**This is a prototype for proving concepts and should not intended to be used for any other purpose**
+
 Using a TCL custom branch of sst-core, we can generate a structured representation of the checkpoint file that can be consumed by the Python json module and support user interaction via a simple API. There is no change to the way serialization is specified in a component design.
 
 ### SST Core
@@ -186,4 +188,6 @@ See schema-test.sh and cpt_verify.py for a working example.
 
 ## Known Restrictions
 
-1. Sub-components are not yet supported.
+1. This is a prototype only and incompatible with the latest sst-core source code.
+2. Sub-components are not yet supported.
+   

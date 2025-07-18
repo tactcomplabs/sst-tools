@@ -1,8 +1,22 @@
-# sst-tools
+# SST Tools
 
-## Overview
+Debugging is both an art and a discipline. There are a host of debug features provided in `sst-core`. In addition, there are an unbounded number of user developed features realized in their individual workflows and SST components. The developer may be overwhelmed with the debug learning curve and resort to a printf based debug methodology only then to have to support a set of post-processing scripts to deal with an overwhelming amount of data followed by a never-ending cycle of recompiling and rerunning code to try to root cause a problem.
 
-## Setup
+Improving awareness, sharing best known methods, and speeding up the learning curve can have significant ROI for teams wrestling with large SST simulations. This can be followed by a virtuous cycle of improved debug support and components designed to leverage them.
+
+The documentation and code samples provided here are intended provide a "point of entry" to help developers quickly get started and navigate the best known methods, features, and use cases to best meet their needs. This repository also serves as an experimental protyping sandbox for future debug capabilities.
+
+## Document List
+
+- [SST Tools Users Guide](documentation/sst-tools-users-guide.md)
+
+    Lists of features, summary information,  and where to find supporting documentation and samples.
+
+- [SST Debug Handbook](documentation/sst-v15.0-debug-handbook.md)
+  
+    Walks through the latest debugging support in SST along with simple usage examples and how to deal with known issues.
+
+## Building and Running Sample Code
 Design and debug utilities, examples, and methods for SST developers
 
     git clone git@github.com:tactcomplabs/sst-tools.git
@@ -10,7 +24,6 @@ Design and debug utilities, examples, and methods for SST developers
     cmake -DSST_TOOLS_ENABLE_TESTING=ON ..
     make && make install
     ctest
-
 
 CMake configuration options include:
 
@@ -20,7 +33,9 @@ CMake configuration options include:
     SST_TOOLS_ENABLE_TESTING - enable all tests (OFF)
     SST_TOOLS_WERROR         - enabled -Werror compile flag (ON)
 
-## Checkpoint API
+## Experimental Code
+
+### Checkpoint API Prototype
 For information on generating json schema files for checkpoints and interacting with them using a Python API see the [cptapi documentation](test/cptapi/README.md).
 
 ## Contributing
@@ -64,4 +79,4 @@ See the [LICENSE](./LICENSE) file
 * John Leidel
 * Ken Griesser
 * Shannon Kuntz
-* Lee Killough
+
