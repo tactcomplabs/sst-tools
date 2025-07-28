@@ -35,6 +35,9 @@ CMake configuration options include:
 
 ## Experimental Code
 
+### Component Debug Probe Evaluation Model
+For information on instrumenting code using the component debug probe methodology see [dbgcli documentation](test/dbgcli/README.md)
+
 ### Checkpoint API Prototype
 For information on generating json schema files for checkpoints and interacting with them using a Python API see the [cptapi documentation](test/cptapi/README.md).
 
