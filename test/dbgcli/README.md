@@ -135,8 +135,9 @@ See `sst-tools/sstcomp/dbgcli` for a complete example.
 
 ## Demos
 
-  ***These demos requires SST v14.1.0 or newer***
-  ***These demos specify specific ports for communication between the SST simulation and the client scripts. These port numbers may not be available and will need to be changed to avoid hanging the program.***
+  ***These demos requires SST v14.1.0 or newer.***
+
+  ***These demos specify specific ports for communication between the SST simulation and the client scripts. If the port numbers are not be available they will need to be manually changed to avoid hanging the program.***
 
 ### Setup
 
