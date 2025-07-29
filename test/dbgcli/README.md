@@ -231,19 +231,21 @@ Once in interactive mode
 #### Run Demo 2
 
     # First launch sst simulation. 
-    # This will provide the interactive debug service over port 10000
+    # This will provide the interactive debug service over port 10100
 
     sst --checkpoint-sim-period=1us $SST_TOOLS_HOME/test/dbgcli/testdev/probe.py \
-    -- --probePort=10000 \
+    -- --probePort=10100 \
     --probeBufferSize=4 --probePostDelay=8 \
     --probeStartCycle=3000000 --probeEndCycle=8000000 \
     --probeC0=0 --probeC1=1 --cliControlC1=4
 
     # Next, in a separate xterm open the client for component 1
-    # Remember that the SST component was assigned a starting port of 10000.
-    # This means that component 1, cp1, will connect over 10001
+    # Remember that the SST component was assigned a starting port of 10100.
+    # This means that component 1, cp1, will connect over 10101
+    # If this port is unavailable the demo will hang. If this occurs,
+    # try different port numbers.
 
-    $SST_TOOLS_HOME/test/dbgcli/dbgcli-client.py --probePort=10001
+    $SST_TOOLS_HOME/test/dbgcli/dbgcli-client.py --probePort=10101
 
 Start-up results:
 
@@ -272,10 +274,14 @@ Build REV CPU 'probe' branch
     export REVHOME=$PWD
     git checkout probe
     cd build
-    cmake -DRVCC=riscv64-unknown-elf-gcc -DREV_USE_SPIKE=1 ../
+    cmake -DRVCC=riscv64-unknown-elf-gcc ../
     make –j –s && make install
 
-Note that this also includes spike which is used to provide disassembly of executed instructions. If spike is not available the disassembly will default to an internal format.
+If `spike` is installed it can be used to generate a more readable disassembly trace. This can be enabled using:
+
+```
+    cmake -DRVCC=riscv64-unknown-elf-gcc -DREV_USE_SPIKE=1 ../
+```
 
 #### Run Demo3
 
