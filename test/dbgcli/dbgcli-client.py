@@ -99,7 +99,7 @@ if __name__ == '__main__':
     try:
         client_program(args.probePort)
     except Exception as err:
-        print(f"disconnected: {err=}, {type(err)=}")
+        print(f"disconnected: {err}, {type(err)}")
     else:
         print("dbgcli-client completed normally")
         

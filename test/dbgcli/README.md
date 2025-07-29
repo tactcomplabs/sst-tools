@@ -136,6 +136,7 @@ See `sst-tools/sstcomp/dbgcli` for a complete example.
 ## Demos
 
   ***These demos requires SST v14.1.0 or newer***
+  ***These demos specify specific ports for communication between the SST simulation and the client scripts. These port numbers may not be available and will need to be changed to avoid hanging the program.***
 
 ### Setup
 
@@ -145,11 +146,10 @@ Build and test `sst-tools`. Also set up a "convenience" environment variable ref
     cd sst-tools
     export SST_TOOLS_HOME=$PWD
     cd build
+    git config core.hooksPath .githooks
     cmake -DSST_TOOLS_ENABLE_TESTING=ON ..
     make && make install
     ctest
-
-For convenience, create an environment vara
 
 ### Manual Testing
 
@@ -277,7 +277,11 @@ Build REV CPU 'probe' branch
     cmake -DRVCC=riscv64-unknown-elf-gcc ../
     make –j –s && make install
 
-If `spike` is installed it can be used to generate a more readable disassembly trace. This can be enabled using:
+Installation Notes:
+
+1. This requires a RISCV compiler. For more information see the REV CPU documentation at https://github.com/tactcomplabs/rev
+
+2. If `spike` is installed it can be used to generate a more readable disassembly trace. This can be enabled using:
 
 ```
     cmake -DRVCC=riscv64-unknown-elf-gcc -DREV_USE_SPIKE=1 ../
