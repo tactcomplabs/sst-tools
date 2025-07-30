@@ -21,6 +21,7 @@ Design and debug utilities, examples, and methods for SST developers
 
     git clone git@github.com:tactcomplabs/sst-tools.git
     cd build
+    git config core.hooksPath .githooks
     cmake -DSST_TOOLS_ENABLE_TESTING=ON ..
     make && make install
     ctest
@@ -34,6 +35,9 @@ CMake configuration options include:
     SST_TOOLS_WERROR         - enabled -Werror compile flag (ON)
 
 ## Experimental Code
+
+### Component Debug Probe Evaluation Model
+For information on instrumenting code using the component debug probe methodology see [dbgcli documentation](test/dbgcli/README.md)
 
 ### Checkpoint API Prototype
 For information on generating json schema files for checkpoints and interacting with them using a Python API see the [cptapi documentation](test/cptapi/README.md).
