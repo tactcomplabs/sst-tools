@@ -11,8 +11,6 @@
 #include "dbgsst15.h"
 #include "tcldbg.h"
 
-//#define PROBE 1
-//#define SOCKET 1
 
 namespace SSTDEBUG::DbgSST15{
 
@@ -22,7 +20,7 @@ namespace SSTDEBUG::DbgSST15{
 DbgSST15::DbgSST15(SST::ComponentId_t id, const SST::Params& params ) :
   SST::Component( id ), timeConverter(nullptr), clockHandler(nullptr),
   numPorts(1), minData(1), maxData(2), clockDelay(1), clocks(1000),
-  curCycle(0) {
+  curCycle(0), rCheck(0), size(0) {
   
   tcldbg::spinner("SPINNER");
   const uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
@@ -114,12 +112,6 @@ DbgSST15::DbgSST15(SST::ComponentId_t id, const SST::Params& params ) :
   std::cout << "Runtime type test_ProbeBuffer: " << typeid(test_ProbeBuffer).name() << std::endl;
   std::cout << "Runtime type *test_ProbeBuffer: " << typeid(*test_ProbeBuffer).name() << std::endl;
 
-#if 0
-  test_probe = DbgSST15_Probe(
-                this, &output, probeMode,
-                 probeStartCycle, probeEndCycle, probeBufferSize,
-          probePort, probePostDelay, cliControl);
-  #endif
 #endif
   // constructor completeå
   output.verbose( CALL_INFO, 5, 0, "Constructor complete\n" );
@@ -153,6 +145,8 @@ void DbgSST15::serialize_order(SST::Core::Serialization::serializer& ser){
 
   SST_SER(traceMode);
   SST_SER(cliType);
+  SST_SER(rCheck);
+  SST_SER(size);
   SST_SER(*probe_);
 
 #if TESTSER
@@ -183,7 +177,7 @@ void DbgSST15::serialize_order(SST::Core::Serialization::serializer& ser){
 
 }
 
-#if 1
+#if 0
 void DbgSST15::handle_chkpt_probe_action()
 {
   auto c = getCurrentSimCycle();
@@ -200,7 +194,7 @@ void DbgSST15::handleEvent(SST::Event *ev){
                  "%s: received %zu unsigned values\n",
                  getName().c_str(),
                  cev->getData().size());
-#if 1
+#if 0
   /// debug probe 
   if ((traceMode & 2) == 2) {
       uint64_t range = maxData - minData + 1;
@@ -211,6 +205,14 @@ void DbgSST15::handleEvent(SST::Event *ev){
       if (probe_->sampling())
         probe_->capture_event_atts(getCurrentSimCycle(), r, cev);
   }
+#else
+  // Used to trigger watchpoint for rCheck > 0
+  uint64_t range = maxData - minData + 1;
+  size_t r = cev->getData().size();
+  rCheck = r - (range - 1);
+  size = r;
+  output.verbose(CALL_INFO, 1, 0, "size = %ld\n", size); // skk debug
+
 #endif
   delete ev;
 }
@@ -221,11 +223,15 @@ void DbgSST15::sendData(){
     std::vector<unsigned> data;
     uint64_t range = maxData - minData + 1;
     uint64_t r = uint64_t(rand()) % range + minData;
-#if 1
+#if 0
     /// debug probe trigger (advance to post-trigger state)
     bool trace = (traceMode & 1) == 1;
     if (trace && probe_->triggering()) probe_->trigger(r > (range-1));
     ///
+#else
+    // Used to trigger watchpoint for rCheck > 0
+    rCheck = r - (range-1);
+    size = r;
 #endif
     for( size_t i=0; i<(unsigned)r; i++ ){
       data.push_back((unsigned)(mersenne->generateNextUInt32()));
@@ -234,9 +240,10 @@ void DbgSST15::sendData(){
                    "%s: sending %zu unsigned values on link %d\n",
                    getName().c_str(),
                    data.size(), i);
+    output.verbose(CALL_INFO, 1, 0, "data.size = %ld\n", data.size()); // skk debug 
     DbgSST15Event *ev = new DbgSST15Event(data);
     linkHandlers[i]->send(ev);
-#if 1
+#if 0
     /// debug probe data capture
     if (trace && probe_->sampling()) 
       probe_->capture_event_atts(getCurrentSimCycle(), r, ev);
@@ -265,7 +272,7 @@ bool DbgSST15::clockTick( SST::Cycle_t currentCycle ){
     primaryComponentOKToEndSim();
     rc =  true;
   }
-#if 1
+#if 0
   /// Debug Probe sequencing
   if (probe_->active()) probe_->updateProbeState(currentCycle);
   ///

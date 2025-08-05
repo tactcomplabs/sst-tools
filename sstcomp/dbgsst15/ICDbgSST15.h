@@ -17,6 +17,9 @@
 //#include <sst/core/watchPoint.h>
 //#include <sst/core/interactiveConsole.h>
 //#include "sst/core/serialization/objectMapDeferred.h"
+#include "probe.h"
+using namespace SSTDEBUG::Probe;
+
 
 namespace SST::ICDbgSST15 {
 
@@ -65,9 +68,17 @@ private:
     void cmd_run(std::vector<std::string>& tokens);
     void cmd_watch(std::vector<std::string>& tokens);
     void cmd_unwatch(std::vector<std::string>& tokens);
-    //void cmd_shutdown(std::vector<std::string>& tokens);
+    void cmd_shutdown(std::vector<std::string>& tokens);
 
     void dispatch_cmd(std::string cmd);
+
+    // Debug Probe functionality
+
+    void cmd_trace(std::vector<std::string>& tokens);
+    void cmd_addTraceVar(std::vector<std::string>& tokens);
+    void cmd_resetTraceBuffer(std::vector<std::string>& tokens);
+    void cmd_printTrace(std::vector<std::string>& tokens);
+    void cmd_printWatchpoint(std::vector<std::string>& tokens);
 };
 
 } // namespace SSTDEBUG::DbgSST15

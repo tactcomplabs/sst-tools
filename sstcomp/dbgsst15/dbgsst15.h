@@ -237,7 +237,10 @@ private:
   uint64_t curCycle;                              ///< current cycle delay
   // -- probing
   unsigned traceMode;                             ///< 0-none, 1-send, 2-recv, 3-both
-unsigned cliType;                               ///< 0-serializer-entry, 1-initiateInteractive
+  unsigned cliType;                               ///< 0-serializer-entry, 1-initiateInteractive
+  int64_t rCheck;                                 /// < skk used for watchpoint trigger of msg size
+  size_t size;                                    ///< skk used for watchpoint trigger of msg size > 100
+
 #if PROBE
 // -- Component probe state object
 std::unique_ptr<DbgSST15_Probe> probe_;

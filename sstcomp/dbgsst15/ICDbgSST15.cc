@@ -298,6 +298,118 @@ ICDebugSST15::cmd_run(std::vector<std::string>& tokens)
 }
 
 #if 1
+// addTraceVar wpIndex var1 .. varN
+void
+ICDebugSST15::cmd_addTraceVar(std::vector<std::string>& tokens)
+{
+    if (tokens.size() < 3 ) {
+      printf("Invalid format: addTraceVar <watchpointIndex> <var1> ... <varN>\n");
+      return;
+    }
+    size_t wpIndex = std::stoi(tokens[1]);
+    if (wpIndex >= watch_points_.size()) {
+      printf(" Invalid watchpoint index\n");
+      return;
+    }
+
+    WatchPoint* wp = watch_points_.at(wpIndex).first;
+    printf("WP %ld - %s\n", wpIndex, wp->getName().c_str());
+
+    // Get trace vars and add associated objectBuffers
+    size_t tindex = 2;
+    while (tindex < tokens.size()) {
+      std::string tvar = tokens[tindex++];
+      //printf("%s ", tvar.c_str());
+
+      // Find and check trace variable
+      Core::Serialization::ObjectMap* map = obj_->findVariable(tvar);
+      if (nullptr == map) {
+        printf("Unknown variable: %s\n", tvar.c_str());
+        return;
+      }
+
+      // Is variable fundamental
+      if (!map->isFundamental()) {
+        printf("Traces can only be placed on fundamental types; %s is not fundamental\n", tvar.c_str());
+        return;
+      }
+      size_t bufsize = wp->getBufferSize();
+      auto* ob = map->getObjectBuffer(obj_->getFullName() + "/" + tvar, bufsize);
+      wp->addObjectBuffer(ob);
+    }
+    return;
+
+}
+
+// resetTraceBuffer wpIndex
+void
+ ICDebugSST15::cmd_resetTraceBuffer(std::vector<std::string>& tokens)
+ {
+    if (tokens.size() != 2) {
+        printf("Invalid format: resetTraceBuffer <watchpointIndex>\n");
+        return;
+    }
+
+    size_t wpIndex = std::stoi(tokens[1]);
+    if (wpIndex >= watch_points_.size()) {
+        printf(" Invalid watchpoint index\n");
+        return;
+    }
+
+    WatchPoint* wp = watch_points_.at(wpIndex).first;
+    //printf("WP %ld - %s\n", wpIndex, wp->getName().c_str());
+    wp->resetTraceBuffer();
+
+    return;
+ }
+
+// printTrace wpIndex
+void
+ICDebugSST15::cmd_printTrace(std::vector<std::string>& tokens)
+{
+  if (tokens.size() != 2) {
+    printf("Invalid format: printTrace <watchpointIndex>\n");
+    return;
+  }
+
+  size_t wpIndex = std::stoi(tokens[1]);
+  if (wpIndex >= watch_points_.size()) {
+    printf(" Invalid watchpoint index\n");
+    return;
+  }
+
+  WatchPoint* wp = watch_points_.at(wpIndex).first;
+  //printf("WP %ld - %s\n", wpIndex, wp->getName().c_str());
+  wp->printTrace();
+  
+  return;
+
+}
+
+// printWatchpoint wpIndex
+void
+ICDebugSST15::cmd_printWatchpoint(std::vector<std::string>& tokens)
+{
+  if (tokens.size() != 2) {
+    printf("Invalid format: printWatchpoint <watchpointIndex>\n");
+    return;
+  }
+
+  size_t wpIndex = std::stoi(tokens[1]);
+  if (wpIndex >= watch_points_.size()) {
+    printf(" Invalid watchpoint index\n");
+    return;
+  }
+
+  WatchPoint* wp = watch_points_.at(wpIndex).first;
+  //printf("WP %ld: - %s\n", wpIndex, wp->getName().c_str());
+  std::cout << "WP" << wpIndex << ": ";
+  wp->printWatchpoint();
+
+  return;
+
+}
+
 void
 ICDebugSST15::cmd_watch(std::vector<std::string>& tokens)
 {
@@ -306,7 +418,9 @@ ICDebugSST15::cmd_watch(std::vector<std::string>& tokens)
         printf("Current watch points:\n");
         int count = 0;
         for ( auto& x : watch_points_ ) {
-            printf("  %d - %s\n", count++, x.first->getName().c_str());
+            //printf("  %d - %s\n", count++, x.first->getName().c_str());
+            std::cout << count++ << ": ";
+            x.first->printWatchpoint();
         }
         return;
     }
@@ -357,7 +471,15 @@ ICDebugSST15::cmd_watch(std::vector<std::string>& tokens)
     // Setup the watch point
     try {
         auto* c  = map->getComparison(obj_->getFullName() + "/" + var, op, val);
+        //printf("Obj get current value  c = %s\n", c->getCurrentValue().c_str());
+
         auto* pt = new WatchPoint(obj_->getFullName() + "/" + var, c);
+
+        auto* tb = map->getTraceBuffer(obj_, 32, 4);
+        pt->addTraceBuffer(tb);
+
+        auto* ob = map->getObjectBuffer(obj_->getFullName() + "/" + var, 32);
+        pt->addObjectBuffer(ob);
 
         // Get the top level component to set the watch point
         BaseComponent* comp = static_cast<BaseComponent*>(base_comp_->getAddr());
@@ -410,7 +532,7 @@ ICDebugSST15::cmd_unwatch(std::vector<std::string>& tokens)
     watch_points_.erase(watch_points_.begin() + index);
 }
 #endif
-#if 0
+#if 1
 void
 ICDebugSST15::cmd_shutdown(std::vector<std::string>& tokens)
 {
@@ -420,6 +542,171 @@ ICDebugSST15::cmd_shutdown(std::vector<std::string>& tokens)
     return;
 }
 #endif
+
+WatchPoint::WPACTION
+getAction(const std::string& action) {
+    if (action == "interactive") {
+        return WatchPoint::WPACTION::INTERACTIVE;
+    }
+    else if (action == "printTrace") {
+        return WatchPoint::WPACTION::PRINT_TRACE;
+    }
+    else if (action == "checkpoint") {
+        return WatchPoint::WPACTION::CHECKPOINT;
+    }
+    else if (action == "printStatus") {
+        return WatchPoint::WPACTION::PRINT_STATUS;
+    }
+    else if (action == "heartbeat") {
+        return WatchPoint::WPACTION::HEARTBEAT;
+    }
+    else {
+        return WatchPoint::WPACTION::INVALID;
+    }
+}
+
+#if 1  // test cmd_trace:  trace <var> <op> <value> : <bufsize> <postdelay> : <v1> ... <v3> :  <action>*
+// action is optional - default is break to interactive console
+void
+ICDebugSST15::cmd_trace(std::vector<std::string>& tokens)
+{
+  if (tokens.size() < 9) {
+    printf("Invalid format: trace <var> <op> <value> : <bufsize> <postdelay> : <v1> ... <vN>\n");
+    return;
+  }
+
+  std::string                                  var("");
+  Core::Serialization::ObjectMapComparison::Op op = Core::Serialization::ObjectMapComparison::Op::INVALID;
+  std::string                                  val("");
+  size_t bufsize = 32;
+  size_t pdelay = 0;
+
+  // Get trigger
+  var = tokens[1];
+  op = Core::Serialization::ObjectMapComparison::getOperationFromString(tokens[2]);
+  val = tokens[3];
+
+  if (tokens[4] != ":") {
+    printf("Invalid format: trace <var> <op> <value> : <bufsize> <postdelay> : <v1> ... <vN>\n");
+    return;
+  }
+  // Could check for ":" here and assume that means they just want default values for buffer size and post delay?
+
+  // Get buffer size
+  try {
+      bufsize = std::stoi(tokens[5]);
+  } 
+  catch (const std::invalid_argument& e) {
+      std::cerr << "Error: Invalid argument for buffer size: " << tokens[5] << std::endl;
+  }
+  catch (const std::out_of_range& e) {
+      std::cerr << "Error: Out of range for buffer size: " << tokens[5] << std::endl;
+  }
+
+  // Get post delay
+  try {
+      pdelay = std::stoi(tokens[6]);
+  }
+  catch (const std::invalid_argument& e) {
+      std::cerr << "Error: Invalid argument for post trigger delay: " << tokens[6] << std::endl;
+  }
+  catch (const std::out_of_range& e) {
+      std::cerr << "Error: Out of range for post trigger delay: " << tokens[6] << std::endl;
+  }
+
+  if (tokens[7] != ":") {
+    printf("Invalid format: trace <var> <op> <value> : <bufsize> <postdelay> : <v1> ... <vN>\n");
+    return;
+  }
+
+  // Find and check trigger variable
+  Core::Serialization::ObjectMap* map = obj_->findVariable(var);
+  if (nullptr == map) {
+    printf("Unknown variable: %s\n", var.c_str());
+    return;
+  }
+
+  // Is variable fundamental
+  if (!map->isFundamental()) {
+    printf("Watches can only be placed on fundamental types; %s is not fundamental\n", var.c_str());
+    return;
+  }
+
+  // Is operator valid
+  if (op == Core::Serialization::ObjectMapComparison::Op::INVALID) {
+    printf("Unknown comparison operation specified in watch command\n");
+    return;
+  }
+
+  // Trigger variable is a fundamental, set up the watch point
+
+  // Setup the watch point
+  try {
+    auto* c = map->getComparison(obj_->getFullName() + "/" + var, op, val);
+    auto* pt = new WatchPoint(obj_->getFullName() + "/" + var, c);
+
+    // Setup Trace Buffer
+    auto* tb = map->getTraceBuffer(obj_, bufsize, pdelay);
+    pt->addTraceBuffer(tb);
+
+    // Get trace vars and add associated objectBuffers
+    size_t tindex = 8;
+    //size_t nvars = tokens.size() - 8;
+    while (tindex < tokens.size()) {
+      std::string tvar = tokens[tindex++];
+
+      if (tvar == ":") {
+          // end of vars, action is next
+          std::string action = tokens[tindex++];
+          WatchPoint::WPACTION actionType = getAction(action);
+          if (actionType == WatchPoint::WPACTION::INVALID) {
+              printf("Unknown action: %s\n", action.c_str());
+              return;
+          }
+          else {
+              pt->setAction(actionType);
+          }
+          break;
+      }
+      // Find and check trace variable
+      Core::Serialization::ObjectMap* map = obj_->findVariable(tvar);
+      if (nullptr == map) {
+        printf("Unknown variable: %s\n", tvar.c_str());
+        return;
+      }
+
+      // Is variable fundamental
+      if (!map->isFundamental()) {
+        printf("Traces can only be placed on fundamental types; %s is not fundamental\n", tvar.c_str());
+        return;
+      }
+
+      auto* ob = map->getObjectBuffer(obj_->getFullName() + "/" + tvar, bufsize);
+      pt->addObjectBuffer(ob);
+    }
+
+    if (tindex != tokens.size()) {
+        printf("Error, too many arguments\n");
+        return;
+    }
+
+    // Get the top level component to set the watch point
+    BaseComponent* comp = static_cast<BaseComponent*>(base_comp_->getAddr());
+    if (comp) {
+      comp->addWatchPoint(pt);
+      watch_points_.emplace_back(pt, comp);
+    }
+    else
+      printf("Not a component\n");
+  }
+  catch (std::exception& e) {
+    printf("Invalid argument passed to watch command\n");
+    return;
+  }
+};
+
+#endif  // test cmd_trace
+
 
 
 void
@@ -463,7 +750,7 @@ ICDebugSST15::dispatch_cmd(std::string cmd)
         cmd_unwatch(tokens);
     }
     #endif
-    #if 0
+    #if 1
     else if ( tokens[0] == "shutdown" ) {
         cmd_shutdown(tokens);
     }
@@ -471,6 +758,23 @@ ICDebugSST15::dispatch_cmd(std::string cmd)
     else if ( tokens[0] == "help" ) {
         cmd_help(tokens);
     }
+    #if 1
+    else if (tokens[0] == "trace") {
+      cmd_trace(tokens);
+    }
+    else if (tokens[0] == "addTraceVar") {
+      cmd_addTraceVar(tokens);
+    }
+    else if (tokens[0] == "resetTraceBuffer") {
+      cmd_resetTraceBuffer(tokens);
+    }
+    else if (tokens[0] == "printTrace") {
+      cmd_printTrace(tokens);
+    }
+    else if (tokens[0] == "printWatchpoint") {
+      cmd_printWatchpoint(tokens);
+    }
+    #endif
     else {
         printf("Unknown command: %s\n", tokens[0].c_str());
     }
