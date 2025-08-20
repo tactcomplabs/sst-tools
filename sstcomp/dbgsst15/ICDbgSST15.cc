@@ -10,13 +10,6 @@
 // distribution.
 
 #include "ICDbgSST15.h"
-#if 0
-//#include "sst_config.h"
-//#include "sst/core/impl/interactive/simpleDebug.h"
-//#include "sst/core/stringize.h"
-//#include "sst/core/timeConverter.h"
-//#include "sst/core/simulation_impl.h"
-#endif
 
 namespace SST::ICDbgSST15 {
 
@@ -39,7 +32,6 @@ ICDebugSST15::execute(const std::string& msg)
         dispatch_cmd(line);
     }
 }
-
 
 // Functions for the Explorer
 
@@ -73,17 +65,40 @@ ICDebugSST15::cmd_help(std::vector<std::string>& UNUSED(tokens))
     help.append("  Modify State: Modify simulation variables\n");
     help.append("   - set <obj> <value>: sets an object in the current scope to the provided value;\n");
     help.append("                        object must be a \"fundamental type\" e.g. int \n");
-
-
+    help.append("\n");
+    help.append("  Watchpoints: Manage watchpoints (with or without tracing)\n");
+    help.append("                A <trigger> can be a <comparison> or a sequence of comparisons combined with a <logicOp>\n");
+    help.append("                E.g. <trigger> = <comparison> or <comparison> <logicOp> <comparison> ...\n");
+    help.append("                A <comparision> can be \"<var> changed\" which checks whether the value has changed\n");
+    help.append("                or \"<var> <comp> <val>\" which compares the variable to a given value\n");
+    help.append("                A <comp> can be <, <=, >, >=, ==, or !=\n");
+    help.append("                A <logicOp> can be && or ||\n");   
+    help.append("                \"watch\" creates a default watchpoint that breaks into an interactive console when triggered\n");
+    help.append("                \"trace\" creates a watchpoint with a trace buffer to trace a set of variables and trigger an <action>\n");
+    help.append("                Available actions include: interactive, printTrace, checkpoint, or printStatus\n");
+    help.append("   - watch <trigger>: adds watchpoint to the watchlist; breaks into interactive console when triggered\n");
+    help.append("                Example: watch size > 90 && count < 100 || status changed\n");
+    help.append("   - trace <trigger> : <bufferSize> <postDelay> : <var1> ... <varN> : <action> \n");
+    help.append("                Adds watchpoint to the watchlist with a trace buffer of <bufferSize> and a post trigger delay of <postDelay>\n");
+    help.append("                Traces all of the variables specified in the var list and invokes the <action> after postDelay when triggered\n");
+    help.append("                Example: trace size > 90 || count == 100 : 32 4 : size count state : printTrace\n");
+    help.append("   - watchlist: prints the current list of watchpoints and their associated indices\n");
+    help.append("                Note: a watchpoint's index may change as watchpoints are deleted\n");
+    help.append("   - addTraceVar <watchpointIndex> <var1> ... <varN> : adds the specified variables to the specified watchpoint's trace buffer\n");
+    help.append("   - printWatchpoint <watchpointIndex>: prints the watchpoint based on the index specified by watchlist\n");
+    help.append("   - printTrace <watchpointIndex>: prints the trace buffer for the specified watchpoint\n");
+    help.append("   - resetTrace <watchpointIndex>: resets the trace buffer for the specified watchpoint\n");
+    help.append("   - unwatch <watchpointIndex>: removes the specified watchpoint from the watch list\n");
+    help.append("\n");
     help.append("  Execute: Execute the simulation for a specified duration\n");
     help.append("   - run [TIME]: runs the simulation from the current point for TIME and then returns to\n");
     help.append("                 interactive mode; if no time is given, the simulation runs to completion;\n");
     help.append("                 TIME is of the format <Number><unit> e.g. 4us\n");
-
+    help.append("\n");
     help.append("  Exit: Exit the interactive console\n");
     help.append("   - exit or quit: exits the interactive console and resumes simulation execution\n");
     help.append("   - shutdown: exits the interactive console and does a clean shutdown of the simulation\n");
-
+    help.append("\n");
     printf("%s", help.c_str());
 }
 
@@ -297,8 +312,7 @@ ICDebugSST15::cmd_run(std::vector<std::string>& tokens)
     return;
 }
 
-#if 1
-// addTraceVar wpIndex var1 .. varN
+// addTraceVar <wpIndex> <var1> ... <varN>
 void
 ICDebugSST15::cmd_addTraceVar(std::vector<std::string>& tokens)
 {
@@ -334,14 +348,16 @@ ICDebugSST15::cmd_addTraceVar(std::vector<std::string>& tokens)
         return;
       }
       size_t bufsize = wp->getBufferSize();
+      if (bufsize == 0) {
+          printf("Watchpoint %ld does not have tracing enabled\n", wpIndex);
+      }
       auto* ob = map->getObjectBuffer(obj_->getFullName() + "/" + tvar, bufsize);
       wp->addObjectBuffer(ob);
     }
     return;
-
 }
 
-// resetTraceBuffer wpIndex
+// resetTraceBuffer <wpIndex>
 void
  ICDebugSST15::cmd_resetTraceBuffer(std::vector<std::string>& tokens)
  {
@@ -363,7 +379,7 @@ void
     return;
  }
 
-// printTrace wpIndex
+// printTrace <wpIndex>
 void
 ICDebugSST15::cmd_printTrace(std::vector<std::string>& tokens)
 {
@@ -383,10 +399,9 @@ ICDebugSST15::cmd_printTrace(std::vector<std::string>& tokens)
   wp->printTrace();
   
   return;
-
 }
 
-// printWatchpoint wpIndex
+// printWatchpoint <wpIndex>
 void
 ICDebugSST15::cmd_printWatchpoint(std::vector<std::string>& tokens)
 {
@@ -407,46 +422,78 @@ ICDebugSST15::cmd_printWatchpoint(std::vector<std::string>& tokens)
   wp->printWatchpoint();
 
   return;
+}
+
+WatchPoint::LogicOp
+getLogicOpFromString(const std::string& opStr) {
+    if (opStr == "&&") {
+        return WatchPoint::LogicOp::AND;
+    }
+    else if (opStr == "||") {
+        return WatchPoint::LogicOp::OR;
+    }
+    else {
+        return WatchPoint::LogicOp::UNDEFINED;
+    }
+}
+
+// watchlist
+void 
+ICDebugSST15::cmd_watchlist(std::vector<std::string>& tokens)
+{
+    // Print the watch points
+    printf("Current watch points:\n");
+    int count = 0;
+    for (auto& x : watch_points_) {
+        //printf("  %d - %s\n", count++, x.first->getName().c_str());
+        std::cout << count++ << ": ";
+        x.first->printWatchpoint();
+    }
+    return;
+}
+
+void parseTrigger(std::vector<std::string>& tokens, size_t startToken) {
 
 }
 
+// watch <trigger>   where
+//  <trigger> is <comparison> OR <comparison> <logicOp> <comparison> ...
+//  <comparison> is <var> changed OR <var> <op> <val>
+//  <logicOp> is one of:  &&,  ||
+//  <op> is one of:  <, <=, >, >=, ==, !=
+// Examples
+//  watch size changed
+//  watch size > 90
+//  watch size > 90 && value == 100 
+//  watch size changed || value == 100 && index == 55 
 void
 ICDebugSST15::cmd_watch(std::vector<std::string>& tokens)
 {
-    if ( tokens.size() == 1 ) {
-        // Just print the watch points
-        printf("Current watch points:\n");
-        int count = 0;
-        for ( auto& x : watch_points_ ) {
-            //printf("  %d - %s\n", count++, x.first->getName().c_str());
-            std::cout << count++ << ": ";
-            x.first->printWatchpoint();
-        }
-        return;
-    }
-
+   
     std::string                                  var("");
     Core::Serialization::ObjectMapComparison::Op op = Core::Serialization::ObjectMapComparison::Op::INVALID;
     std::string                                  val("");
+    WatchPoint::LogicOp logicOp = WatchPoint::LogicOp::UNDEFINED;
+    size_t index = 1;
 
-    if ( tokens.size() == 2 ) {
-        var = tokens[1];
-        op  = Core::Serialization::ObjectMapComparison::Op::CHANGED;
-    }
-    else if ( tokens.size() == 4 ) {
-        var = tokens[1];
-        op  = Core::Serialization::ObjectMapComparison::getOperationFromString(tokens[2]);
-        val = tokens[3];
-    }
-    else {
-        printf("Invalid format for watch command. Valid formats are watch <var> and watch <var> <comp> <val>\n");
+    // Get first comparison
+    var = tokens[index++];
+    if (index == tokens.size()) {
+        printf("Invalid format for watch command\n");
         return;
     }
-
+    op = Core::Serialization::ObjectMapComparison::getOperationFromString(tokens[index++]);
+    if (op != Core::Serialization::ObjectMapComparison::Op::CHANGED) {
+        if (index == tokens.size()) {
+            printf("Invalid format for watch command. Valid formats are watch <var> and watch <var> <comp> <val>\n");
+            return;
+        }
+        val = tokens[index++];
+    }
+  
+    // Check for errors and build ObjectMapComparison
     // Look for variable
     Core::Serialization::ObjectMap* map = obj_->findVariable(var);
-
-    // Check for errors
 
     // Valid variable name
     if ( nullptr == map ) {
@@ -466,21 +513,22 @@ ICDebugSST15::cmd_watch(std::vector<std::string>& tokens)
         return;
     }
 
-    // Variable is a fundamental, set up the watch point
-
-    // Setup the watch point
+    // Variable is a fundamental, set up the watch point with initial comparison
     try {
-        auto* c  = map->getComparison(obj_->getFullName() + "/" + var, op, val);
+        auto* c  = map->getComparison(obj_->getFullName() + "/" + var, op, val); // Can throw an exception
         //printf("Obj get current value  c = %s\n", c->getCurrentValue().c_str());
+  
 
         auto* pt = new WatchPoint(obj_->getFullName() + "/" + var, c);
 
+#if 0  // watch variables currently don't trace, but they could automatically trace test vars
         auto* tb = map->getTraceBuffer(obj_, 32, 4);
         pt->addTraceBuffer(tb);
 
         auto* ob = map->getObjectBuffer(obj_->getFullName() + "/" + var, 32);
         pt->addObjectBuffer(ob);
-
+#endif
+   
         // Get the top level component to set the watch point
         BaseComponent* comp = static_cast<BaseComponent*>(base_comp_->getAddr());
         if ( comp ) {
@@ -489,14 +537,74 @@ ICDebugSST15::cmd_watch(std::vector<std::string>& tokens)
         }
         else
             printf("Not a component\n");
-    }
-    catch ( std::exception& e ) {
+
+    // Add additional tests
+    while (index < tokens.size()) {
+
+        // Get Logical Operator
+        logicOp = getLogicOpFromString(tokens[index++]);
+        if (logicOp == WatchPoint::LogicOp::UNDEFINED) {
+            printf("Invalid logic operator: %s", tokens[index - 1].c_str());
+        }
+        else {
+            pt->addLogicOp(logicOp);
+        }
+        if (index == tokens.size()) {
+            printf("Invalid format for watch command\n");
+            return;
+        }
+
+        // Get next comparison
+        var = tokens[index++];
+        if (index == tokens.size()) {
+            printf("Invalid format for watch command\n");
+            return;
+        }
+        op = Core::Serialization::ObjectMapComparison::getOperationFromString(tokens[index++]);
+        if (op != Core::Serialization::ObjectMapComparison::Op::CHANGED) {
+            if (index == tokens.size()) {
+                printf("Invalid format for watch command\n");
+                return;
+            }
+            val = tokens[index++];
+        }
+
+        // Check for errors and build ObjectMapComparison
+        // Look for variable
+        Core::Serialization::ObjectMap* map = obj_->findVariable(var);
+
+        // Valid variable name
+        if (nullptr == map) {
+            printf("Unknown variable: %s\n", var.c_str());
+            return;
+        }
+
+        // Is variable fundamental
+        if (!map->isFundamental()) {
+            printf("Watches can only be placed on fundamental types; %s is not fundamental\n", var.c_str());
+            return;
+        }
+
+        // Is operator valid
+        if (op == Core::Serialization::ObjectMapComparison::Op::INVALID) {
+            printf("Unknown comparison operation specified in watch command\n");
+            return;
+        }
+
+        // Variable is a fundamental, add comparison
+        //try {
+            auto* c = map->getComparison(obj_->getFullName() + "/" + var, op, val); // Can throw an exception
+            pt->addComparison(c);
+            //printf("Obj get current value  c = %s\n", c->getCurrentValue().c_str());
+
+    } // while index < tokens.size(), add another test comparision
+    } // try/catch  TODO: need to revisit what can actually throw and exception
+    catch (std::exception& e) {
         printf("Invalid argument passed to watch command\n");
         return;
     }
 }
-#endif
-#if 1
+
 void
 ICDebugSST15::cmd_unwatch(std::vector<std::string>& tokens)
 {
@@ -531,8 +639,7 @@ ICDebugSST15::cmd_unwatch(std::vector<std::string>& tokens)
 
     watch_points_.erase(watch_points_.begin() + index);
 }
-#endif
-#if 1
+
 void
 ICDebugSST15::cmd_shutdown(std::vector<std::string>& tokens)
 {
@@ -541,7 +648,6 @@ ICDebugSST15::cmd_shutdown(std::vector<std::string>& tokens)
     printf("Exiting ObjectExplorer and shutting down simulation\n");
     return;
 }
-#endif
 
 WatchPoint::WPACTION
 getAction(const std::string& action) {
@@ -565,8 +671,10 @@ getAction(const std::string& action) {
     }
 }
 
-#if 1  // test cmd_trace:  trace <var> <op> <value> : <bufsize> <postdelay> : <v1> ... <v3> :  <action>*
-// action is optional - default is break to interactive console
+// trace <trigger> : <bufsize> <postdelay> : <v1> ... <vN> :  <action>
+// <trigger> is defined in cmd_watch above
+// <action> is optional - default is break to interactive console
+// Could also consider having multiple actions and/or default buffer config
 void
 ICDebugSST15::cmd_trace(std::vector<std::string>& tokens)
 {
@@ -587,10 +695,10 @@ ICDebugSST15::cmd_trace(std::vector<std::string>& tokens)
   val = tokens[3];
 
   if (tokens[4] != ":") {
-    printf("Invalid format: trace <var> <op> <value> : <bufsize> <postdelay> : <v1> ... <vN>\n");
+    printf("Invalid format: trace <trigger> : <bufsize> <postdelay> : <v1> ... <vN>\n");
     return;
   }
-  // Could check for ":" here and assume that means they just want default values for buffer size and post delay?
+  // Could check for ":" here and assume that means they just want default values for buffer size and post delay
 
   // Get buffer size
   try {
@@ -705,9 +813,6 @@ ICDebugSST15::cmd_trace(std::vector<std::string>& tokens)
   }
 };
 
-#endif  // test cmd_trace
-
-
 
 void
 ICDebugSST15::dispatch_cmd(std::string cmd)
@@ -741,6 +846,9 @@ ICDebugSST15::dispatch_cmd(std::string cmd)
         cmd_run(tokens);
     }
     #if 1 // not yet user facing
+    else if (tokens[0] == "watchlist") {
+        cmd_watchlist(tokens);
+    }
     else if ( tokens[0] == "watch" ) {
         cmd_watch(tokens);
     }

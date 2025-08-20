@@ -72,8 +72,8 @@ private:
 
     void dispatch_cmd(std::string cmd);
 
-    // Debug Probe functionality
-
+    // Trace functionality
+    void cmd_watchlist(std::vector<std::string>& tokens);
     void cmd_trace(std::vector<std::string>& tokens);
     void cmd_addTraceVar(std::vector<std::string>& tokens);
     void cmd_resetTraceBuffer(std::vector<std::string>& tokens);
