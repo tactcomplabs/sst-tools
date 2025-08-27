@@ -13,13 +13,12 @@
 #define INTERACTIVE_CONSOLE_DEBUG_SST15_H
 
 #include "SST.h"
-//#include "sst/core/eli/elementinfo.h"
-//#include <sst/core/watchPoint.h>
-//#include <sst/core/interactiveConsole.h>
-//#include "sst/core/serialization/objectMapDeferred.h"
+// #include "sst/core/eli/elementinfo.h"
+// #include <sst/core/watchPoint.h>
+// #include <sst/core/interactiveConsole.h>
+// #include "sst/core/serialization/objectMapDeferred.h"
 #include "probe.h"
 using namespace SSTDEBUG::Probe;
-
 
 namespace SST::ICDbgSST15 {
 
@@ -28,11 +27,11 @@ class ICDebugSST15 : public SST::InteractiveConsole
 
 public:
     SST_ELI_REGISTER_INTERACTIVE_CONSOLE(
-        ICDebugSST15,   // class 
-        "dbgsst15",     // library
-        "ICDebugSST15", // name
-        SST_ELI_ELEMENT_VERSION(1, 0, 0),
-        "{EXPERIMENTAL} Interactive console debug probe")
+      ICDebugSST15,   // class
+      "dbgsst15",     // library
+      "ICDebugSST15", // name
+      SST_ELI_ELEMENT_VERSION(1, 0, 0),
+      "{EXPERIMENTAL} Interactive console debug probe")
 
     ICDebugSST15(Params& params);
     ~ICDebugSST15() {}
@@ -52,7 +51,7 @@ private:
 
     // Keep a pointer to the ObjectMap for the top level Component
     SST::Core::Serialization::ObjectMapDeferred<BaseComponent>* base_comp_ = nullptr;
-    
+
     // Keep track of all the WatchPoints
     std::vector<std::pair<WatchPoint*, BaseComponent*>> watch_points_;
 
@@ -75,12 +74,13 @@ private:
     // Trace functionality
     void cmd_watchlist(std::vector<std::string>& tokens);
     void cmd_trace(std::vector<std::string>& tokens);
+    void cmd_setHandler(std::vector<std::string>& tokens);
     void cmd_addTraceVar(std::vector<std::string>& tokens);
     void cmd_resetTraceBuffer(std::vector<std::string>& tokens);
     void cmd_printTrace(std::vector<std::string>& tokens);
     void cmd_printWatchpoint(std::vector<std::string>& tokens);
 };
 
-} // namespace SSTDEBUG::DbgSST15
+} // namespace SST::ICDbgSST15
 
 #endif

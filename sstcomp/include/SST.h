@@ -54,7 +54,6 @@
 #include <sst/core/interactiveConsole.h>
 #include <sst/core/serialization/objectMapDeferred.h>
 #include <sst/core/watchPoint.h>
-//#include "watchPoint.h"
 #endif
 // clang-format on
 
