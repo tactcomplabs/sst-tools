@@ -14,7 +14,7 @@
 namespace SST::NeuralNet{
 
 //------------------------------------------
-// NNBatchController
+// NNLayer
 //------------------------------------------
 NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
   SST::Component( id )
@@ -33,9 +33,12 @@ NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
 
   // parameters
 
-  // Complete construction
-  registerAsPrimaryComponent();
-  primaryComponentDoNotEndSim();
+
+  // Configure Links
+  linkHandlers[PortTypes::forward] = 
+    configureLink(PortNames.at(PortTypes::forward),
+              new Event::Handler2<NNLayer, &NNLayer::handleEvent>(this));
+
 
   output.verbose( CALL_INFO, 5, 0, "Constructor complete\n" );
 }
@@ -66,12 +69,35 @@ void NNLayer::serialize_order(SST::Core::Serialization::serializer& ser){
   SST::Component::serialize_order(ser);
 }
 
-void NNLayer::handleEvent(SST::Event *ev){ }
+void NNLayer::handleEvent(SST::Event *ev){
+  NNEvent *nnev = static_cast<NNEvent*>(ev);
+  auto data = nnev->getData();
+
+  std::cout << "layer receiving data" << std::endl;
+  output.verbose(CALL_INFO,0,0, "%s: doubling %zu values\n",
+    getName().c_str(),
+    data.size());
+
+  out.clear();
+  for ( size_t i=0;i<data.size();i++) {
+    out.emplace_back(2 * data[i]);
+  }
+  readyToSend = true; // TODO enable clock handler
+  delete ev;
+}
 
 void NNLayer::sendData(){
+  std::cout << "layer returning data" << std::endl;
+  NNEvent* nnev = new NNEvent(out);
+  linkHandlers.at(PortTypes::forward)->send(nnev);
+
 }
 
 bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
+  if (readyToSend) {
+    sendData();
+    readyToSend=false; // TODO disable clock handler
+  }
   return false;
 }
 

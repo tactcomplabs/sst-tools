@@ -14,6 +14,7 @@ sst-register -u CPTSubCompVecStruct
 sst-register -u dbgcli
 sst-register -u gridtest
 sst-register -u NNBatchController
+sst-register -u NNLayer
 
 #-- forcible remove it from the local script
 CONFIG=~/.sst/sstsimulator.conf
@@ -29,5 +30,6 @@ if test -f "$CONFIG"; then
   sed -i.bak '/dbgcli/d' $CONFIG
   sed -i.bak '/gridtest/d' $CONFIG
   sed -i.back'/NNBatchController/d' $CONFIG
+  sed -i.back'/NNLayer/d' $CONFIG
 fi
 

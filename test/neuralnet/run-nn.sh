@@ -2,11 +2,14 @@
 mkdir -p run
 cd run
 
-sst ../test-image.py -- \
+classImageLimit=4
+
+sst ../test-image.py --exit-after="5s" -- \
     --trainingImages="${HOME}/work/image_data/fashion_mnist_images/train" \
     --testImages="${HOME}/work/image_data/fashion_mnist_images/test" \
     --evalImage="${HOME}/work/image_data/eval/pants.png" \
-    --epochs=1050
+    --epochs=1050 \
+    --classImageLimit=$classImageLimit
 
 wait
 

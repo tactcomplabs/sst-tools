@@ -36,6 +36,12 @@ NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& p
   testImagesStr = params.find<std::string>("testImages");
   evalImageStr = params.find<std::string>("evalImage");
   epochs = params.find<uint64_t>("epochs", 0);
+  classImageLimit = params.find<uint64_t>("classImageLimit", 100000);
+
+  // Configure Links
+  linkHandlers[PortTypes::forward] = 
+    configureLink(PortNames.at(PortTypes::forward),
+              new Event::Handler2<NNBatchController, &NNBatchController::handleEvent>(this));
 
   // Complete construction
   registerAsPrimaryComponent();
@@ -57,11 +63,11 @@ void NNBatchController::setup(){
   }
 
   if (trainingImagesStr.size()>0) {
-    trainingImages.load(trainingImagesStr, Dataset::DTYPE::IMAGE, true);
+    trainingImages.load(trainingImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);
   }
 
   if (testImagesStr.size()>0) {
-    testImages.load(testImagesStr, Dataset::DTYPE::IMAGE, true);;
+    testImages.load(testImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);;
   }
 
   if (evalImageStr.size()>0) {
@@ -89,20 +95,42 @@ void NNBatchController::serialize_order(SST::Core::Serialization::serializer& se
   SST_SER(epochs);
 }
 
-void NNBatchController::handleEvent(SST::Event *ev){ }
+void NNBatchController::handleEvent(SST::Event *ev){
+  std::cout << "batchController receiving data" << std::endl;
+  NNEvent *nnev = static_cast<NNEvent*>(ev);
+  auto data = nnev->getData();
+  output.verbose(CALL_INFO,0,0, "%s: received %zu values\n",
+    getName().c_str(),
+    data.size());
+  for ( auto d : data ) {
+    output.verbose(CALL_INFO,0,0, "%d\n", d );
+  }
+  epoch++;
+  readyToSend=true;
+  delete ev;
+}
 
 void NNBatchController::sendData(){
+  std::cout << "batchController sending data" << std::endl;
+  NNEvent *nnev = new NNEvent({1,2,3});
+  linkHandlers.at(PortTypes::forward)->send(nnev);
 }
 
 bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
 
-    // check to see if we've reached the completion state
-  if( (uint64_t)(currentCycle) >= epochs ){
+  // check to see if we've reached the completion state
+  assert(epoch <= epochs);
+  if( epoch==epochs ){
     output.verbose(CALL_INFO, 1, 0,
                    "%s ready to end simulation\n",
                    getName().c_str());
     primaryComponentOKToEndSim();
     return true;
+  }
+
+  if (readyToSend) {
+    readyToSend=false;
+    sendData();
   }
 
   return false;

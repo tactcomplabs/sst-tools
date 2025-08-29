@@ -124,7 +124,7 @@ public:
 
   // Training and validation data
   Dataset() {};
-  void load(const std::string& pathstring, DTYPE dtype, bool print=false) 
+  void load(const std::string& pathstring, DTYPE dtype, uint64_t limitPerClass, bool print=false) 
   {
     dtype_ = dtype;
     const char* path = pathstring.c_str();
@@ -144,7 +144,7 @@ public:
         load_scalar_data(path, print);
         break;
       case IMAGE: 
-        load_mnist_dataset(path, g_shuffle, print);
+        load_mnist_dataset(path, g_shuffle, limitPerClass, print);
         break;
       case INVALID:
         assert(false);
@@ -226,17 +226,16 @@ public:
 
   };
 
-  void load_mnist_dataset(const char* dir, bool shuffle, bool print=false) {
+  void load_mnist_dataset(const char* dir, bool shuffle, uint64_t classImageLimit, bool print=false) {
     
     assert(this->data.size()==0);
     // Scan all the directories and create a list of labels
     fs::path fullPath = fs::path(dir);
     std::vector<std::string> labels;
-    size_t ilimit = g_smallsim ? 4 : 75000;
     try {
         for (const auto& entry : fs::directory_iterator(fullPath)) {
             labels.push_back(entry.path().filename().string());
-            if (labels.size() >= ilimit)
+            if (labels.size() >= classImageLimit)
               break;
         }
     } catch (const fs::filesystem_error& e) {
@@ -255,7 +254,7 @@ public:
         for (const auto& entry : fs::directory_iterator(imgdir)) {
           MNIST_image_t mnist_image = {};
           // check limit
-          if (icount++ >= ilimit) 
+          if (icount++ >= classImageLimit) 
             break;
           // save image path
           std::string path = entry.path().string();

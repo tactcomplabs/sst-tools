@@ -8,8 +8,8 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#ifndef _SST_NN_LAYERS_H_
-#define _SST_NN_LAYERS_H_
+#ifndef _SST_NN_LAYER_H_
+#define _SST_NN_LAYER_H_
 
 // clang-format off
 // -- Standard Headers
@@ -23,6 +23,7 @@
 
 // -- SST Headers
 #include "SST.h"
+#include "nn_event.h"
 
 // -- Neural Net headers
 
@@ -72,6 +73,16 @@ public:
   )
 
   // -------------------------------------------------------
+  // NNLayer Component Port Data
+  // -------------------------------------------------------
+  SST_ELI_DOCUMENT_PORTS(
+    { "forward", // PortNames.at(PortTypes::forward),
+      "forward port",
+      {"neuralnet.NNevent"}
+    }
+  )
+
+  // -------------------------------------------------------
   // NNLayer Component Statistics Data
   // -------------------------------------------------------
   SST_ELI_DOCUMENT_STATISTICS()
@@ -97,16 +108,18 @@ private:
   // -- Component Parameters   
 
   // -- private methods
-  /// event handler
+  /// event handling
+  std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
   void handleEvent(SST::Event *ev);
-  /// sends data to adjacent links
   void sendData();
+  bool readyToSend = false;
 
   // -- private members
+  std::vector<unsigned> out = {};
 
 };  //class NNLayer
 } //namespace SST::NeuralNet
 
-#endif  // _SST_NN_LAYERS_H_
+#endif  // _SST_NN_LAYER_H_
 
 // EOF

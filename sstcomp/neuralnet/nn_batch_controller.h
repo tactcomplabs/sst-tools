@@ -26,6 +26,7 @@
 
 // -- Neural Net headers
 #include "dataset.h"
+#include "nn_event.h"
 
 // -- SubComponent API
 
@@ -60,7 +61,6 @@ public:
   // -------------------------------------------------------
   // NNBatchController Component Registration Data
   // -------------------------------------------------------
-  /// NNBatchController: Register the component with the SST core
   SST_ELI_REGISTER_COMPONENT( NNBatchController,     // component class
                               "neuralnet",           // component library
                               "NNBatchController",   // component name
@@ -73,18 +73,19 @@ public:
     {"trainingData",    "Directory containing training data", NULL},
     {"testData",        "Directory containing test data", NULL},
     {"evalData",        "Directory containing evaluation data", NULL},
-    {"epochs",          "Training iterations", "0"}
+    {"epochs",          "Training iterations", "0"},
+    {"classImageLimit", "Maximum images per class to load [100000]", "100000"}
   )
 
   // -------------------------------------------------------
   // NNBatchController Component Port Data
   // -------------------------------------------------------
-  // SST_ELI_DOCUMENT_PORTS(
-  //   {"port%(num_ports)d",
-  //     "Ports which connect to endpoints.",
-  //     {"chkpnt.NeuralNetEvent", ""}
-  //   }
-  // )
+  SST_ELI_DOCUMENT_PORTS(
+    { "forward",
+      "forward port",
+      {"neuralnet.NNevent"}
+    },
+  )
 
   // -------------------------------------------------------
   // NNBatchController SubComponent Parameter Data
@@ -124,12 +125,14 @@ private:
   std::string testImagesStr = {};                 ///< path to directory containing test images
   std::string evalImageStr = {};                  ///< path to a single evaluation image file
   uint64_t epochs = 0;                            ///< training epochs
+  uint64_t epoch = 0;                             ///< iterations
+  uint64_t classImageLimit = 100000;              ///< maximum images to load for each classification set
 
   // -- private methods
-  /// event handler
+  std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
   void handleEvent(SST::Event *ev);
-  /// sends data to adjacent links
   void sendData();
+  bool readyToSend=true;
 
   // -- private members
   Dataset trainingImages = {};
