@@ -9,6 +9,7 @@
 
 set(NNSrcs
   nn_batch_controller.cc
+  nn_layer.cc
 )
 
 add_library(neuralnet SHARED ${NNSrcs})
@@ -32,5 +33,6 @@ target_link_libraries(neuralnet ${OpenCV_LIBS})
 
 install(TARGETS neuralnet DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 install(CODE "execute_process(COMMAND sst-register NNBatchController neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register NNLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 
 # EOF

@@ -1,5 +1,5 @@
 //
-// _batch_controller_cc_
+// _nn_batch_controller_cc_
 //
 // Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
@@ -9,8 +9,7 @@
 //
 
 #include <assert.h>
-#include "neuralnet.h"
-#include "tcldbg.h"
+#include "nn_batch_controller.h"
 
 namespace SST::NeuralNet{
 
@@ -20,8 +19,6 @@ namespace SST::NeuralNet{
 NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& params ) :
   SST::Component( id )
 {
-  // gdb debug support
-  tcldbg::spinner("NNBATCHCONTROLLER_SPINNER");
 
   // verbosity
   uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );

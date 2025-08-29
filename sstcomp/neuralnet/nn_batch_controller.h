@@ -1,5 +1,5 @@
 //
-// _batch_controller_h_
+// _nn_batch_controller_h_
 //
 // Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
 // All Rights Reserved
@@ -8,8 +8,8 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#ifndef _SST_BATCH_CONTROLLER_H_
-#define _SST_BATCH_CONTROLLER_H_
+#ifndef _SST_NN_BATCH_CONTROLLER_H_
+#define _SST_NN_BATCH_CONTROLLER_H_
 
 // clang-format off
 // -- Standard Headers
@@ -32,37 +32,6 @@
 // clang-format on
 
 namespace SST::NeuralNet{
-
-// -------------------------------------------------------
-// NeuralNetEvent
-// -------------------------------------------------------
-class NeuralNetEvent : public SST::Event{
-public:
-  /// NeuralNetEvent : standard constructor
-  NeuralNetEvent() : SST::Event() {}
-
-  /// NeuralNetEvent: constructor
-  NeuralNetEvent(std::vector<unsigned> d) : SST::Event(), data(d) {}
-
-  /// NeuralNetEvent: destructor
-  virtual ~NeuralNetEvent() {}
-
-  /// NeuralNetEvent: retrieve the data
-  std::vector<unsigned> const getData() { return data; }
-
-private:
-  std::vector<unsigned> data;     ///< NeuralNetEvent: data payload
-
-  /// NeuralNetEvent: serialization method
-  void serialize_order(SST::Core::Serialization::serializer& ser) override{
-    Event::serialize_order(ser);
-    SST_SER(data);
-  }
-
-  /// NeuralNetEvent: serialization implementor
-  ImplementSerializable(SST::NeuralNet::NeuralNetEvent);
-
-};  // class NeuralNetEvent
 
 // -------------------------------------------------------
 // NNBatchController
@@ -170,6 +139,6 @@ private:
 };  //class NNBatchController
 }   //namespace SST::NeuralNet
 
-#endif  // _SST_BATCH_CONTROLLER_H_
+#endif  // _SST_NN_BATCH_CONTROLLER_H_
 
 // EOF
