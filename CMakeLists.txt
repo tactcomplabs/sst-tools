@@ -21,6 +21,9 @@ project(sst-tools CXX)
 # Make sure Git hooks are set properly
 execute_process(COMMAND_ERROR_IS_FATAL ANY COMMAND_ECHO STDERR COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_git_hooks.sh)
 
+#-- rpath
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
 # Local scripts
 set(SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 

@@ -24,6 +24,9 @@
 // -- SST Headers
 #include "SST.h"
 
+// -- Neural Net headers
+#include "dataset.h"
+
 // -- SubComponent API
 
 // clang-format on
@@ -72,19 +75,17 @@ public:
   /// NNBatchController: top-level SST component destructor
   ~NNBatchController();
 
-  /// NNBatchController: standard SST component 'setup' function
-  void setup() override;
+  //
+  // Component Lifecycle
+  //
+  void init( unsigned int phase ) override;     // post-construction, polled events
+  void setup() override;                        // pre-simulation, called once per component
+  void complete( unsigned int phase ) override; // post-simulation, polled events
+  void finish() override;                       // pre-destruction, called once per component
+  void emergencyShutdown() override;            // SIGINT, SIGTERM
+  void printStatus(Output& out) override;       // SIGUSR2
 
-  /// NNBatchController: standard SST component 'finish' function
-  void finish() override;
-
-  /// NNBatchController: standard SST component init function
-  void init( unsigned int phase ) override;
-
-  /// NNBatchController: standard SST component printStatus
-  void printStatus(Output& out) override;
-
-  /// NNBatchController: standard SST component clock function
+  // return true if the clock should be disabled
   bool clockTick( SST::Cycle_t currentCycle );
 
   // -------------------------------------------------------
@@ -100,7 +101,10 @@ public:
 
   SST_ELI_DOCUMENT_PARAMS(
     {"verbose",         "Sets the verbosity level of output",   "0" },
-    {"epochs",          "Training iterations", "10000"}
+    {"trainingData",    "Directory containing training data", NULL},
+    {"testData",        "Directory containing test data", NULL},
+    {"evalData",        "Directory containing evaluation data", NULL},
+    {"epochs",          "Training iterations", "0"}
   )
 
   // -------------------------------------------------------
@@ -145,13 +149,23 @@ private:
   SST::Output    output;                          ///< SST output handler
   TimeConverter* timeConverter;                   ///< SST time conversion handler
   SST::Clock::HandlerBase* clockHandler;          ///< Clock Handler
-  uint64_t epochs = 0;                            ///< training epochs            
+
+  // -- Component Parameters   
+  std::string trainingImagesStr = {};             ///< path to directory containing training images
+  std::string testImagesStr = {};                 ///< path to directory containing test images
+  std::string evalImageStr = {};                  ///< path to a single evaluation image file
+  uint64_t epochs = 0;                            ///< training epochs
 
   // -- private methods
   /// event handler
   void handleEvent(SST::Event *ev);
   /// sends data to adjacent links
   void sendData();
+
+  // -- private members
+  Dataset trainingImages = {};
+  Dataset testImages = {};
+  EigenImage evalImage = {};
 
 };  //class NNBatchController
 }   //namespace SST::NeuralNet

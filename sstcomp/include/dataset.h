@@ -1,29 +1,16 @@
 #ifndef _DATASET_H_
 #define _DATASET_H_
 
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
+
 #include "eigen_utils.h"
 #include "nnglobals.h"
-
 #include "OPENCV.h"
 
 namespace fs = std::filesystem;
-
-static const std::string spiral_100_2_0(std::string(getenv("HOME")).append("/work/ws/cppnnfs/dat/spiral_100_2_0.dat"));
-static const std::string spiral_100_2_1(std::string(getenv("HOME")).append("/work/ws/cppnnfs/dat/spiral_100_2_1.dat"));
-static const std::string spiral_100_3_0(std::string(getenv("HOME")).append("/work/ws/cppnnfs/dat/spiral_100_3_0.dat"));
-static const std::string spiral_100_3_1(std::string(getenv("HOME")).append("/work/ws/cppnnfs/dat/spiral_100_3_1.dat"));
-static const std::string spiral_1000_3_0(std::string(getenv("HOME")).append("/work/ws/cppnnfs/dat/spiral_1000_3_0.dat"));
-static const std::string sine(std::string(getenv("HOME")).append("/work/ws/cppnnfs/dat/sine.dat"));
-
-static const std::string image_pants(std::string(getenv("HOME")).append("/work/ws/pynn/images/predict/pants.png"));
-static const std::string image_tshirt(std::string(getenv("HOME")).append("/work/ws/pynn/images/predict/tshirt.png"));
-
-
 
 struct MNISTinfo {
   enum FASHION_MNIST_LABEL : int {
@@ -58,15 +45,18 @@ struct MNISTinfo {
   };
 }; //class MNISTinfo
 
-
 // Adjust image for use with predictor
 struct EigenImage {
   enum TRANSFORM { NONE, INVERT, LINEARIZE };
   Eigen::MatrixXd image_matrix = {}; // 2D matrix
   Eigen::MatrixXd linear_image = {}; // single row with entire image.
   std::string filepath;
-  EigenImage(const char* filepath, TRANSFORM invert=NONE, TRANSFORM linearize=NONE) : filepath(std::string(filepath)) {
+  EigenImage() {};
+  void load(const char* filepath, TRANSFORM invert=NONE, TRANSFORM linearize=NONE, bool print=false) {
     // Load the image
+    this->filepath = filepath;
+    if (print) 
+      std::cout << "Loading image from " << filepath << std::endl;
     cv::Mat original_image = cv::imread(this->filepath, cv::IMREAD_GRAYSCALE);
     if (original_image.empty()) {
       std::cerr << "error: could not read file from path. [" << filepath << "]" << std::endl;
@@ -118,9 +108,9 @@ struct MNIST_image_t {
 
 class Dataset {
 public:
-  enum DTYPE { SIMPLE_CLASSIFICATION, SCALAR, MNIST };
+  enum DTYPE { INVALID, SIMPLE_CLASSIFICATION, SCALAR, IMAGE };
 private:
-  DTYPE dtype_;
+  DTYPE dtype_ = INVALID;
   int n_samples = 0;
   int n_classes = 0;
   double stddev_ = 0; // scalar only
@@ -133,9 +123,10 @@ public:
   double stddev() { return stddev_; }
 
   // Training and validation data
-  Dataset(const std::string& pathstring, DTYPE dtype, bool print=false)
-    : dtype_(dtype) 
+  Dataset() {};
+  void load(const std::string& pathstring, DTYPE dtype, bool print=false) 
   {
+    dtype_ = dtype;
     const char* path = pathstring.c_str();
     if (print)
       std::cout << "Reading " << path << std::endl;
@@ -152,10 +143,10 @@ public:
       case SCALAR:
         load_scalar_data(path, print);
         break;
-      case MNIST: 
-        load_mnist_dataset(path, g_shuffle);
+      case IMAGE: 
+        load_mnist_dataset(path, g_shuffle, print);
         break;
-      default:
+      case INVALID:
         assert(false);
     }
   }
@@ -235,8 +226,9 @@ public:
 
   };
 
-  void load_mnist_dataset(const char* dir, bool shuffle) {
+  void load_mnist_dataset(const char* dir, bool shuffle, bool print=false) {
     
+    assert(this->data.size()==0);
     // Scan all the directories and create a list of labels
     fs::path fullPath = fs::path(dir);
     std::vector<std::string> labels;
@@ -269,7 +261,8 @@ public:
           std::string path = entry.path().string();
           image_paths.push_back(path);
           // Load the image
-          EigenImage eigenImage(path.c_str());
+          EigenImage eigenImage;
+          eigenImage.load(path.c_str());
           // And append it and label to the lists
           mnist_image.data = eigenImage.image_matrix;
           // consistency checking
@@ -320,6 +313,9 @@ public:
         }
       }
     }
+
+    if (print)
+      std::cout << "Loaded " << total_rows << " images" << std::endl;
   
   }
 
