@@ -28,10 +28,11 @@
 
 namespace SST::NeuralNet{
 
-enum class PortTypes { forward, backward };
+enum class PortTypes { forward_i, forward_o, backward_i, backward_o, monitor };
 const std::map<PortTypes, std::string> PortNames {
-  { PortTypes::forward, "forward"},
-  { PortTypes::backward, "backward" }
+  { PortTypes::forward_i, "forward_i"}, { PortTypes::forward_o, "forward_o"},
+  { PortTypes::backward_i, "backward_i" }, { PortTypes::backward_o, "backward_o" },
+  { PortTypes::monitor, "monitor"}
 };
 
 // -------------------------------------------------------

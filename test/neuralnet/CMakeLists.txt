@@ -15,7 +15,7 @@ add_test(
 set_tests_properties(neuralnet PROPERTIES
   LABELS "neuralnet"
   TIMEOUT 5
-  PASS_REGULAR_EXPRESSION "Simulation is complete, simulated time: 2.1021 ms"
+  PASS_REGULAR_EXPRESSION "Simulation is complete, simulated time: 90.091 us"
 )
 
 # EOF

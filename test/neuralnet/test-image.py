@@ -10,6 +10,7 @@
 
 import argparse
 import sst
+from enum import Enum
 
 parser = argparse.ArgumentParser(description="test image")
 parser.add_argument("--trainingImages", type=str, help="path to training data organized in class subdirectories", default="")
@@ -24,6 +25,7 @@ print("configuration:")
 for arg in vars(args):
   print("\t", arg, " = ", getattr(args, arg))
 
+# Primary controller
 batch_controller = sst.Component("batch_controller", "neuralnet.NNBatchController")
 batch_controller.addParams({
   "verbose" : args.verbose,
@@ -34,12 +36,42 @@ batch_controller.addParams({
   "classImageLimit" : args.classImageLimit,
 })
 
-layer = sst.Component("layer", "neuralnet.NNLayer")
-layer.addParams({
-  "verbose" : args.verbose,
-})
+# Instantiate layers
+input   = sst.Component("input",   "neuralnet.NNLayer")
+dense1  = sst.Component("dense1",  "neuralnet.NNLayer")
+relu1   = sst.Component("relu1",   "neuralnet.NNLayer")
+dense2  = sst.Component("dense2",  "neuralnet.NNLayer")
+relu2   = sst.Component("relu2",   "neuralnet.NNLayer")
+dense3  = sst.Component("dense3",  "neuralnet.NNLayer")
+softmax = sst.Component("softmax", "neuralnet.NNLayer")
+loss    = sst.Component("loss",    "neuralnet.NNLayer")
+loss.addParams( { "lastComponent" : 1 } )
 
-link0 = sst.Link("link0")
-link0.connect( (batch_controller, "forward", "1us"), (layer, "forward", "1us") )
+# Ordered lists
+components = []
+forward_links = []
+backward_links = []
 
-# EOF
+components.append(batch_controller)
+components.append(input)
+components.append(dense1)
+components.append(relu1)
+components.append(dense2)
+components.append(relu2)
+components.append(dense3)
+components.append(softmax)
+components.append(loss)
+
+for i in range(len(components)):
+  components[i].addParams( { "verbose" : args.verbose } )
+  if i < len(components)-1:
+    forward_links.append(sst.Link(f"F{i}"))
+    backward_links.append(sst.Link(f"B{i}"))
+    forward_links[i].connect(  (components[i],  "forward_o", "1us"),     (components[i+1], "forward_i", "1us") )
+    backward_links[i].connect( (components[i+1], "backward_o", "1us"),  (components[i], "backward_i", "1us") )
+  else:
+    # loss layer feeds results back into the primary controller 
+    monitor_link = sst.Link("M")
+    monitor_link.connect( (components[i], "monitor", "1us"), (components[0], "monitor", "1us") )
+
+#EOF

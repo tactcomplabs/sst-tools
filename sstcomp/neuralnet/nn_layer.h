@@ -12,41 +12,54 @@
 #define _SST_NN_LAYER_H_
 
 // clang-format off
-// -- Standard Headers
 #include <map>
-#include <vector>
 #include <queue>
 #include <random>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <vector>
 
-// -- SST Headers
 #include "SST.h"
 #include "nn_event.h"
-
-// -- Neural Net headers
-
-// -- SubComponent API
-
 // clang-format on
 
 namespace SST::NeuralNet{
 
 // -------------------------------------------------------
-// NNLayer
+// NNLayerBase ( not registered )
 // -------------------------------------------------------
-class NNLayer : public SST::Component{
-public:
-  /// NNLayer: top-level SST component constructor
-  NNLayer( SST::ComponentId_t id, const SST::Params& params );
+class NNLayerBase : public SST::Component{
 
-  /// NNLayer: top-level SST component destructor
+public:
+  SST_ELI_REGISTER_COMPONENT_BASE(SST::NeuralNet::NNLayerBase)
+  SST_ELI_DOCUMENT_PARAMS(
+    {"verbose",         "Sets the verbosity level of output",   "0" },
+    {"lastComponent",   "Indicate component is last layer",     "0" }
+  )
+  SST_ELI_DOCUMENT_PORTS(
+    { "forward_i",  "forward pass input port",   {"neuralnet.NNevent"} },
+    { "forward_o",  "forward pass output port",  {"neuralnet.NNevent"} },
+    { "backward_i", "backward pass input port",  {"neuralnet.NNevent"} },
+    { "backward_o", "backward pass output port", {"neuralnet.NNevent"} },
+    { "monitor",     "monitoring port",          {"neuralnet.NNevent"} }
+  )
+
+  explicit NNLayerBase(ComponentId_t id) : SST::Component(id) {}
+  NNLayerBase() : SST::Component() {}
+  ~NNLayerBase() {}
+
+}; // class NNLayerBase
+
+// -------------------------------------------------------
+// NNLayer (registered)
+// -------------------------------------------------------
+class NNLayer : public NNLayerBase {
+public:
+  NNLayer( SST::ComponentId_t id, const SST::Params& params );
   ~NNLayer();
 
-  //
   // Component Lifecycle
-  //
   void init( unsigned int phase ) override;     // post-construction, polled events
   void setup() override;                        // pre-simulation, called once per component
   void complete( unsigned int phase ) override; // post-simulation, polled events
@@ -54,70 +67,46 @@ public:
   void emergencyShutdown() override;            // SIGINT, SIGTERM
   void printStatus(Output& out) override;       // SIGUSR2
 
-  // return true if the clock should be disabled
-  bool clockTick( SST::Cycle_t currentCycle );
+  // Clocking
+  bool clockTick( SST::Cycle_t currentCycle );  // return true if clock should be disabled
 
-  // -------------------------------------------------------
-  // NNLayer Component Registration Data
-  // -------------------------------------------------------
-  /// NNLayer: Register the component with the SST core
   SST_ELI_REGISTER_COMPONENT( NNLayer,     // component class
-                              "neuralnet",           // component library
+                              "neuralnet", // component library
                               "NNLayer",   // component name
                               SST_ELI_ELEMENT_VERSION( 1, 0, 0 ),
                               "NNLayer SST Component",
                               COMPONENT_CATEGORY_UNCATEGORIZED )
 
-  SST_ELI_DOCUMENT_PARAMS(
-    {"verbose",         "Sets the verbosity level of output",   "0" },
-  )
-
-  // -------------------------------------------------------
-  // NNLayer Component Port Data
-  // -------------------------------------------------------
-  SST_ELI_DOCUMENT_PORTS(
-    { "forward", // PortNames.at(PortTypes::forward),
-      "forward port",
-      {"neuralnet.NNevent"}
-    }
-  )
-
-  // -------------------------------------------------------
-  // NNLayer Component Statistics Data
-  // -------------------------------------------------------
-  SST_ELI_DOCUMENT_STATISTICS()
-
-  // -------------------------------------------------------
-  // NNLayer Component Checkpoint Methods
-  // -------------------------------------------------------
-  /// NNLayer: serialization constructor
-  NNLayer() : SST::Component() {}
-
-  /// NNLayer: serialization
-  void serialize_order(SST::Core::Serialization::serializer& ser) override;
-
-  /// NNLayer: serialization implementations
-  ImplementSerializable(SST::NeuralNet::NNLayer)
+protected:
+  // SST handlers
+  SST::Output    output; 
+  // event handling
+  std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
+  void forward_i_snd() { assert(false); }
+  void forward_i_rcv(SST::Event *ev);
+  void forward_o_snd();
+  void forward_o_rcv(SST::Event *ev) { assert(false);}
+  void backward_i_snd() { assert(false); }
+  void backward_i_rcv(SST::Event *ev);
+  void backward_o_snd();
+  void backward_o_rcv(SST::Event *ev) { assert(false); }
+    void monitorEvent(SST::Event *ev) { assert(false); }
+  void monitor_rcv(SST::Event *ev) {assert(false); };
+  void monitor_snd();
+  // Internals
+  std::vector<unsigned> out = {};
+  bool lastComponent = false;
 
 private:
   // -- SST handlers
-  SST::Output    output;                          ///< SST output handler
-  TimeConverter* timeConverter;                   ///< SST time conversion handler
-  SST::Clock::HandlerBase* clockHandler;          ///< Clock Handler
-
-  // -- Component Parameters   
-
-  // -- private methods
-  /// event handling
-  std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
-  void handleEvent(SST::Event *ev);
-  void sendData();
-  bool readyToSend = false;
-
-  // -- private members
-  std::vector<unsigned> out = {};
+  TimeConverter* timeConverter;
+  SST::Clock::HandlerBase* clockHandler;
+  // internals
+  bool driveForwardPass = false;
+  bool driveMonitor = false;
 
 };  //class NNLayer
+
 } //namespace SST::NeuralNet
 
 #endif  // _SST_NN_LAYER_H_

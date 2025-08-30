@@ -81,21 +81,27 @@ public:
   // NNBatchController Component Port Data
   // -------------------------------------------------------
   SST_ELI_DOCUMENT_PORTS(
-    { "forward",
-      "forward port",
+    { "forward_o",
+      "forward pass output port",
       {"neuralnet.NNevent"}
     },
+    { "forward_i",
+      "forward pass input port",
+      {"neuralnet.NNevent"}
+    },
+    { "backward_o",
+      "backward pass output port",
+      {"neuralnet.NNevent"}
+    },
+    { "backward_i",
+      "backward pass input port",
+      {"neuralnet.NNevent"}
+    },
+    { "monitor", 
+      "monitoring port",
+      {"neuralnet.NNevent"}
+    }
   )
-
-  // -------------------------------------------------------
-  // NNBatchController SubComponent Parameter Data
-  // -------------------------------------------------------
-  // SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
-  //   { "CPTSubComp",
-  //     "Expansion slot for more checkpoint type checking",
-  //     "SST::CPTSubComp::CPTSubCompAPI"
-  //   }
-  // )
 
   // -------------------------------------------------------
   // NNBatchController Component Statistics Data
@@ -130,8 +136,17 @@ private:
 
   // -- private methods
   std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
-  void handleEvent(SST::Event *ev);
-  void sendData();
+  void forward_i_snd() { assert(false); }
+  void forward_i_rcv(SST::Event *ev) {assert(false);}
+  void forward_o_snd();
+  void forward_o_rcv(SST::Event *ev) { assert(false);}
+  void backward_i_snd() { assert(false); }
+  void backward_i_rcv(SST::Event *ev);
+  void backward_o_snd() { assert(false); }
+  void backward_o_rcv(SST::Event *ev) { assert(false); }
+  void monitor_rcv(SST::Event *ev);
+  void monitor_snd() { assert(false); }
+
   bool readyToSend=true;
 
   // -- private members

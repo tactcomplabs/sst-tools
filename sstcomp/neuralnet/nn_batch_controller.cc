@@ -39,9 +39,21 @@ NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& p
   classImageLimit = params.find<uint64_t>("classImageLimit", 100000);
 
   // Configure Links
-  linkHandlers[PortTypes::forward] = 
-    configureLink(PortNames.at(PortTypes::forward),
-              new Event::Handler2<NNBatchController, &NNBatchController::handleEvent>(this));
+  linkHandlers[PortTypes::forward_i] = 
+    configureLink(PortNames.at(PortTypes::forward_i),
+              new Event::Handler2<NNBatchController, &NNBatchController::forward_i_rcv>(this));
+  linkHandlers[PortTypes::forward_o] = 
+    configureLink(PortNames.at(PortTypes::forward_o),
+              new Event::Handler2<NNBatchController, &NNBatchController::forward_o_rcv>(this));
+  linkHandlers[PortTypes::backward_i] = 
+    configureLink(PortNames.at(PortTypes::backward_i),
+              new Event::Handler2<NNBatchController, &NNBatchController::backward_i_rcv>(this));
+  linkHandlers[PortTypes::backward_o] = 
+    configureLink(PortNames.at(PortTypes::backward_o),
+              new Event::Handler2<NNBatchController, &NNBatchController::backward_o_rcv>(this));
+  linkHandlers[PortTypes::monitor] = 
+    configureLink(PortNames.at(PortTypes::monitor),
+              new Event::Handler2<NNBatchController, &NNBatchController::monitor_rcv>(this));
 
   // Complete construction
   registerAsPrimaryComponent();
@@ -95,32 +107,39 @@ void NNBatchController::serialize_order(SST::Core::Serialization::serializer& se
   SST_SER(epochs);
 }
 
-void NNBatchController::handleEvent(SST::Event *ev){
-  std::cout << "batchController receiving data" << std::endl;
-  NNEvent *nnev = static_cast<NNEvent*>(ev);
-  auto data = nnev->getData();
-  output.verbose(CALL_INFO,0,0, "%s: received %zu values\n",
-    getName().c_str(),
-    data.size());
-  for ( auto d : data ) {
-    output.verbose(CALL_INFO,0,0, "%d\n", d );
-  }
-  epoch++;
-  readyToSend=true;
-  delete ev;
+void NNBatchController::forward_o_snd(){
+  output.verbose(CALL_INFO,2,0, "%s sending forward pass data\n", getName().c_str());
+  NNEvent *nnev = new NNEvent({1,2,3});
+  linkHandlers.at(PortTypes::forward_o)->send(nnev);
 }
 
-void NNBatchController::sendData(){
-  std::cout << "batchController sending data" << std::endl;
-  NNEvent *nnev = new NNEvent({1,2,3});
-  linkHandlers.at(PortTypes::forward)->send(nnev);
+void NNBatchController::backward_i_rcv(SST::Event *ev) {
+  output.verbose(CALL_INFO,2,0, "%s receiving backward pass data\n", getName().c_str());
+  delete(ev);
+}
+
+void NNBatchController::monitor_rcv(SST::Event *ev) {
+  output.verbose(CALL_INFO,0,0, "%s receiving monitor data\n", getName().c_str());
+  NNEvent* nnev = static_cast<NNEvent*>(ev);
+  auto data = nnev->getData();
+  uint64_t sum=0;
+  for ( auto d : data) {
+    sum += d;
+  }
+  output.verbose(CALL_INFO,0,0, "Result=%" PRIu64 "\n",sum);
+  readyToSend = true;
+  delete(ev);
 }
 
 bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
 
-  // check to see if we've reached the completion state
+  if (!readyToSend)
+    return false;
+
+  readyToSend = false;
+
   assert(epoch <= epochs);
-  if( epoch==epochs ){
+  if (epoch++ == epochs) {
     output.verbose(CALL_INFO, 1, 0,
                    "%s ready to end simulation\n",
                    getName().c_str());
@@ -128,11 +147,10 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
     return true;
   }
 
-  if (readyToSend) {
-    readyToSend=false;
-    sendData();
-  }
-
+  output.verbose(CALL_INFO, 1, 0,
+                   "%s initiating epoch %" PRId64 "\n",
+                   getName().c_str(), epoch);
+  forward_o_snd();
   return false;
 }
 
