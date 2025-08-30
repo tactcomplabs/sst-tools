@@ -14,22 +14,16 @@
 // clang-format off
 // -- Standard Headers
 #include <map>
-#include <vector>
 #include <queue>
 #include <random>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <vector>
 
-// -- SST Headers
-#include "SST.h"
-
-// -- Neural Net headers
 #include "dataset.h"
 #include "nn_event.h"
-
-// -- SubComponent API
-
+#include "nn_layer_base.h"
 // clang-format on
 
 namespace SST::NeuralNet{
@@ -37,7 +31,7 @@ namespace SST::NeuralNet{
 // -------------------------------------------------------
 // NNBatchController
 // -------------------------------------------------------
-class NNBatchController : public SST::Component{
+class NNBatchController : public NNLayerBase{
 public:
   /// NNBatchController: top-level SST component constructor
   NNBatchController( SST::ComponentId_t id, const SST::Params& params );
@@ -69,56 +63,12 @@ public:
                               COMPONENT_CATEGORY_UNCATEGORIZED )
 
   SST_ELI_DOCUMENT_PARAMS(
-    {"verbose",         "Sets the verbosity level of output",   "0" },
     {"trainingData",    "Directory containing training data", NULL},
     {"testData",        "Directory containing test data", NULL},
     {"evalData",        "Directory containing evaluation data", NULL},
     {"epochs",          "Training iterations", "0"},
     {"classImageLimit", "Maximum images per class to load [100000]", "100000"}
   )
-
-  // -------------------------------------------------------
-  // NNBatchController Component Port Data
-  // -------------------------------------------------------
-  SST_ELI_DOCUMENT_PORTS(
-    { "forward_o",
-      "forward pass output port",
-      {"neuralnet.NNevent"}
-    },
-    { "forward_i",
-      "forward pass input port",
-      {"neuralnet.NNevent"}
-    },
-    { "backward_o",
-      "backward pass output port",
-      {"neuralnet.NNevent"}
-    },
-    { "backward_i",
-      "backward pass input port",
-      {"neuralnet.NNevent"}
-    },
-    { "monitor", 
-      "monitoring port",
-      {"neuralnet.NNevent"}
-    }
-  )
-
-  // -------------------------------------------------------
-  // NNBatchController Component Statistics Data
-  // -------------------------------------------------------
-  SST_ELI_DOCUMENT_STATISTICS()
-
-  // -------------------------------------------------------
-  // NNBatchController Component Checkpoint Methods
-  // -------------------------------------------------------
-  /// NNBatchController: serialization constructor
-  NNBatchController() : SST::Component() {}
-
-  /// NNBatchController: serialization
-  void serialize_order(SST::Core::Serialization::serializer& ser) override;
-
-  /// NNBatchController: serialization implementations
-  ImplementSerializable(SST::NeuralNet::NNBatchController)
 
 private:
   // -- SST handlers

@@ -20,36 +20,11 @@
 #include <time.h>
 #include <vector>
 
-#include "SST.h"
+#include "nn_layer_base.h"
 #include "nn_event.h"
 // clang-format on
 
 namespace SST::NeuralNet{
-
-// -------------------------------------------------------
-// NNLayerBase ( not registered )
-// -------------------------------------------------------
-class NNLayerBase : public SST::Component{
-
-public:
-  SST_ELI_REGISTER_COMPONENT_BASE(SST::NeuralNet::NNLayerBase)
-  SST_ELI_DOCUMENT_PARAMS(
-    {"verbose",         "Sets the verbosity level of output",   "0" },
-    {"lastComponent",   "Indicate component is last layer",     "0" }
-  )
-  SST_ELI_DOCUMENT_PORTS(
-    { "forward_i",  "forward pass input port",   {"neuralnet.NNevent"} },
-    { "forward_o",  "forward pass output port",  {"neuralnet.NNevent"} },
-    { "backward_i", "backward pass input port",  {"neuralnet.NNevent"} },
-    { "backward_o", "backward pass output port", {"neuralnet.NNevent"} },
-    { "monitor",     "monitoring port",          {"neuralnet.NNevent"} }
-  )
-
-  explicit NNLayerBase(ComponentId_t id) : SST::Component(id) {}
-  NNLayerBase() : SST::Component() {}
-  ~NNLayerBase() {}
-
-}; // class NNLayerBase
 
 // -------------------------------------------------------
 // NNLayer (registered)

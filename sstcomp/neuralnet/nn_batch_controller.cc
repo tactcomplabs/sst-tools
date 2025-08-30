@@ -17,7 +17,7 @@ namespace SST::NeuralNet{
 // NNBatchController
 //------------------------------------------
 NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& params ) :
-  SST::Component( id )
+  NNLayerBase( id )
 {
 
   // verbosity
@@ -100,11 +100,6 @@ void NNBatchController::emergencyShutdown(){
 }
 
 void NNBatchController::printStatus( Output& out ){
-}
-
-void NNBatchController::serialize_order(SST::Core::Serialization::serializer& ser){
-  SST::Component::serialize_order(ser);
-  SST_SER(epochs);
 }
 
 void NNBatchController::forward_o_snd(){
