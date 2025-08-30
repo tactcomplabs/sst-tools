@@ -90,19 +90,21 @@ protected:
   void backward_i_rcv(SST::Event *ev);
   void backward_o_snd();
   void backward_o_rcv(SST::Event *ev) { assert(false); }
-    void monitorEvent(SST::Event *ev) { assert(false); }
+  void monitorEvent(SST::Event *ev) { assert(false); }
   void monitor_rcv(SST::Event *ev) {assert(false); };
   void monitor_snd();
   // Internals
-  std::vector<unsigned> out = {};
   bool lastComponent = false;
-
+  std::vector<unsigned> forwardData = {};
+  std::vector<unsigned> backwardData = {};
+  
 private:
   // -- SST handlers
   TimeConverter* timeConverter;
   SST::Clock::HandlerBase* clockHandler;
   // internals
   bool driveForwardPass = false;
+  bool driveBackwardPass = false;
   bool driveMonitor = false;
 
 };  //class NNLayer

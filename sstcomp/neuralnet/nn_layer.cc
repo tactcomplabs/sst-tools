@@ -78,8 +78,11 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
     forward_o_snd();
     driveForwardPass=false;
   }
+  if (driveBackwardPass) {
+    backward_o_snd();
+    driveBackwardPass=false;
+  }
   if (driveMonitor) {
-    tcldbg::spinner("SPINNER");
     monitor_snd();
     driveMonitor=false;
   }
@@ -94,13 +97,16 @@ void NNLayer::forward_i_rcv(SST::Event *ev){
     getName().c_str(),
     data.size());
 
-  out.clear();
+  forwardData.clear();
   for ( size_t i=0;i<data.size();i++) {
-    out.emplace_back(2 * data[i]);
+    forwardData.emplace_back(2 * data[i]);
   }
 
-  if (lastComponent)
+  if (lastComponent) {
     driveMonitor = true;
+    driveBackwardPass = true;
+    backwardData = forwardData;
+  }
   else
     driveForwardPass = true;
 
@@ -108,19 +114,34 @@ void NNLayer::forward_i_rcv(SST::Event *ev){
 }
 
 void NNLayer::backward_i_rcv(SST::Event *ev){
-  assert(false);
+  NNEvent *nnev = static_cast<NNEvent*>(ev);
+  auto data = nnev->getData();
+  output.verbose(CALL_INFO,2,0, "%s: adding 1 to %zu values from backward pass data\n",
+    getName().c_str(),
+    data.size());
+  backwardData.clear();
+  for ( size_t i=0;i<data.size();i++) {
+    backwardData.emplace_back(1 +  data[i]);
+  }
+  driveBackwardPass = true;
   delete ev;
+}
+
+void NNLayer::backward_o_snd() {
+  output.verbose(CALL_INFO,2,0, "%s sending backward pass data\n", getName().c_str());
+  NNEvent* nnev = new NNEvent(backwardData);
+  linkHandlers.at(PortTypes::backward_o)->send(nnev);
 }
 
 void NNLayer::forward_o_snd(){
   output.verbose(CALL_INFO,2,0, "%s sending forward pass data\n", getName().c_str());
-  NNEvent* nnev = new NNEvent(out);
+  NNEvent* nnev = new NNEvent(forwardData);
   linkHandlers.at(PortTypes::forward_o)->send(nnev);
 }
 
 void NNLayer::monitor_snd() {
-  output.verbose(CALL_INFO,0,0, "%s sending monitor data\n", getName().c_str());
-  NNEvent* nnev = new NNEvent(out);
+  output.verbose(CALL_INFO,2,0, "%s sending monitor data\n", getName().c_str());
+  NNEvent* nnev = new NNEvent(forwardData);
   linkHandlers.at(PortTypes::monitor)->send(nnev);
 }
 

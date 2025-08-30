@@ -114,20 +114,27 @@ void NNBatchController::forward_o_snd(){
 }
 
 void NNBatchController::backward_i_rcv(SST::Event *ev) {
-  output.verbose(CALL_INFO,2,0, "%s receiving backward pass data\n", getName().c_str());
+  NNEvent* nnev = static_cast<NNEvent*>(ev);
+  auto data = nnev->getData();
+  uint64_t sum = 0;
+  for (auto d : data) {
+    sum += d;
+  }
+  output.verbose(CALL_INFO,0,0, "%s Epoch completed. Result=%" PRId64 "\n", 
+                  getName().c_str(), sum);
+  readyToSend = true;
   delete(ev);
 }
 
 void NNBatchController::monitor_rcv(SST::Event *ev) {
-  output.verbose(CALL_INFO,0,0, "%s receiving monitor data\n", getName().c_str());
+  output.verbose(CALL_INFO,2,0, "%s receiving monitor data\n", getName().c_str());
   NNEvent* nnev = static_cast<NNEvent*>(ev);
   auto data = nnev->getData();
   uint64_t sum=0;
   for ( auto d : data) {
     sum += d;
   }
-  output.verbose(CALL_INFO,0,0, "Result=%" PRIu64 "\n",sum);
-  readyToSend = true;
+  output.verbose(CALL_INFO,0,0, "Forward Pass Result=%" PRIu64 "\n",sum);
   delete(ev);
 }
 
@@ -140,14 +147,14 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
 
   assert(epoch <= epochs);
   if (epoch++ == epochs) {
-    output.verbose(CALL_INFO, 1, 0,
+    output.verbose(CALL_INFO, 2, 0,
                    "%s ready to end simulation\n",
                    getName().c_str());
     primaryComponentOKToEndSim();
     return true;
   }
 
-  output.verbose(CALL_INFO, 1, 0,
+  output.verbose(CALL_INFO, 0, 0,
                    "%s initiating epoch %" PRId64 "\n",
                    getName().c_str(), epoch);
   forward_o_snd();
