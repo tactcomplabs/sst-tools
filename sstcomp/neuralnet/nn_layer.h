@@ -70,19 +70,40 @@ protected:
   void monitor_snd();
   // Internals
   bool lastComponent = false;
-  std::vector<unsigned> forwardData = {};
-  std::vector<unsigned> backwardData = {};
+  std::vector<uint64_t> forwardData_i = {};
+  std::vector<uint64_t> forwardData_o = {};
+  std::vector<uint64_t> backwardData_i = {};
+  std::vector<uint64_t> backwardData_o = {};
   
 private:
   // -- SST handlers
   TimeConverter* timeConverter;
   SST::Clock::HandlerBase* clockHandler;
+
   // internals
   bool driveForwardPass = false;
   bool driveBackwardPass = false;
   bool driveMonitor = false;
 
 };  //class NNLayer
+
+class NNInputLayer : public NNSubComponentAPI {
+public:
+  SST_ELI_REGISTER_SUBCOMPONENT(
+        NNInputLayer,   // Class name
+        "neuralnet",    // Library name
+        "NNInputLayer",   // Subcomponent name
+        SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
+        "Neural network input layer.",     // Description
+        SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
+
+  NNInputLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
+  ~NNInputLayer() {};
+
+  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>* o) final;
+  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>* o) final;
+
+}; //class NNInputLayer
 
 } //namespace SST::NeuralNet
 

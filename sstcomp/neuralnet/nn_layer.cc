@@ -33,6 +33,10 @@ NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
   clockHandler  = new SST::Clock::Handler2<NNLayer,&NNLayer::clockTick>(this);
   timeConverter = registerClock(systemClock, clockHandler);
 
+  // subcomponents
+  transfer_function = loadUserSubComponent<NNSubComponentAPI>("transfer_function");
+  assert(transfer_function);
+
   // Configure Links
   linkHandlers[PortTypes::forward_i] = 
     configureLink(PortNames.at(PortTypes::forward_i),
@@ -91,21 +95,10 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
 
 void NNLayer::forward_i_rcv(SST::Event *ev){
   NNEvent *nnev = static_cast<NNEvent*>(ev);
-  auto data = nnev->getData();
-
-  output.verbose(CALL_INFO,2,0, "%s: doubling %zu values from forward pass data\n",
-    getName().c_str(),
-    data.size());
-
-  forwardData.clear();
-  for ( size_t i=0;i<data.size();i++) {
-    forwardData.emplace_back(2 * data[i]);
-  }
-
+  forwardData_i = nnev->getData();
   if (lastComponent) {
     driveMonitor = true;
     driveBackwardPass = true;
-    backwardData = forwardData;
   }
   else
     driveForwardPass = true;
@@ -115,34 +108,44 @@ void NNLayer::forward_i_rcv(SST::Event *ev){
 
 void NNLayer::backward_i_rcv(SST::Event *ev){
   NNEvent *nnev = static_cast<NNEvent*>(ev);
-  auto data = nnev->getData();
-  output.verbose(CALL_INFO,2,0, "%s: adding 1 to %zu values from backward pass data\n",
-    getName().c_str(),
-    data.size());
-  backwardData.clear();
-  for ( size_t i=0;i<data.size();i++) {
-    backwardData.emplace_back(1 +  data[i]);
-  }
+  backwardData_i = nnev->getData();
   driveBackwardPass = true;
   delete ev;
 }
 
 void NNLayer::backward_o_snd() {
   output.verbose(CALL_INFO,2,0, "%s sending backward pass data\n", getName().c_str());
-  NNEvent* nnev = new NNEvent(backwardData);
+  NNEvent* nnev = new NNEvent(backwardData_o);
   linkHandlers.at(PortTypes::backward_o)->send(nnev);
 }
 
 void NNLayer::forward_o_snd(){
   output.verbose(CALL_INFO,2,0, "%s sending forward pass data\n", getName().c_str());
-  NNEvent* nnev = new NNEvent(forwardData);
+  NNEvent* nnev = new NNEvent(forwardData_o);
   linkHandlers.at(PortTypes::forward_o)->send(nnev);
 }
 
 void NNLayer::monitor_snd() {
   output.verbose(CALL_INFO,2,0, "%s sending monitor data\n", getName().c_str());
-  NNEvent* nnev = new NNEvent(forwardData);
+  NNEvent* nnev = new NNEvent(forwardData_o);
   linkHandlers.at(PortTypes::monitor)->send(nnev);
+}
+
+void NNInputLayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>* o)
+{
+  o->resize(in.size());
+  for ( size_t i=0; i<in.size();i++) {
+    o->at(i) = in[i]*2;
+  }
+}
+
+void NNInputLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>* o)
+{
+  o->resize(in.size());
+  for ( size_t i=0; i<in.size();i++) {
+    o->at(i) = in[i] + 1;
+  }
+
 }
 
 } // namespace SST::NNLayer

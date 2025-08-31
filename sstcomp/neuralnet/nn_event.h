@@ -44,27 +44,18 @@ public:
   NNEvent() : SST::Event() {}
 
   /// NNEvent: constructor
-  NNEvent(std::vector<unsigned> d) : SST::Event(), data(d) {}
+  NNEvent(std::vector<uint64_t> d) : SST::Event(), data(d) {}
 
   /// NNEvent: destructor
   virtual ~NNEvent() {}
 
   /// NNEvent: retrieve the data
-  std::vector<unsigned> const getData() { return data; }
+  std::vector<uint64_t> const getData() { return data; }
 
 private:
-  std::vector<unsigned> data;     ///< NNEvent: data payload
+  std::vector<uint64_t> data;     ///< NNEvent: data payload
 
-  /// NNEvent: serialization method
-  void serialize_order(SST::Core::Serialization::serializer& ser) override{
-    Event::serialize_order(ser);
-    SST_SER(data);
-  }
-
-  /// NNEvent: serialization implementor
-  ImplementSerializable(SST::NeuralNet::NNEvent);
-
-};  // class GridTestNodeEvent
+}; //class NNEvent
 
 } //namespace SST::NeuralNet
 

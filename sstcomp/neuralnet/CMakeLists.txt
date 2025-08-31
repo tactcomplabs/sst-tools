@@ -34,5 +34,6 @@ target_link_libraries(neuralnet ${OpenCV_LIBS})
 install(TARGETS neuralnet DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 install(CODE "execute_process(COMMAND sst-register NNBatchController neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 install(CODE "execute_process(COMMAND sst-register NNLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register NNInputLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 
 # EOF

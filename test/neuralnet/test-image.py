@@ -64,6 +64,7 @@ components.append(loss)
 
 for i in range(len(components)):
   components[i].addParams( { "verbose" : args.verbose } )
+  components[i].setSubComponent("transfer_function", "neuralnet.NNInputLayer")
   if i < len(components)-1:
     forward_links.append(sst.Link(f"F{i}"))
     backward_links.append(sst.Link(f"B{i}"))
