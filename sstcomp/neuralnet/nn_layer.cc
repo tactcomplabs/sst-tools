@@ -32,6 +32,8 @@ NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
   const std::string systemClock = params.find< std::string >("clockFreq", "1GHz");
   clockHandler  = new SST::Clock::Handler2<NNLayer,&NNLayer::clockTick>(this);
   timeConverter = registerClock(systemClock, clockHandler);
+  // an event will wake up the clocking
+  unregisterClock(timeConverter, clockHandler);
 
   // subcomponents
   transfer_function = loadUserSubComponent<NNSubComponentAPI>("transfer_function");
@@ -78,6 +80,8 @@ void NNLayer::printStatus( Output& out ){
 }
 
 bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
+  // Clocking control should ensure we always have something to do here
+  assert(driveForwardPass || driveMonitor || driveBackwardPass);
   if (driveForwardPass) {
     transfer_function->forward(forwardData_i, &forwardData_o);
     forward_o_snd();
@@ -95,7 +99,7 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
     backward_o_snd();
     driveBackwardPass=false;
   }
-  return false;
+  return true;
 }
 
 void NNLayer::forward_i_rcv(SST::Event *ev){
@@ -108,6 +112,7 @@ void NNLayer::forward_i_rcv(SST::Event *ev){
   else
     driveForwardPass = true;
 
+  reregisterClock(timeConverter, clockHandler);
   delete ev;
 }
 
@@ -115,6 +120,8 @@ void NNLayer::backward_i_rcv(SST::Event *ev){
   NNEvent *nnev = static_cast<NNEvent*>(ev);
   backwardData_i = nnev->getData();
   driveBackwardPass = true;
+
+  reregisterClock(timeConverter, clockHandler);
   delete ev;
 }
 

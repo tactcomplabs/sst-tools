@@ -123,6 +123,8 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
   output.verbose(CALL_INFO,0,0, "%s Epoch completed. Result=%" PRId64 "\n", 
                   getName().c_str(), sum);
   readyToSend = true;
+  //reregister clock for next batch
+  reregisterClock(timeConverter, clockHandler);
   delete(ev);
 }
 
@@ -135,13 +137,13 @@ void NNBatchController::monitor_rcv(SST::Event *ev) {
     sum += d;
   }
   output.verbose(CALL_INFO,0,0, "Forward Pass Result=%" PRIu64 "\n",sum);
+  // don't reregister clock here.
   delete(ev);
 }
 
 bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
-
-  // TODO we should disable clocking and remove this
-  if (busy && !readyToSend) return false; 
+  // Clocking control should ensure we have something to do.
+  assert( !busy || readyToSend);
 
   if (mode_sequence.empty()) {
     output.verbose(CALL_INFO, 2, 0,
@@ -159,11 +161,11 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
 
     switch (current_mode) {
       case MODE::TRAINING:
-        readyToSend = true;
-        busy = true;
         output.verbose(CALL_INFO, 0, 0, 
           "Starting training phase. epochs=%" PRId32 " batch_size=%" PRId32 " steps=%" PRId32 "\n",
           epochs, batch_size, train_steps);
+        readyToSend = true;
+        busy = true;
         break;
       case MODE::VALIDATION:
         output.verbose(CALL_INFO, 0, 0, 
@@ -196,7 +198,9 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
         output.verbose(CALL_INFO, 0, 0,
                    "%s initiating epoch %" PRId32 "\n",
                    getName().c_str(), epoch);
+        // Launch batch and disable clocks
         forward_o_snd();
+        return true;
       }
       break;
     }
