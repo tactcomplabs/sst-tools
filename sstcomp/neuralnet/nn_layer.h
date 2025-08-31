@@ -99,8 +99,8 @@ public:
   NNInputLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
   ~NNInputLayer() {};
 
-  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>* o) final;
-  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>* o) final;
+  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
 
 }; //class NNInputLayer
 

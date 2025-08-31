@@ -27,8 +27,8 @@ public:
     NNSubComponentAPI(ComponentId_t id, Params& params) : SubComponent(id) {}
     virtual ~NNSubComponentAPI() {}
 
-    virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>* o) = 0;
-    virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>* o) = 0;
+    virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) = 0;
+    virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) = 0;
 };
 
 // -------------------------------------------------------

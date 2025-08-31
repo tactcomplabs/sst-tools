@@ -83,19 +83,19 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
   // Clocking control should ensure we always have something to do here
   assert(driveForwardPass || driveMonitor || driveBackwardPass);
   if (driveForwardPass) {
-    transfer_function->forward(forwardData_i, &forwardData_o);
+    transfer_function->forward(forwardData_i, forwardData_o);
     forward_o_snd();
     driveForwardPass=false;
   }
   if (driveMonitor) {
-    transfer_function->forward(forwardData_i, &forwardData_o);
+    transfer_function->forward(forwardData_i, forwardData_o);
     backwardData_i.resize(forwardData_o.size());
     backwardData_i = forwardData_o;
     monitor_snd();
     driveMonitor=false;
   }
   if (driveBackwardPass) {
-    transfer_function->backward(backwardData_i, &backwardData_o);
+    transfer_function->backward(backwardData_i, backwardData_o);
     backward_o_snd();
     driveBackwardPass=false;
   }
@@ -143,21 +143,21 @@ void NNLayer::monitor_snd() {
   linkHandlers.at(PortTypes::monitor)->send(nnev);
 }
 
-void NNInputLayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>* o)
+// 
+// Input Layer
+// 
+void NNInputLayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
 {
-  o->resize(in.size());
-  for ( size_t i=0; i<in.size();i++) {
-    o->at(i) = in[i]*2;
-  }
+  if (in.size() != o.size())
+    o.resize(in.size());
+  o = in;
 }
 
-void NNInputLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>* o)
+void NNInputLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
 {
-  o->resize(in.size());
-  for ( size_t i=0; i<in.size();i++) {
-    o->at(i) = in[i] + 1;
-  }
-
+  if (in.size() != o.size())
+    o.resize(in.size());
+  o = in;
 }
 
 } // namespace SST::NNLayer
