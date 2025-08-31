@@ -52,7 +52,7 @@ public:
                               "NNLayer SST Component",
                               COMPONENT_CATEGORY_UNCATEGORIZED )
 
-protected:
+private:
   // SST handlers
   SST::Output    output; 
   // event handling
@@ -74,8 +74,7 @@ protected:
   std::vector<uint64_t> forwardData_o = {};
   std::vector<uint64_t> backwardData_i = {};
   std::vector<uint64_t> backwardData_o = {};
-  
-private:
+
   // -- SST handlers
   TimeConverter* timeConverter;
   SST::Clock::HandlerBase* clockHandler;

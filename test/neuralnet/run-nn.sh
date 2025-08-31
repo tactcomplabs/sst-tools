@@ -2,14 +2,18 @@
 mkdir -p run
 cd run
 
-classImageLimit=4
+# SSTOPTS='--exit-after="5s"'
+SSTOPTS=''
 
-sst ../test-image.py --exit-after="5s" -- \
-    --trainingImages="${HOME}/work/image_data/fashion_mnist_images/train" \
-    --testImages="${HOME}/work/image_data/fashion_mnist_images/test" \
+sst ../test-image.py $SSTOPTS -- \
+    --batchSize=1 \
+    --classImageLimit=4 \
+    --epochs=4 \
     --evalImage="${HOME}/work/image_data/eval/pants.png" \
-    --epochs=10 \
-    --classImageLimit=$classImageLimit
+    --hiddenLayerSize=32 \
+    --testImages="${HOME}/work/image_data/fashion_mnist_images/test" \
+    --trainingImages="${HOME}/work/image_data/fashion_mnist_images/train" \
+    --verbose=2
 
 wait
 

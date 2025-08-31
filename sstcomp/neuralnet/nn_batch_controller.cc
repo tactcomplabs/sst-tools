@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include "nn_batch_controller.h"
+#include "tcldbg.h"
 
 namespace SST::NeuralNet{
 
@@ -19,7 +20,7 @@ namespace SST::NeuralNet{
 NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& params ) :
   NNLayerBase( id )
 {
-
+  tcldbg::spinner("NNSPINNER");
   // verbosity
   uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
   output.init(

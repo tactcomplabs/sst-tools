@@ -13,13 +13,16 @@ import sst
 from enum import Enum
 
 parser = argparse.ArgumentParser(description="test image")
-parser.add_argument("--trainingImages", type=str, help="path to training data organized in class subdirectories", default="")
-parser.add_argument("--testImages", type=str, help="path to test data organized in class subdirectories", default="")
-parser.add_argument("--evalImage", type=str, help="path to a single evaluation image", default="")
-parser.add_argument("--epochs", type=int, help="epochs duh", default=0)
-parser.add_argument("--classImageLimit", type=int, help="limited the number of images loaded per class", default=100000)
 
+parser.add_argument("--batchSize", type=int, help="number of images for each training batch", default=128)
+parser.add_argument("--classImageLimit", type=int, help="limited the number of images loaded per class", default=100000)
+parser.add_argument("--epochs", type=int, help="number of training rounds", default=1)
+parser.add_argument("--evalImage", type=str, help="path to a single evaluation image", default="")
+parser.add_argument("--hiddenLayerSize", type=int, help="number of neurons in each hidden layer", default=128)
+parser.add_argument("--testImages", type=str, help="path to test data organized in class subdirectories", default="")
+parser.add_argument("--trainingImages", type=str, help="path to training data organized in class subdirectories", default="")
 parser.add_argument("--verbose", type=int, help="verbosity. 5=send/recv", default=1)
+
 args = parser.parse_args()
 print("configuration:")
 for arg in vars(args):
@@ -28,12 +31,14 @@ for arg in vars(args):
 # Primary controller
 batch_controller = sst.Component("batch_controller", "neuralnet.NNBatchController")
 batch_controller.addParams({
-  "verbose" : args.verbose,
-  "trainingImages" : args.trainingImages,
-  "testImages" : args.testImages,
-  "evalImage" : args.evalImage,
-  "epochs" : args.epochs,
+  "batchSize" : args.batchSize,
   "classImageLimit" : args.classImageLimit,
+  "epochs" : args.epochs,
+  "evalImage" : args.evalImage,
+  "hiddenLayerSize" : args.hiddenLayerSize,
+  "testImages" : args.testImages,
+  "trainingImages" : args.trainingImages,
+  "verbose" : args.verbose,
 })
 
 # Instantiate layers
