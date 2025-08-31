@@ -36,8 +36,8 @@ NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& p
   trainingImagesStr = params.find<std::string>("trainingImages");
   testImagesStr = params.find<std::string>("testImages");
   evalImageStr = params.find<std::string>("evalImage");
-  epochs = params.find<uint64_t>("epochs", 0);
-  classImageLimit = params.find<uint64_t>("classImageLimit", 100000);
+  epochs = params.find<unsigned>("epochs", 0);
+  classImageLimit = params.find<unsigned>("classImageLimit", 100000);
 
   // Configure Links
   linkHandlers[PortTypes::forward_i] = 
@@ -71,16 +71,15 @@ void NNBatchController::init( unsigned int phase ){
 }
 
 void NNBatchController::setup(){
-  if (trainingImagesStr.size()==0 && testImagesStr.size()==0 && evalImageStr.size()==0) {
-    output.fatal(CALL_INFO, -1, "Nothing to do. Please set --trainingImages, --testImages, and/or --evalImage");
-  }
 
   if (trainingImagesStr.size()>0) {
     trainingImages.load(trainingImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);
+    mode_sequence.push(MODE::TRAINING);
   }
 
   if (testImagesStr.size()>0) {
-    testImages.load(testImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);;
+    testImages.load(testImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);
+    mode_sequence.push(MODE::VALIDATION);
   }
 
   if (evalImageStr.size()>0) {
@@ -88,7 +87,12 @@ void NNBatchController::setup(){
       EigenImage::TRANSFORM::INVERT, 
       EigenImage::TRANSFORM::LINEARIZE, 
       true);
+    mode_sequence.push(MODE::EVALUATION);
   }
+
+  if (mode_sequence.empty())
+    output.fatal(CALL_INFO, -1, "Nothing to do. Please set --trainingImages, --testImages, and/or --evalImage");
+ 
 }
 
 void NNBatchController::complete( unsigned int phase ){
@@ -136,24 +140,74 @@ void NNBatchController::monitor_rcv(SST::Event *ev) {
 
 bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
 
-  if (!readyToSend)
-    return false;
+  // TODO we should disable clocking and remove this
+  if (busy && !readyToSend) return false; 
 
-  readyToSend = false;
-
-  assert(epoch <= epochs);
-  if (epoch++ == epochs) {
+  if (mode_sequence.empty()) {
     output.verbose(CALL_INFO, 2, 0,
-                   "%s ready to end simulation\n",
-                   getName().c_str());
+                  "%s has nothing else to do. Ending simulation.\n",
+                  getName().c_str());
     primaryComponentOKToEndSim();
     return true;
   }
 
-  output.verbose(CALL_INFO, 0, 0,
-                   "%s initiating epoch %" PRId64 "\n",
+  if (!busy) {
+    assert(readyToSend==false); 
+    // not busy so get next task
+    current_mode = mode_sequence.front();
+    mode_sequence.pop();
+
+    switch (current_mode) {
+      case MODE::TRAINING:
+        readyToSend = true;
+        busy = true;
+        output.verbose(CALL_INFO, 0, 0, 
+          "Starting training phase. epochs=%" PRId32 " batch_size=%" PRId32 " steps=%" PRId32 "\n",
+          epochs, batch_size, train_steps);
+        break;
+      case MODE::VALIDATION:
+        output.verbose(CALL_INFO, 0, 0, 
+          "Starting validation phase. steps=%" PRId32 "\n",
+          validation_steps);
+        break;
+      case MODE::EVALUATION:
+        output.verbose(CALL_INFO, 0, 0, "Starting evaluation phase\n");
+        break;
+      default:
+        assert(false);
+    }
+    return false;
+  }
+
+  // OK we are busy so must be sending something.
+  assert(readyToSend==true);
+  readyToSend = false;
+
+  switch (current_mode) {
+    case MODE::TRAINING:
+    {
+      assert(epoch <= epochs);
+      if (epoch++ == epochs) {
+        output.verbose(CALL_INFO, 2, 0,
+                    "%s completed training\n",
+                    getName().c_str());
+        busy=false;
+      } else {
+        output.verbose(CALL_INFO, 0, 0,
+                   "%s initiating epoch %" PRId32 "\n",
                    getName().c_str(), epoch);
-  forward_o_snd();
+        forward_o_snd();
+      }
+      break;
+    }
+    case MODE::VALIDATION:
+      break;
+    case MODE::EVALUATION:
+      break;
+    default:
+      assert(false);
+  }
+
   return false;
 }
 

@@ -28,6 +28,8 @@
 
 namespace SST::NeuralNet{
 
+enum class MODE {INVALID, TRAINING, VALIDATION, EVALUATION};
+
 enum class PortTypes { forward_i, forward_o, backward_i, backward_o, monitor };
 const std::map<PortTypes, std::string> PortNames {
   { PortTypes::forward_i, "forward_i"}, { PortTypes::forward_o, "forward_o"},
@@ -40,16 +42,9 @@ const std::map<PortTypes, std::string> PortNames {
 // -------------------------------------------------------
 class NNEvent : public SST::Event{
 public:
-  /// NNEvent : standard constructor
   NNEvent() : SST::Event() {}
-
-  /// NNEvent: constructor
   NNEvent(std::vector<uint64_t> d) : SST::Event(), data(d) {}
-
-  /// NNEvent: destructor
   virtual ~NNEvent() {}
-
-  /// NNEvent: retrieve the data
   std::vector<uint64_t> const getData() { return data; }
 
 private:

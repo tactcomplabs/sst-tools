@@ -63,11 +63,12 @@ public:
                               COMPONENT_CATEGORY_UNCATEGORIZED )
 
   SST_ELI_DOCUMENT_PARAMS(
-    {"trainingData",    "Directory containing training data", NULL},
-    {"testData",        "Directory containing test data", NULL},
-    {"evalData",        "Directory containing evaluation data", NULL},
-    {"epochs",          "Training iterations", "0"},
-    {"classImageLimit", "Maximum images per class to load [100000]", "100000"}
+    {"batchSize",       "Number of images per batch", "128"},
+    {"classImageLimit", "Maximum images per class to load [100000]", "100000"},
+    {"epochs",          "Training iterations", "1"},
+    {"evalImage",       "Path to single evaluation image", NULL},
+    {"testImages",      "Directory containing test images in class subdirs", NULL},
+    {"trainingImages",  "Directory containing training images in class subdirs", NULL}
   )
 
 private:
@@ -76,13 +77,20 @@ private:
   TimeConverter* timeConverter;                   ///< SST time conversion handler
   SST::Clock::HandlerBase* clockHandler;          ///< Clock Handler
 
-  // -- Component Parameters   
-  std::string trainingImagesStr = {};             ///< path to directory containing training images
-  std::string testImagesStr = {};                 ///< path to directory containing test images
+  // -- Component Parameters  
+  unsigned batch_size = 128;                      ///< number of images per batch
+  unsigned classImageLimit = 100000;              ///< maximum images to load for each classification set
+  unsigned epochs = 1;                            ///< training epochs
   std::string evalImageStr = {};                  ///< path to a single evaluation image file
-  uint64_t epochs = 0;                            ///< training epochs
-  uint64_t epoch = 0;                             ///< iterations
-  uint64_t classImageLimit = 100000;              ///< maximum images to load for each classification set
+  std::string testImagesStr = {};                 ///< path to directory containing test images
+  std::string trainingImagesStr = {};             ///< path to directory containing training images
+  
+  // -- internal state
+  MODE current_mode = MODE::INVALID;
+  std::queue<MODE> mode_sequence = {};
+  unsigned epoch = 0;                             ///< iterations
+  unsigned train_steps = 1;                       ///< steps per epochs
+  unsigned validation_steps = 0;                  ///< steps for validation run
 
   // -- private methods
   std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
@@ -97,7 +105,8 @@ private:
   void monitor_rcv(SST::Event *ev);
   void monitor_snd() { assert(false); }
 
-  bool readyToSend=true;
+  bool readyToSend=false;
+  bool busy=false;
 
   // -- private members
   Dataset trainingImages = {};

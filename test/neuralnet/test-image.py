@@ -35,11 +35,12 @@ batch_controller.addParams({
   "classImageLimit" : args.classImageLimit,
   "epochs" : args.epochs,
   "evalImage" : args.evalImage,
-  "hiddenLayerSize" : args.hiddenLayerSize,
   "testImages" : args.testImages,
   "trainingImages" : args.trainingImages,
   "verbose" : args.verbose,
 })
+
+hiddenLayerSize = args.hiddenLayerSize
 
 # Instantiate layers
 input   = sst.Component("input",   "neuralnet.NNLayer")
