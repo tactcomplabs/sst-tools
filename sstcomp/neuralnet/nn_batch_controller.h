@@ -71,6 +71,7 @@ public:
     {"trainingImages",  "Directory containing training images in class subdirs", NULL}
   )
 
+
 private:
   // -- SST handlers
   SST::Output    output;                          ///< SST output handler
@@ -85,14 +86,14 @@ private:
   std::string testImagesStr = {};                 ///< path to directory containing test images
   std::string trainingImagesStr = {};             ///< path to directory containing training images
   
-  // -- internal state
+  // -- Internal State
   MODE current_mode = MODE::INVALID;
   std::queue<MODE> mode_sequence = {};
   unsigned epoch = 0;                             ///< iterations
   unsigned train_steps = 1;                       ///< steps per epochs
   unsigned validation_steps = 0;                  ///< steps for validation run
 
-  // -- private methods
+  // -- Communication
   std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
   void forward_i_snd() { assert(false); }
   void forward_i_rcv(SST::Event *ev) {assert(false);}
@@ -105,13 +106,19 @@ private:
   void monitor_rcv(SST::Event *ev);
   void monitor_snd() { assert(false); }
 
+  // -- Flow Control
   bool readyToSend=false;
   bool busy=false;
 
-  // -- private members
+  // -- Image Management
   Dataset trainingImages = {};
   Dataset testImages = {};
   EigenImage evalImage = {};
+  
+  // -- Sequencing Control
+  void initTraining();
+  void initValidation();
+  void initEvaluation();
 
 };  //class NNBatchController
 }   //namespace SST::NeuralNet

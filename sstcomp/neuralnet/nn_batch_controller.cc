@@ -141,6 +141,55 @@ void NNBatchController::monitor_rcv(SST::Event *ev) {
   delete(ev);
 }
 
+void NNBatchController::initTraining()
+{
+  output.verbose(CALL_INFO, 0, 0, "Starting training phase\n");
+
+  // Calculate number of steps
+  unsigned rows = (unsigned) trainingImages.data.rows();
+  if (batch_size > 0) {
+    train_steps = rows / batch_size;
+    // Dividing rounds down. If there are some remaining
+    // data but not a full batch, this won't include it
+    // Add `1` to include this not full batch
+    if (train_steps * batch_size < rows)
+      train_steps += 1;
+  }
+
+  output.verbose(CALL_INFO, 1, 0, "### Training setup\n");
+  output.verbose(CALL_INFO, 1, 0, "epochs=%" PRId32 "\n", epochs);
+  output.verbose(CALL_INFO, 1, 0, "X.rows()=%" PRId32 "\n", rows);
+  output.verbose(CALL_INFO, 1, 0, "batch_size=%" PRId32 "\n", batch_size);
+  output.verbose(CALL_INFO, 1, 0, "train_steps=%" PRId32 "\n", train_steps);
+}
+
+void NNBatchController::initValidation()
+{
+  output.verbose(CALL_INFO, 0, 0, "Starting validation phase\n");
+
+  // Calculate number of steps
+  unsigned rows = (unsigned) testImages.data.rows();
+  if (batch_size > 0) {
+    validation_steps = (unsigned int) rows / batch_size;
+    // Dividing rounds down. If there are some remaining
+    // data but nor full batch, this won't include it
+    // Add `1` to include this not full batch
+    if (validation_steps * batch_size < rows)
+      validation_steps += 1;
+  }
+
+  output.verbose(CALL_INFO, 1, 0, "### Validation setup\n");
+  output.verbose(CALL_INFO, 1, 0, "X_val.rows()=%" PRId32 "\n", rows);
+  output.verbose(CALL_INFO, 1, 0, "batch_size=%" PRId32 "\n", batch_size);
+  output.verbose(CALL_INFO, 1, 0, "validation_steps=%" PRId32 "\n", validation_steps);
+
+}
+
+void NNBatchController::initEvaluation()
+{
+  output.verbose(CALL_INFO, 0, 0, "Starting evaluation phase\n");
+}
+
 bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
   // Clocking control should ensure we have something to do.
   assert( !busy || readyToSend);
@@ -161,19 +210,15 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
 
     switch (current_mode) {
       case MODE::TRAINING:
-        output.verbose(CALL_INFO, 0, 0, 
-          "Starting training phase. epochs=%" PRId32 " batch_size=%" PRId32 " steps=%" PRId32 "\n",
-          epochs, batch_size, train_steps);
+        initTraining();
         readyToSend = true;
         busy = true;
         break;
       case MODE::VALIDATION:
-        output.verbose(CALL_INFO, 0, 0, 
-          "Starting validation phase. steps=%" PRId32 "\n",
-          validation_steps);
+        initValidation();
         break;
       case MODE::EVALUATION:
-        output.verbose(CALL_INFO, 0, 0, "Starting evaluation phase\n");
+        initEvaluation();
         break;
       default:
         assert(false);
