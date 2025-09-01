@@ -28,11 +28,17 @@
 
 namespace SST::NeuralNet{
 
+struct AccumulatedData_t {
+    double sum = 0;
+    double data = 0;
+};
+
 // -------------------------------------------------------
 // NNBatchController
 // -------------------------------------------------------
 class NNBatchController : public NNLayerBase{
 public:
+
   /// NNBatchController: top-level SST component constructor
   NNBatchController( SST::ComponentId_t id, const SST::Params& params );
 
@@ -89,9 +95,10 @@ private:
   // -- Internal State
   MODE current_mode = MODE::INVALID;
   std::queue<MODE> mode_sequence = {};
-  unsigned epoch = 0;                             ///< iterations
-  unsigned train_steps = 1;                       ///< steps per epochs
-  unsigned validation_steps = 0;                  ///< steps for validation run
+  unsigned epoch = 0;                             ///< training interations counter
+  unsigned step = 0;                              ///< step counter
+  unsigned train_steps = 1;                       ///< total steps per training epoch
+  unsigned validation_steps = 0;                  ///< total steps for validation run
 
   // -- Communication
   std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
@@ -106,19 +113,33 @@ private:
   void monitor_rcv(SST::Event *ev);
   void monitor_snd() { assert(false); }
 
-  // -- Flow Control
+  //-- Payload
+  Eigen::MatrixXd batch_X = {};
+  Eigen::MatrixXi batch_y = {};
+
+  //-- Flow Control
   bool readyToSend=false;
   bool busy=false;
 
-  // -- Image Management
+  //-- Image Management
   Dataset trainingImages = {};
   Dataset testImages = {};
   EigenImage evalImage = {};
   
-  // -- Sequencing Control
+  //-- FSMs
   void initTraining();
+  bool stepTraining();
   void initValidation();
+  bool stepValidation();
   void initEvaluation();
+  bool stepEvaluation();
+
+  //-- Loss/Accuracy
+  AccumulatedData_t accumulatedLoss = {};
+  AccumulatedData_t accumulatedAccuracy = {};
+
+  //-- Helpers
+  Eutils util = {};
 
 };  //class NNBatchController
 }   //namespace SST::NeuralNet

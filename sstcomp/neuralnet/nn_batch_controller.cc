@@ -21,23 +21,25 @@ NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& p
   NNLayerBase( id )
 {
   tcldbg::spinner("NNSPINNER");
-  // verbosity
+  
+  // parameters
+  batch_size = params.find<unsigned>("batchSize", 128);
+  classImageLimit = params.find<unsigned>("classImageLimit", 100000);
+  epochs = params.find<unsigned>("epochs", 0);
+  evalImageStr = params.find<std::string>("evalImage");
+  testImagesStr = params.find<std::string>("testImages");
+  trainingImagesStr = params.find<std::string>("trainingImages");
   uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
+
+  // SST output init
   output.init(
     "NNBatchController[" + getName() + ":@p:@t]: ",
     Verbosity, 0, SST::Output::STDOUT );
-  
+
   // clocking 
   const std::string systemClock = params.find< std::string >("clockFreq", "1GHz");
   clockHandler  = new SST::Clock::Handler2<NNBatchController,&NNBatchController::clockTick>(this);
   timeConverter = registerClock(systemClock, clockHandler);
-
-  // parameters
-  trainingImagesStr = params.find<std::string>("trainingImages");
-  testImagesStr = params.find<std::string>("testImages");
-  evalImageStr = params.find<std::string>("evalImage");
-  epochs = params.find<unsigned>("epochs", 0);
-  classImageLimit = params.find<unsigned>("classImageLimit", 100000);
 
   // Configure Links
   linkHandlers[PortTypes::forward_i] = 
@@ -137,6 +139,14 @@ void NNBatchController::monitor_rcv(SST::Event *ev) {
     sum += d;
   }
   output.verbose(CALL_INFO,0,0, "Forward Pass Result=%" PRIu64 "\n",sum);
+
+  //TODO this should happen in the TBD loss layer and results sent back over monitor
+  // Calculate losses
+  // Losses losses = loss_->calculate(output, batch_y, Loss::REGULARIZATION::NONE, false);
+  // // Get predictions and calculate an accuracy
+  // Eigen::MatrixXd predictions = output_layer_activation_->predictions(output);
+  // double accuracy = accuracy_->calculate(predictions,batch_y, false);
+
   // don't reregister clock here.
   delete(ev);
 }
@@ -144,6 +154,9 @@ void NNBatchController::monitor_rcv(SST::Event *ev) {
 void NNBatchController::initTraining()
 {
   output.verbose(CALL_INFO, 0, 0, "Starting training phase\n");
+  
+  // Initialize epoch counter
+  epoch = 1;
 
   // Calculate number of steps
   unsigned rows = (unsigned) trainingImages.data.rows();
@@ -161,6 +174,64 @@ void NNBatchController::initTraining()
   output.verbose(CALL_INFO, 1, 0, "X.rows()=%" PRId32 "\n", rows);
   output.verbose(CALL_INFO, 1, 0, "batch_size=%" PRId32 "\n", batch_size);
   output.verbose(CALL_INFO, 1, 0, "train_steps=%" PRId32 "\n", train_steps);
+}
+
+bool NNBatchController::stepTraining() {
+  output.verbose(CALL_INFO, 0, 0, "Advancing training FSM\n");
+  assert(step <= train_steps);
+  if (step++ == train_steps) {
+    // Done with steps. Check epoch
+    output.verbose(CALL_INFO, 2,0, "Finished epoch\n");
+    assert(epoch <= epochs);
+    if (epoch++ == epochs) {
+      output.verbose(CALL_INFO, 2, 0, "Completed training\n");
+      // Release controller so it can go to next instruction
+      busy=false;   // release controller
+      return false; // keep clocking
+    }
+    // Next epoch
+    // Reset accumulated values in loss and accuracy objects
+    accumulatedAccuracy = {};
+    accumulatedLoss = {};
+    // Reset step counter
+    step = 1;
+  }
+  // Next step
+  // If batch size is not set -
+  // train using one step and full dataset
+  if (batch_size==0) {
+      batch_X = trainingImages.data;
+      batch_y = trainingImages.classes;
+  } else { 
+      // Otherwise slice a batch
+      unsigned p = step*batch_size;
+      assert(trainingImages.data.rows()==trainingImages.data.rows());
+      unsigned r = std::min((unsigned)trainingImages.data.rows()-p, batch_size);
+      batch_X = trainingImages.data.block(p, 0, r, trainingImages.data.cols());
+      batch_y = trainingImages.classes.block(p, 0, r, trainingImages.classes.cols());
+  }
+
+  // std::cout << "batch_X" << util.shapestr(batch_X) << "=\n" << HEAD(batch_X) << std::endl;
+  // std::cout << "batch_y" << util.shapestr(batch_y) << "=\n" << HEAD(batch_y) << std::endl;
+  output.verbose(CALL_INFO, 2, 0, "batch_X %s\n", util.shapestr(batch_X).c_str());
+  output.verbose(CALL_INFO, 2, 0, "batch_y %s\n", util.shapestr(batch_y).c_str());
+
+  // Initiate the forward pass (backward pass included)
+  output.verbose(CALL_INFO, 2, 0, "epoch:%" PRId32 " step:%" PRId32 "\n", epoch, step);
+  forward_o_snd();
+  busy = true;  // lock controller
+  return true;  // disable controller clock
+
+  //TODO This can happen in each trainable layer after it's backward pass finishes.
+  // Optimize (update parameters)
+  // optimizer_->pre_update_params();
+  // for ( NeuronLayer* layer: trainable_layers_) {
+  //   optimizer_->update_params(layer);
+  // }
+  // optimizer_->post_update_params();
+
+  //TODO
+  
 }
 
 void NNBatchController::initValidation()
@@ -185,9 +256,19 @@ void NNBatchController::initValidation()
 
 }
 
+bool NNBatchController::stepValidation()
+{
+  return false;
+}
+
 void NNBatchController::initEvaluation()
 {
   output.verbose(CALL_INFO, 0, 0, "Starting evaluation phase\n");
+}
+
+bool NNBatchController::stepEvaluation()
+{ 
+  return false;
 }
 
 bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
@@ -211,8 +292,8 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
     switch (current_mode) {
       case MODE::TRAINING:
         initTraining();
-        readyToSend = true;
-        busy = true;
+        readyToSend = true; // start sequencing first batch
+        busy = true;        // event handlers deassert this to sequence FSM
         break;
       case MODE::VALIDATION:
         initValidation();
@@ -232,27 +313,11 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
 
   switch (current_mode) {
     case MODE::TRAINING:
-    {
-      assert(epoch <= epochs);
-      if (epoch++ == epochs) {
-        output.verbose(CALL_INFO, 2, 0,
-                    "%s completed training\n",
-                    getName().c_str());
-        busy=false;
-      } else {
-        output.verbose(CALL_INFO, 0, 0,
-                   "%s initiating epoch %" PRId32 "\n",
-                   getName().c_str(), epoch);
-        // Launch batch and disable clocks
-        forward_o_snd();
-        return true;
-      }
-      break;
-    }
+      return stepTraining();
     case MODE::VALIDATION:
-      break;
+      return stepValidation();
     case MODE::EVALUATION:
-      break;
+      return stepEvaluation();
     default:
       assert(false);
   }
