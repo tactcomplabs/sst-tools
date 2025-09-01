@@ -160,6 +160,74 @@ void NNInputLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_
   o = in;
 }
 
+// 
+// Dense Layer
+// 
+void NNDenseLayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+{
+  if (in.size() != o.size())
+    o.resize(in.size());
+  o = in;
+}
+
+void NNDenseLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+{
+  if (in.size() != o.size())
+    o.resize(in.size());
+  o = in;
+}
+
+// 
+// ReLU Activation Layer
+// 
+void NNActivationReLULayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+{
+  if (in.size() != o.size())
+    o.resize(in.size());
+  o = in;
+}
+
+void NNActivationReLULayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+{
+  if (in.size() != o.size())
+    o.resize(in.size());
+  o = in;
+}
+
+// 
+// Softmax Activation Layer
+// 
+void NNActivationSoftmaxLayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+{
+  if (in.size() != o.size())
+    o.resize(in.size());
+  o = in;
+}
+
+void NNActivationSoftmaxLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+{
+  if (in.size() != o.size())
+    o.resize(in.size());
+  o = in;
+}
+
+// 
+// Loss Layer
+// 
+void NNLossLayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+{
+  if (in.size() != o.size())
+    o.resize(in.size());
+  o = in;
+}
+
+void NNLossLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+{
+  if (in.size() != o.size())
+    o.resize(in.size());
+  o = in;
+}
+
 } // namespace SST::NNLayer
 
 // EOF

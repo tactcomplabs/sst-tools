@@ -35,5 +35,9 @@ install(TARGETS neuralnet DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 install(CODE "execute_process(COMMAND sst-register NNBatchController neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 install(CODE "execute_process(COMMAND sst-register NNLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 install(CODE "execute_process(COMMAND sst-register NNInputLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register NNDenseLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register NNActivationReLULayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register NNActivationSoftmaxLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register NNLossLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 
 # EOF

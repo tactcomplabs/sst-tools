@@ -95,14 +95,71 @@ public:
         SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
         "Neural network input layer.",     // Description
         SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
-
   NNInputLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
   ~NNInputLayer() {};
-
   virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
   virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
-
 }; //class NNInputLayer
+
+class NNDenseLayer : public NNSubComponentAPI {
+public:
+  SST_ELI_REGISTER_SUBCOMPONENT(
+        NNDenseLayer,   // Class name
+        "neuralnet",    // Library name
+        "NNDenseLayer",   // Subcomponent name
+        SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
+        "Neural network input layer.",     // Description
+        SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
+  NNDenseLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
+  ~NNDenseLayer() {};
+  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+}; //class NNDenseLayer
+
+class NNActivationReLULayer : public NNSubComponentAPI {
+public:
+  SST_ELI_REGISTER_SUBCOMPONENT(
+        NNActivationReLULayer,   // Class name
+        "neuralnet",    // Library name
+        "NNActivationReLULayer",   // Subcomponent name
+        SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
+        "Neural network input layer.",     // Description
+        SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
+  NNActivationReLULayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
+  ~NNActivationReLULayer() {};
+  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+}; //class NNActivationReLULayer
+
+class NNActivationSoftmaxLayer : public NNSubComponentAPI {
+public:
+  SST_ELI_REGISTER_SUBCOMPONENT(
+        NNActivationSoftmaxLayer,   // Class name
+        "neuralnet",    // Library name
+        "NNActivationSoftmaxLayer",   // Subcomponent name
+        SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
+        "Neural network input layer.",     // Description
+        SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
+  NNActivationSoftmaxLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
+  ~NNActivationSoftmaxLayer() {};
+  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+}; //class NNActivationSoftmaxLayer
+
+class NNLossLayer : public NNSubComponentAPI {
+public:
+  SST_ELI_REGISTER_SUBCOMPONENT(
+        NNLossLayer,   // Class name
+        "neuralnet",    // Library name
+        "NNLossLayer",   // Subcomponent name
+        SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
+        "Neural network input layer.",     // Description
+        SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
+  NNLossLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
+  ~NNLossLayer() {};
+  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+}; //class NNLossLayer
 
 } //namespace SST::NeuralNet
 

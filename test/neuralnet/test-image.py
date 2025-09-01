@@ -53,6 +53,16 @@ softmax = sst.Component("softmax", "neuralnet.NNLayer")
 loss    = sst.Component("loss",    "neuralnet.NNLayer")
 loss.addParams( { "lastComponent" : 1 } )
 
+# Provide necessary customizations
+input.setSubComponent("transfer_function", "neuralnet.NNInputLayer")
+dense1.setSubComponent("transfer_function", "neuralnet.NNDenseLayer")
+relu1.setSubComponent("transfer_function", "neuralnet.NNActivationReLULayer")
+dense2.setSubComponent("transfer_function", "neuralnet.NNDenseLayer")
+relu2.setSubComponent("transfer_function", "neuralnet.NNActivationReLULayer")
+dense3.setSubComponent("transfer_function", "neuralnet.NNDenseLayer")
+softmax.setSubComponent("transfer_function", "neuralnet.NNActivationSoftmaxLayer")
+loss.setSubComponent("transfer_function", "neuralnet.NNLossLayer")
+
 # Ordered lists
 components = []
 forward_links = []
@@ -70,7 +80,6 @@ components.append(loss)
 
 for i in range(len(components)):
   components[i].addParams( { "verbose" : args.verbose } )
-  components[i].setSubComponent("transfer_function", "neuralnet.NNInputLayer")
   if i < len(components)-1:
     forward_links.append(sst.Link(f"F{i}"))
     backward_links.append(sst.Link(f"B{i}"))
