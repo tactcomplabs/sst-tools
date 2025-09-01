@@ -44,24 +44,33 @@ hiddenLayerSize = args.hiddenLayerSize
 
 # Instantiate layers
 input   = sst.Component("input",   "neuralnet.NNLayer")
-dense1  = sst.Component("dense1",  "neuralnet.NNLayer")
-relu1   = sst.Component("relu1",   "neuralnet.NNLayer")
-dense2  = sst.Component("dense2",  "neuralnet.NNLayer")
-relu2   = sst.Component("relu2",   "neuralnet.NNLayer")
-dense3  = sst.Component("dense3",  "neuralnet.NNLayer")
-softmax = sst.Component("softmax", "neuralnet.NNLayer")
-loss    = sst.Component("loss",    "neuralnet.NNLayer")
-loss.addParams( { "lastComponent" : 1 } )
+input.setSubComponent(  "transfer_function", "neuralnet.NNInputLayer")
 
-# Provide necessary customizations
-input.setSubComponent("transfer_function", "neuralnet.NNInputLayer")
-dense1.setSubComponent("transfer_function", "neuralnet.NNDenseLayer")
-relu1.setSubComponent("transfer_function", "neuralnet.NNActivationReLULayer")
-dense2.setSubComponent("transfer_function", "neuralnet.NNDenseLayer")
-relu2.setSubComponent("transfer_function", "neuralnet.NNActivationReLULayer")
-dense3.setSubComponent("transfer_function", "neuralnet.NNDenseLayer")
+# Limit input images to 28 x 28.
+dense1  = sst.Component("dense1",  "neuralnet.NNLayer")
+subd1 = dense1.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
+subd1.addParams( {"nInputs" : 28*28, "nNeurons" : args.hiddenLayerSize} )
+
+relu1   = sst.Component("relu1",   "neuralnet.NNLayer")
+relu1.setSubComponent(  "transfer_function", "neuralnet.NNActivationReLULayer")
+
+dense2  = sst.Component("dense2",  "neuralnet.NNLayer")
+subd2 = dense2.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
+subd2.addParams( {"nInputs" : args.hiddenLayerSize, "nNeurons" : args.hiddenLayerSize} )
+
+relu2   = sst.Component("relu2",   "neuralnet.NNLayer")
+relu2.setSubComponent(  "transfer_function", "neuralnet.NNActivationReLULayer")
+
+dense3  = sst.Component("dense3",  "neuralnet.NNLayer")
+subd3 = dense3.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
+subd3.addParams( {"nInputs" : args.hiddenLayerSize, "nNeurons" : 10} )
+
+softmax = sst.Component("softmax", "neuralnet.NNLayer")
 softmax.setSubComponent("transfer_function", "neuralnet.NNActivationSoftmaxLayer")
-loss.setSubComponent("transfer_function", "neuralnet.NNLossLayer")
+
+loss    = sst.Component("loss",    "neuralnet.NNLayer")
+loss.setSubComponent(   "transfer_function", "neuralnet.NNLossLayer")
+loss.addParams( { "lastComponent" : 1 } )
 
 # Ordered lists
 components = []

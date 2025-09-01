@@ -127,12 +127,15 @@ private:
   EigenImage evalImage = {};
   
   //-- FSMs
-  void initTraining();
+  bool initTraining();  // returns true to disable clocking
   bool stepTraining();
-  void initValidation();
+  bool initValidation();
   bool stepValidation();
-  void initEvaluation();
+  bool initEvaluation();
   bool stepEvaluation();
+
+  //-- Sequences
+  bool launchTrainingStep();
 
   //-- Loss/Accuracy
   AccumulatedData_t accumulatedLoss = {};

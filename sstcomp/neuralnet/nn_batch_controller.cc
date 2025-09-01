@@ -94,6 +94,14 @@ void NNBatchController::setup(){
 
   if (mode_sequence.empty())
     output.fatal(CALL_INFO, -1, "Nothing to do. Please set --trainingImages, --testImages, and/or --evalImage");
+
+  // TODO use SST debug and mask features
+  if (output.getVerboseLevel() >= 1 ) {
+    std::cout << "X" << util.shapestr(trainingImages.data) << "=\n" << HEAD(trainingImages.data) << std::endl;
+    std::cout << "y" << util.shapestr(trainingImages.classes) << "=\n" << HEAD(trainingImages.classes.transpose()) << std::endl;
+    std::cout << "X_test"   << util.shapestr(testImages.data) << "=\n" << HEAD(testImages.data) << std::endl;
+    std::cout << "y_test.T" << util.shapestr(testImages.classes) << ".T=\n" << HEAD(testImages.classes.transpose()) << std::endl;
+  }
  
 }
 
@@ -111,18 +119,14 @@ void NNBatchController::printStatus( Output& out ){
 
 void NNBatchController::forward_o_snd(){
   output.verbose(CALL_INFO,2,0, "%s sending forward pass data\n", getName().c_str());
-  NNEvent *nnev = new NNEvent({1,2,3});
+  NNEvent *nnev = new NNEvent({MODE::TRAINING, batch_X, batch_y});
   linkHandlers.at(PortTypes::forward_o)->send(nnev);
 }
 
 void NNBatchController::backward_i_rcv(SST::Event *ev) {
   NNEvent* nnev = static_cast<NNEvent*>(ev);
-  auto data = nnev->getData();
-  uint64_t sum = 0;
-  for (auto d : data) {
-    sum += d;
-  }
-  output.verbose(CALL_INFO,0,0, "%s Epoch completed. Result=%" PRId64 "\n", 
+  double sum = nnev->payload().X_batch.array().sum();
+  output.verbose(CALL_INFO,0,0, "%s Epoch completed. Result=%f\n", 
                   getName().c_str(), sum);
   readyToSend = true;
   //reregister clock for next batch
@@ -133,12 +137,8 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
 void NNBatchController::monitor_rcv(SST::Event *ev) {
   output.verbose(CALL_INFO,2,0, "%s receiving monitor data\n", getName().c_str());
   NNEvent* nnev = static_cast<NNEvent*>(ev);
-  auto data = nnev->getData();
-  uint64_t sum=0;
-  for ( auto d : data) {
-    sum += d;
-  }
-  output.verbose(CALL_INFO,0,0, "Forward Pass Result=%" PRIu64 "\n",sum);
+  double sum = nnev->payload().X_batch.array().sum();
+  output.verbose(CALL_INFO,0,0, "Forward Pass Result=%f\n",sum);
 
   //TODO this should happen in the TBD loss layer and results sent back over monitor
   // Calculate losses
@@ -151,12 +151,12 @@ void NNBatchController::monitor_rcv(SST::Event *ev) {
   delete(ev);
 }
 
-void NNBatchController::initTraining()
+bool NNBatchController::initTraining()
 {
   output.verbose(CALL_INFO, 0, 0, "Starting training phase\n");
   
   // Initialize epoch counter
-  epoch = 1;
+  epoch = 0;
 
   // Calculate number of steps
   unsigned rows = (unsigned) trainingImages.data.rows();
@@ -174,16 +174,21 @@ void NNBatchController::initTraining()
   output.verbose(CALL_INFO, 1, 0, "X.rows()=%" PRId32 "\n", rows);
   output.verbose(CALL_INFO, 1, 0, "batch_size=%" PRId32 "\n", batch_size);
   output.verbose(CALL_INFO, 1, 0, "train_steps=%" PRId32 "\n", train_steps);
+
+  assert(epochs > 0);
+
+  // first training step
+  return launchTrainingStep();
 }
 
 bool NNBatchController::stepTraining() {
   output.verbose(CALL_INFO, 0, 0, "Advancing training FSM\n");
-  assert(step <= train_steps);
-  if (step++ == train_steps) {
+  assert(step < train_steps);
+  if (++step == train_steps) {
     // Done with steps. Check epoch
     output.verbose(CALL_INFO, 2,0, "Finished epoch\n");
-    assert(epoch <= epochs);
-    if (epoch++ == epochs) {
+    assert(epoch < epochs);
+    if (++epoch == epochs) {
       output.verbose(CALL_INFO, 2, 0, "Completed training\n");
       // Release controller so it can go to next instruction
       busy=false;   // release controller
@@ -194,9 +199,14 @@ bool NNBatchController::stepTraining() {
     accumulatedAccuracy = {};
     accumulatedLoss = {};
     // Reset step counter
-    step = 1;
+    step = 0;
   }
-  // Next step
+  // next step
+  return launchTrainingStep();
+  
+}
+
+bool NNBatchController::launchTrainingStep() {
   // If batch size is not set -
   // train using one step and full dataset
   if (batch_size==0) {
@@ -231,10 +241,9 @@ bool NNBatchController::stepTraining() {
   // optimizer_->post_update_params();
 
   //TODO
-  
 }
 
-void NNBatchController::initValidation()
+bool NNBatchController::initValidation()
 {
   output.verbose(CALL_INFO, 0, 0, "Starting validation phase\n");
 
@@ -253,7 +262,7 @@ void NNBatchController::initValidation()
   output.verbose(CALL_INFO, 1, 0, "X_val.rows()=%" PRId32 "\n", rows);
   output.verbose(CALL_INFO, 1, 0, "batch_size=%" PRId32 "\n", batch_size);
   output.verbose(CALL_INFO, 1, 0, "validation_steps=%" PRId32 "\n", validation_steps);
-
+  return false; // TODO return true
 }
 
 bool NNBatchController::stepValidation()
@@ -261,15 +270,17 @@ bool NNBatchController::stepValidation()
   return false;
 }
 
-void NNBatchController::initEvaluation()
+bool NNBatchController::initEvaluation()
 {
   output.verbose(CALL_INFO, 0, 0, "Starting evaluation phase\n");
+  return false;
 }
 
 bool NNBatchController::stepEvaluation()
 { 
   return false;
 }
+
 
 bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
   // Clocking control should ensure we have something to do.
@@ -291,19 +302,15 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
 
     switch (current_mode) {
       case MODE::TRAINING:
-        initTraining();
-        readyToSend = true; // start sequencing first batch
-        busy = true;        // event handlers deassert this to sequence FSM
-        break;
+        return initTraining();
       case MODE::VALIDATION:
-        initValidation();
-        break;
+        return initValidation();
       case MODE::EVALUATION:
-        initEvaluation();
-        break;
+        return initEvaluation();
       default:
         assert(false);
     }
+    assert(false);
     return false;
   }
 

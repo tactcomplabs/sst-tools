@@ -54,7 +54,7 @@ public:
 
 private:
   // SST handlers
-  SST::Output    output; 
+  SST::Output    sstout; 
   // event handling
   std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
   void forward_i_snd() { assert(false); }
@@ -70,10 +70,10 @@ private:
   void monitor_snd();
   // Internals
   bool lastComponent = false;
-  std::vector<uint64_t> forwardData_i = {};
-  std::vector<uint64_t> forwardData_o = {};
-  std::vector<uint64_t> backwardData_i = {};
-  std::vector<uint64_t> backwardData_o = {};
+  payload_t forwardData_i = {};
+  payload_t forwardData_o = {};
+  payload_t backwardData_i = {};
+  payload_t backwardData_o = {};
 
   // -- SST handlers
   TimeConverter* timeConverter;
@@ -97,8 +97,8 @@ public:
         SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
   NNInputLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
   ~NNInputLayer() {};
-  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
-  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+  virtual void forward(const payload_t& in, payload_t& o) final;
+  virtual void backward(const payload_t& in, payload_t& o) final;
 }; //class NNInputLayer
 
 class NNDenseLayer : public NNSubComponentAPI {
@@ -110,10 +110,40 @@ public:
         SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
         "Neural network input layer.",     // Description
         SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
-  NNDenseLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
+  SST_ELI_DOCUMENT_PARAMS(
+    {"nInputs",             "number of inputs",    "4" },
+    {"nNeurons",            "number of neurons",   "128" },
+    {"weightRegularizerL1", "L1 optimizer for weights", "0" },
+    {"weightRegularizerL2", "L2 optimizer for weights", "0" },
+    {"biasRegularizerL1",   "L1 optimizer for biases",  "0" },
+    {"biasRegularizerL2",   "L2 optimizer for biases",  "0" })
+    
+  NNDenseLayer(ComponentId_t id, Params& params);
   ~NNDenseLayer() {};
-  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
-  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+  virtual void forward(const payload_t& in, payload_t& o) final;
+  virtual void backward(const payload_t& in, payload_t& o) final;
+private:
+  // Configuration
+  unsigned n_inputs = 4;
+  unsigned n_neurons = 128;
+  // regularization (trainable layers only)
+  double weight_regularizer_l1_ = 0;
+  double weight_regularizer_l2_ = 0;
+  double bias_regularizer_l1_ = 0;
+  double bias_regularizer_l2_ = 0;
+  // Weights and Biases
+  const double INITIAL_WEIGHT_SCALING = 0.1;
+  Eigen::MatrixXd weights_ = {};
+  Eigen::RowVectorXd biases_ = {};
+  Eigen::MatrixXd predictions_ = {};
+  // optimizer support  
+  Eigen::MatrixXd weight_momentums = {};    // like weights
+  Eigen::MatrixXd weight_cache = {};        // like weights
+  Eigen::RowVectorXd bias_momentums = {};   // like biases
+  Eigen::RowVectorXd bias_cache = {};       // like biases
+  // derivatives
+  Eigen::MatrixXd dweights_ = {};
+  Eigen::RowVectorXd dbiases_ = {};
 }; //class NNDenseLayer
 
 class NNActivationReLULayer : public NNSubComponentAPI {
@@ -127,8 +157,8 @@ public:
         SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
   NNActivationReLULayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
   ~NNActivationReLULayer() {};
-  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
-  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+  virtual void forward(const payload_t& in, payload_t& o) final;
+  virtual void backward(const payload_t& in, payload_t& o) final;
 }; //class NNActivationReLULayer
 
 class NNActivationSoftmaxLayer : public NNSubComponentAPI {
@@ -142,8 +172,8 @@ public:
         SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
   NNActivationSoftmaxLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
   ~NNActivationSoftmaxLayer() {};
-  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
-  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+  virtual void forward(const payload_t& in, payload_t& o) final;
+  virtual void backward(const payload_t& in, payload_t& o) final;
 }; //class NNActivationSoftmaxLayer
 
 class NNLossLayer : public NNSubComponentAPI {
@@ -157,8 +187,8 @@ public:
         SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
   NNLossLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
   ~NNLossLayer() {};
-  virtual void forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
-  virtual void backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o) final;
+  virtual void forward(const payload_t& in, payload_t& o) final;
+  virtual void backward(const payload_t& in, payload_t& o) final;
 }; //class NNLossLayer
 
 } //namespace SST::NeuralNet

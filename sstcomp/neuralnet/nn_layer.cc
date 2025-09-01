@@ -23,7 +23,7 @@ NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
 
   // parameters
   uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
-  output.init(
+  sstout.init(
     "NNLayer[" + getName() + ":@p:@t]: ",
     Verbosity, 0, SST::Output::STDOUT );
   lastComponent = params.find<bool>("lastComponent", false);
@@ -89,7 +89,6 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
   }
   if (driveMonitor) {
     transfer_function->forward(forwardData_i, forwardData_o);
-    backwardData_i.resize(forwardData_o.size());
     backwardData_i = forwardData_o;
     monitor_snd();
     driveMonitor=false;
@@ -104,7 +103,7 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
 
 void NNLayer::forward_i_rcv(SST::Event *ev){
   NNEvent *nnev = static_cast<NNEvent*>(ev);
-  forwardData_i = nnev->getData();
+  forwardData_i = nnev->payload();
   if (lastComponent) {
     driveMonitor = true;
     driveBackwardPass = true;
@@ -118,7 +117,7 @@ void NNLayer::forward_i_rcv(SST::Event *ev){
 
 void NNLayer::backward_i_rcv(SST::Event *ev){
   NNEvent *nnev = static_cast<NNEvent*>(ev);
-  backwardData_i = nnev->getData();
+  backwardData_i = nnev->payload();
   driveBackwardPass = true;
 
   reregisterClock(timeConverter, clockHandler);
@@ -126,19 +125,19 @@ void NNLayer::backward_i_rcv(SST::Event *ev){
 }
 
 void NNLayer::backward_o_snd() {
-  output.verbose(CALL_INFO,2,0, "%s sending backward pass data\n", getName().c_str());
+  sstout.verbose(CALL_INFO,2,0, "%s sending backward pass data\n", getName().c_str());
   NNEvent* nnev = new NNEvent(backwardData_o);
   linkHandlers.at(PortTypes::backward_o)->send(nnev);
 }
 
 void NNLayer::forward_o_snd(){
-  output.verbose(CALL_INFO,2,0, "%s sending forward pass data\n", getName().c_str());
+  sstout.verbose(CALL_INFO,2,0, "%s sending forward pass data\n", getName().c_str());
   NNEvent* nnev = new NNEvent(forwardData_o);
   linkHandlers.at(PortTypes::forward_o)->send(nnev);
 }
 
 void NNLayer::monitor_snd() {
-  output.verbose(CALL_INFO,2,0, "%s sending monitor data\n", getName().c_str());
+  sstout.verbose(CALL_INFO,2,0, "%s sending monitor data\n", getName().c_str());
   NNEvent* nnev = new NNEvent(forwardData_o);
   linkHandlers.at(PortTypes::monitor)->send(nnev);
 }
@@ -146,85 +145,112 @@ void NNLayer::monitor_snd() {
 // 
 // Input Layer
 // 
-void NNInputLayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+void NNInputLayer::forward(const payload_t& in, payload_t& o)
 {
-  if (in.size() != o.size())
-    o.resize(in.size());
+  output_ = in.X_batch;
   o = in;
 }
 
-void NNInputLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+void NNInputLayer::backward(const payload_t& in, payload_t& o)
 {
-  if (in.size() != o.size())
-    o.resize(in.size());
   o = in;
 }
 
-// 
+//
 // Dense Layer
-// 
-void NNDenseLayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
-{
-  if (in.size() != o.size())
-    o.resize(in.size());
-  o = in;
+//
+
+NNDenseLayer::NNDenseLayer(ComponentId_t id, Params &params) : NNSubComponentAPI(id,params)
+{ 
+  // Configuration
+  n_inputs = params.find<unsigned>("nInputs", "4");
+  n_neurons = params.find<unsigned>("nNeurons", "128");
+
+  std::cout << "### DenseLayer ###" << std::endl;
+  std::cout << "n_inputs=" << n_inputs << std::endl;
+  std::cout << "n_neurons=" << n_neurons << std::endl;
+
+  // Regularization parameters
+  weight_regularizer_l1_ = params.find<double>("weightRegularizerL1", "0");
+  weight_regularizer_l2_ = params.find<double>("weightRegularizerL2", "0");
+  bias_regularizer_l1_ = params.find<double>("biasRegularizerL1", "0");
+  bias_regularizer_l2_ = params.find<double>("biasRegularizerL2", "0");
+
+  // Initialize weights and biases
+  bool normaldist = true;
+  if (normaldist) {
+      util.rand0to1normal(weights_, n_inputs, n_neurons, false);
+      weights_ =  weights_ * INITIAL_WEIGHT_SCALING;
+  } else {
+      util.rand0to1flat(weights_, n_inputs, n_neurons);
+      weights_ = weights_ * INITIAL_WEIGHT_SCALING;
+  }
+  biases_ = Eigen::RowVectorXd(n_neurons) = Eigen::RowVectorXd::Zero(n_neurons);
 }
 
-void NNDenseLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+void NNDenseLayer::forward(const payload_t& in, payload_t& o)
 {
-  if (in.size() != o.size())
-    o.resize(in.size());
+  // save for backpropagation
+  inputs_ = in.X_batch;
+  // Calculate output values from inputs, weights and biases
+  // output_ = inputs_ * weights_;
+  // output_ = output_.rowwise() + biases_;
+
+  std::cout << "### Layer_Dense.forward ###"  << std::endl;
+  std::cout << std::fixed << std::setprecision(7);
+  std::cout << "inputs"  << util.shapestr(inputs_)  << "=\n" << HEAD(inputs_)  << std::endl;
+  std::cout << "weights" << util.shapestr(weights_) << "=\n" << HEAD(weights_) << std::endl;
+  std::cout << "biases"  << util.shapestr(biases_)  << "=\n" << HEAD(biases_)  << std::endl;
+  // std::cout << "output"  << util.shapestr(output_)  << "=\n" << HEAD(output_)  << std::endl;
+
+  // Copy for transferring.
+  o.mode = in.mode;
+  o.X_batch = output_;
+  o.y_batch = in.y_batch;
+
+}
+
+void NNDenseLayer::backward(const payload_t& in, payload_t& o)
+{
   o = in;
 }
 
 // 
 // ReLU Activation Layer
 // 
-void NNActivationReLULayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+void NNActivationReLULayer::forward(const payload_t& in, payload_t& o)
 {
-  if (in.size() != o.size())
-    o.resize(in.size());
   o = in;
 }
 
-void NNActivationReLULayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
 {
-  if (in.size() != o.size())
-    o.resize(in.size());
   o = in;
 }
 
 // 
 // Softmax Activation Layer
 // 
-void NNActivationSoftmaxLayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
 {
-  if (in.size() != o.size())
-    o.resize(in.size());
   o = in;
 }
 
-void NNActivationSoftmaxLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
 {
-  if (in.size() != o.size())
-    o.resize(in.size());
   o = in;
 }
 
 // 
 // Loss Layer
 // 
-void NNLossLayer::forward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+void NNLossLayer::forward(const payload_t& in, payload_t& o)
 {
-  if (in.size() != o.size())
-    o.resize(in.size());
   o = in;
 }
 
-void NNLossLayer::backward(const std::vector<uint64_t>& in, std::vector<uint64_t>& o)
+void NNLossLayer::backward(const payload_t& in, payload_t& o)
 {
-  if (in.size() != o.size())
-    o.resize(in.size());
   o = in;
 }
 

@@ -21,7 +21,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-// -- SST Headers
+// -- External Headers
+#include "EIGEN.h"
 #include "SST.h"
 
 // clang-format on
@@ -37,19 +38,26 @@ const std::map<PortTypes, std::string> PortNames {
   { PortTypes::monitor, "monitor"}
 };
 
+struct payload_t {
+  MODE mode = MODE::INVALID;
+  Eigen::MatrixXd X_batch = {};
+  Eigen::MatrixXi y_batch = {};
+  payload_t() {};
+  payload_t(MODE m, Eigen::MatrixXd X, Eigen::MatrixXi y) :
+    mode(m), X_batch(X), y_batch(y) {}; 
+};
+
 // -------------------------------------------------------
 // NNEvent
 // -------------------------------------------------------
 class NNEvent : public SST::Event{
 public:
   NNEvent() : SST::Event() {}
-  NNEvent(std::vector<uint64_t> d) : SST::Event(), data(d) {}
+  NNEvent(const payload_t& p) : SST::Event(), payload_(p) {}
   virtual ~NNEvent() {}
-  std::vector<uint64_t> const getData() { return data; }
-
+  const payload_t& payload() { return payload_; }
 private:
-  std::vector<uint64_t> data;     ///< NNEvent: data payload
-
+  payload_t payload_;
 }; //class NNEvent
 
 } //namespace SST::NeuralNet
