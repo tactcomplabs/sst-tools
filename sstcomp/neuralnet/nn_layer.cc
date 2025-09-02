@@ -11,6 +11,7 @@
 #include <assert.h>
 #include "nn_layer.h"
 #include "tcldbg.h"
+#include "nn_layer_base.h"
 
 namespace SST::NeuralNet{
 
@@ -36,6 +37,12 @@ NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
   unregisterClock(timeConverter, clockHandler);
 
   // subcomponents
+  if (lastComponent) {
+    loss_function = loadUserSubComponent<NNLossLayerAPI>("loss_function");
+    assert(loss_function);
+    accuracy_function = loadUserSubComponent<NNAccuracyAPI>("accuracy_function");
+    assert(accuracy_function);
+  }
   transfer_function = loadUserSubComponent<NNSubComponentAPI>("transfer_function");
   assert(transfer_function);
 
@@ -88,7 +95,26 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
     driveForwardPass=false;
   }
   if (driveMonitor) {
-    transfer_function->forward(forwardData_i, forwardData_o);
+    // Loss calculation at end of first pass
+    assert(lastComponent);
+    assert(loss_function);
+    payload_t sampleLosses = {};
+    loss_function->forward(forwardData_i, sampleLosses);
+    // sampleLosses.X_batch is sample_losses
+    // sampleLosses.y_batch is y_true
+    Losses losses = loss_function->calculate(sampleLosses.X_batch);
+    // Predictions and accuracy
+    Eigen::MatrixXd predictions = loss_function->predictions(forwardData_i.X_batch);
+    double accuracy = accuracy_function->calculate(predictions, forwardData_i.y_batch);
+
+    std::cout << "### Forward pass result ###" << std::endl;
+    std::cout << std::fixed << std::setprecision(3) 
+      << "acc: " << accuracy
+      << ", loss: "  << losses.total_loss()
+      << " (data_loss: "  << losses.data_loss
+      << ", reg_loss: "  << losses.regularization_loss << ")" << std::endl;
+
+    ///
     backwardData_i = forwardData_o;
     monitor_snd();
     driveMonitor=false;
@@ -147,7 +173,6 @@ void NNLayer::monitor_snd() {
 // 
 void NNInputLayer::forward(const payload_t& in, payload_t& o)
 {
-  output_ = in.X_batch;
   o = in;
 }
 
@@ -165,10 +190,12 @@ NNDenseLayer::NNDenseLayer(ComponentId_t id, Params &params) : NNSubComponentAPI
   // Configuration
   n_inputs = params.find<unsigned>("nInputs", "4");
   n_neurons = params.find<unsigned>("nNeurons", "128");
+  initial_weight_scaling = params.find<double>("initialWeightScaling", 0.1);
 
   std::cout << "### DenseLayer ###" << std::endl;
   std::cout << "n_inputs=" << n_inputs << std::endl;
   std::cout << "n_neurons=" << n_neurons << std::endl;
+  std::cout << "initial_weight_scaling=" << initial_weight_scaling << std::endl;
 
   // Regularization parameters
   weight_regularizer_l1_ = params.find<double>("weightRegularizerL1", "0");
@@ -180,10 +207,10 @@ NNDenseLayer::NNDenseLayer(ComponentId_t id, Params &params) : NNSubComponentAPI
   bool normaldist = true;
   if (normaldist) {
       util.rand0to1normal(weights_, n_inputs, n_neurons, false);
-      weights_ =  weights_ * INITIAL_WEIGHT_SCALING;
+      weights_ =  weights_ * initial_weight_scaling;
   } else {
       util.rand0to1flat(weights_, n_inputs, n_neurons);
-      weights_ = weights_ * INITIAL_WEIGHT_SCALING;
+      weights_ = weights_ * initial_weight_scaling;
   }
   biases_ = Eigen::RowVectorXd(n_neurons) = Eigen::RowVectorXd::Zero(n_neurons);
 }
@@ -193,19 +220,18 @@ void NNDenseLayer::forward(const payload_t& in, payload_t& o)
   // save for backpropagation
   inputs_ = in.X_batch;
   // Calculate output values from inputs, weights and biases
-  // output_ = inputs_ * weights_;
-  // output_ = output_.rowwise() + biases_;
+  o.X_batch = inputs_ * weights_;
+  o.X_batch = o.X_batch.rowwise() + biases_;
 
   std::cout << "### Layer_Dense.forward ###"  << std::endl;
   std::cout << std::fixed << std::setprecision(7);
   std::cout << "inputs"  << util.shapestr(inputs_)  << "=\n" << HEAD(inputs_)  << std::endl;
   std::cout << "weights" << util.shapestr(weights_) << "=\n" << HEAD(weights_) << std::endl;
   std::cout << "biases"  << util.shapestr(biases_)  << "=\n" << HEAD(biases_)  << std::endl;
-  // std::cout << "output"  << util.shapestr(output_)  << "=\n" << HEAD(output_)  << std::endl;
+  std::cout << "output"  << util.shapestr(o.X_batch)  << "=\n" << HEAD(o.X_batch)  << std::endl;
 
-  // Copy for transferring.
+  //Complete paylod
   o.mode = in.mode;
-  o.X_batch = output_;
   o.y_batch = in.y_batch;
 
 }
@@ -220,7 +246,20 @@ void NNDenseLayer::backward(const payload_t& in, payload_t& o)
 // 
 void NNActivationReLULayer::forward(const payload_t& in, payload_t& o)
 {
-  o = in;
+  // save for backpropagation
+  inputs_ = in.X_batch;
+  // Calculation output values from input
+  //# self.output = np.maximum(0,inputs)
+  o.X_batch = in.X_batch.cwiseMax(0.0);
+
+  std::cout << "### ReLU.forward ###" << std::endl;
+  std::cout << "inputs=\n" << HEAD(in.X_batch) << std::endl;
+  std::cout << "output=\n" << HEAD(o.X_batch) << std::endl;
+  std::cout << "################################" << std::endl;
+
+  // complete payload
+  o.mode = in.mode;
+  o.y_batch = in.y_batch;
 }
 
 void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
@@ -233,7 +272,35 @@ void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
 // 
 void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
 {
-  o = in;
+
+  // Remember input values
+  inputs_ = in.X_batch;
+
+  // Get unnormalized probabilities
+  //# exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
+  Eigen::VectorXd row_max = (in.X_batch.rowwise().maxCoeff()).reshaped(in.X_batch.rows(),1); 
+  Eigen::MatrixXd exp_values = (in.X_batch.colwise() - row_max).array().exp();
+
+  // Normalize them for each sample
+  //# probabilities = exp_values / np.sum(exp_values, axis=1, keepdims=True)
+  Eigen::VectorXd row_sum = (exp_values.rowwise().sum()).reshaped(exp_values.rows(), 1);
+  Eigen::MatrixXd probabilities = exp_values.array().colwise() / row_sum.array();
+
+  // Save result
+  o.X_batch = probabilities;
+
+  std::cout << "### Softmax.forward ###" << std::endl;
+  std::cout << std::fixed << std::setprecision(7);
+  std::cout << "inputs=\n" << HEAD(inputs_) << std::endl;
+  // std::cout << "rowmax=\n" << HEAD(row_max) << std::endl;
+  std::cout << "exp_values=\n" << HEAD(exp_values) << std::endl;
+  // std::cout << "row_sum=\n" << HEAD(row_sum) << std::endl;
+  std::cout << "output=\n" << HEAD(o.X_batch) << std::endl;
+  std::cout << "################################" << std::endl;
+
+  // complete payload
+  o.mode = in.mode;
+  o.y_batch = in.y_batch;
 }
 
 void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
@@ -241,17 +308,181 @@ void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
   o = in;
 }
 
+
+//
+// Loss Layer API
+//
+
+NNLossLayerAPI::NNLossLayerAPI(ComponentId_t id, Params &params) : NNSubComponentAPI(id,params)
+{
+  unsigned prediction_type = params.find<unsigned>("weightRegularizerL1", "2");
+  assert(prediction_type <= 2);
+  std::cout << "prediction_type=" << prediction_type << std::endl;
+  prediction_type_ = static_cast<ACTIVATION_TYPE>(prediction_type);
+}
+
+const Losses& NNLossLayerAPI::calculate(Eigen::MatrixXd& sample_losses, REGULARIZATION include_regularization)
+{
+
+  // Calculate the sample losses (called by parent)
+  // Eigen::MatrixXd sample_losses = forward(output, y, debug);
+
+  // Calculate the mean loss
+  double data_loss = sample_losses.mean();
+
+  // Add accumulated sum of losses and sample count
+  accumulated_sum_ += sample_losses.sum();
+  accumulated_count_ += (int) sample_losses.rows();
+
+  std::cout << "### Loss.calculate ###" << std::endl;
+  // std::cout << "output=\n" << HEAD(output) << std::endl;
+  // std::cout << "y=\n" << HEAD(y) << std::endl;
+  std::cout << "sample_losses=\n" << HEAD(sample_losses) << std::endl;
+  std::cout << "data_loss=" << data_loss << std::endl;
+  std::cout << "accumulated_sum=" << accumulated_sum_ << std::endl;
+  std::cout << "accumulated_count=" << accumulated_count_ << std::endl;
+  std::cout << "################################" << std::endl;
+
+  double regularization_loss = 0;
+  if (include_regularization) {
+    assert(false); //TODO
+    // regularization_loss = this->regularization_loss();
+  }
+
+  // Return loss
+  losses_ = {data_loss, regularization_loss};
+  return losses_;
+}
+
+const Losses& NNLossLayerAPI::calculated_accumulated(REGULARIZATION include_regularization)
+{
+  return losses_;
+}
+
+const Eigen::MatrixXd &NNLossLayerAPI::predictions(const Eigen::MatrixXd &outputs)
+{
+    assert(prediction_type_ == ACTIVATION_TYPE::SOFTMAX);
+    util.argmax(predictions_, outputs);
+    return predictions_;
+}
+
 // 
-// Loss Layer
+// NNLoss_CategoricalCrossEntropy
 // 
-void NNLossLayer::forward(const payload_t& in, payload_t& o)
+void NNLoss_CategoricalCrossEntropy::forward(const payload_t& in, payload_t& o)
+{
+  // readability (temporary hopefully)
+  #define y_pred in.X_batch
+  #define y_true in.y_batch
+
+  // Number of samples in a batch
+  auto samples = y_pred.rows();
+  // std::cout << "y_pred=\n" << HEAD(y_pred) << std::endl;
+
+  // Clip data to prevent division by 0
+  // Clip both sides to not drag mean towards any value
+  //# y_pred_clipped = np.clip(y_pred, 1e-7, 1 - 1e-7)
+  Eigen::MatrixXd y_pred_clipped = CLIP(y_pred.array(), 1e-7, 1-1e-7);
+  // std::cout << "y_pred_clipped=\n" << HEAD(y_pred_clipped) << std::endl;
+
+  // Probabilities for target values
+  Eigen::MatrixXd correct_confidences(samples, 1);
+  if (ISVECTOR(y_true)) {
+      // only if categorical labels
+      //# if len(y_true.shape) == 1:
+      //#   correct_confidences = y_pred_clipped[
+      //#       range(samples),
+      //#       y_true
+      //#   ]   
+      for (int i=0; i<samples;i++) {
+        // std::cout << "y_true[" << i << "]=" << y_true[i] << std::endl;
+        correct_confidences(i,0) = y_pred_clipped(i,y_true(i,0));
+      }
+  } else {
+      // Mask values - only for one-hot encoded labels
+      //# elif len(y_true.shape) == 2:
+      //#       correct_confidences = np.sum(
+      //#           y_pred_clipped * y_true,
+      //#           axis=1
+      //#       )
+      assert(false); // path not tested
+  }
+  // std::cout << "correct_confidences=\n" << HEAD(correct_confidences) << std::endl;
+
+  // Losses
+  //# negative_log_likelihoods = -np.log(correct_confidences)
+  negative_log_likelihoods_ = -correct_confidences.array().log();
+
+  // Debug
+  std::cout << "### Loss_CategoricalCrossentropy.forward ###" << std::endl;
+  std::cout << "samples=" << samples << std::endl;
+  std::cout << "y_pred=\n" << HEAD(y_pred) << std::endl;
+  std::cout << "y_pred_clipped=\n" << HEAD(y_pred) << std::endl;
+  std::cout << "y_true=\n" << HEAD(y_true)  << std::endl;
+  std::cout << "correct_confidences=\n" << HEAD(correct_confidences) << std::endl;
+  // std::cout << "correct_confidences.size()=" << correct_confidences.size() << std::endl;
+  std::cout << "negative_log_likelihoods=\n" << HEAD(negative_log_likelihoods_) << std::endl;
+  std::cout << "################################" << std::endl;
+
+  // output payload
+  o.mode = in.mode;
+  o.X_batch = negative_log_likelihoods_;  // sample_losses
+  o.y_batch = in.y_batch; // y_true
+}
+
+void NNLoss_CategoricalCrossEntropy::backward(const payload_t& in, payload_t& o)
 {
   o = in;
 }
 
-void NNLossLayer::backward(const payload_t& in, payload_t& o)
+// 
+// NNAccuracyAPI
+//
+
+double NNAccuracyAPI::calculate(const Eigen::MatrixXd& predictions, const Eigen::MatrixXi& y) {
+  // Get comparison results
+  Eigen::MatrixXd yy = y.cast<double>();
+  Eigen::MatrixX<bool> comparisons = this->compare(predictions, yy);
+  // Calculate an accuracy
+  double accuracy = comparisons.array().cast<double>().mean();
+  // Add accumulated sum of matching values and sample count
+  accumulated_sum_ += comparisons.cast<double>().sum();
+  accumulated_count_ += (double) comparisons.rows(); //TODO change accumulated_count_ to long
+
+  std::cout << "### Accuracy.calculate" << std::endl;
+  std::cout << "predictions=\n" << HEAD(predictions) << std::endl;
+  std::cout << "comparisons=\n" << HEAD(comparisons) << std::endl;
+  std::cout << "accuracy=" << accuracy << std::endl;
+  std::cout << "accumulated_sum=" << accumulated_sum_ << std::endl;
+  std::cout << "accumulated_count=" << accumulated_count_ << std::endl;
+
+  // return accuracy
+  return accuracy;
+}
+
+double NNAccuracyAPI::calculate_accumulated() {
+  double accuracy = accumulated_sum_ / accumulated_count_;
+  return accuracy;
+}
+
+void NNAccuracyAPI::new_pass() {
+  accumulated_sum_ = 0;
+  accumulated_count_ = 0;
+}
+
+// 
+// NNAccuracyCategorical
+//
+
+Eigen::MatrixX<bool>& NNAccuracyCategorical::compare(const Eigen::MatrixXd &predictions, const Eigen::MatrixXd &y)
 {
-  o = in;
+  if (!binary_ && scalar_) {
+    assert(false);
+    // result_ = (predictions.array() == argmax(y).array());
+  } else {
+    result_ =  (predictions.array() == y.array());
+  }
+  return result_;
 }
 
 } // namespace SST::NNLayer

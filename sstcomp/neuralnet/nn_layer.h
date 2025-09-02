@@ -27,7 +27,7 @@
 namespace SST::NeuralNet{
 
 // -------------------------------------------------------
-// NNLayer (registered)
+// NNLayer
 // -------------------------------------------------------
 class NNLayer : public NNLayerBase {
 public:
@@ -86,12 +86,15 @@ private:
 
 };  //class NNLayer
 
+// -------------------------------------------------------
+// NNInputLayer
+// -------------------------------------------------------
 class NNInputLayer : public NNSubComponentAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
         NNInputLayer,   // Class name
         "neuralnet",    // Library name
-        "NNInputLayer",   // Subcomponent name
+        "NNInputLayer",   // Subcomponet name
         SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
         "Neural network input layer.",     // Description
         SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
@@ -101,6 +104,9 @@ public:
   virtual void backward(const payload_t& in, payload_t& o) final;
 }; //class NNInputLayer
 
+// -------------------------------------------------------
+// NNDenseLayer
+// -------------------------------------------------------
 class NNDenseLayer : public NNSubComponentAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
@@ -111,12 +117,14 @@ public:
         "Neural network input layer.",     // Description
         SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
   SST_ELI_DOCUMENT_PARAMS(
-    {"nInputs",             "number of inputs",    "4" },
-    {"nNeurons",            "number of neurons",   "128" },
-    {"weightRegularizerL1", "L1 optimizer for weights", "0" },
-    {"weightRegularizerL2", "L2 optimizer for weights", "0" },
-    {"biasRegularizerL1",   "L1 optimizer for biases",  "0" },
-    {"biasRegularizerL2",   "L2 optimizer for biases",  "0" })
+    {"biasRegularizerL1",    "L1 optimizer for biases",  "0" },
+    {"biasRegularizerL2",    "L2 optimizer for biases",  "0" },
+    {"initialWeightScaling", "scaling factor for random weights", "0.1"},
+    {"nInputs",              "number of inputs",    "4" },
+    {"nNeurons",             "number of neurons",   "128" },
+    {"weightRegularizerL1",  "L1 optimizer for weights", "0" },
+    {"weightRegularizerL2",  "L2 optimizer for weights", "0" },
+  )
     
   NNDenseLayer(ComponentId_t id, Params& params);
   ~NNDenseLayer() {};
@@ -132,7 +140,7 @@ private:
   double bias_regularizer_l1_ = 0;
   double bias_regularizer_l2_ = 0;
   // Weights and Biases
-  const double INITIAL_WEIGHT_SCALING = 0.1;
+  double initial_weight_scaling = 0.1;
   Eigen::MatrixXd weights_ = {};
   Eigen::RowVectorXd biases_ = {};
   Eigen::MatrixXd predictions_ = {};
@@ -146,6 +154,9 @@ private:
   Eigen::RowVectorXd dbiases_ = {};
 }; //class NNDenseLayer
 
+// -------------------------------------------------------
+// NNActivationReLULayer
+// -------------------------------------------------------
 class NNActivationReLULayer : public NNSubComponentAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
@@ -161,6 +172,9 @@ public:
   virtual void backward(const payload_t& in, payload_t& o) final;
 }; //class NNActivationReLULayer
 
+// -------------------------------------------------------
+// NNActivationSoftmaxLayer
+// -------------------------------------------------------
 class NNActivationSoftmaxLayer : public NNSubComponentAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
@@ -176,20 +190,47 @@ public:
   virtual void backward(const payload_t& in, payload_t& o) final;
 }; //class NNActivationSoftmaxLayer
 
-class NNLossLayer : public NNSubComponentAPI {
+// -------------------------------------------------------
+// NNLossLayer
+// -------------------------------------------------------
+class NNLoss_CategoricalCrossEntropy : public NNLossLayerAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
-        NNLossLayer,   // Class name
+        NNLoss_CategoricalCrossEntropy,   // Class name
         "neuralnet",    // Library name
-        "NNLossLayer",   // Subcomponent name
+        "NNLoss_CategoricalCrossEntropy",   // Subcomponent name
         SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
         "Neural network input layer.",     // Description
-        SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
-  NNLossLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
-  ~NNLossLayer() {};
+        SST::NeuralNet::NNLossLayerAPI)    // Fully qualified API name
+  NNLoss_CategoricalCrossEntropy(ComponentId_t id, Params& params) : NNLossLayerAPI(id,params) {};
+  ~NNLoss_CategoricalCrossEntropy() {};
   virtual void forward(const payload_t& in, payload_t& o) final;
   virtual void backward(const payload_t& in, payload_t& o) final;
+private:
+  Eigen::MatrixXd negative_log_likelihoods_ = {};
 }; //class NNLossLayer
+
+// -------------------------------------------------------
+// NNAccuracyCategorical
+// -------------------------------------------------------
+class NNAccuracyCategorical : public NNAccuracyAPI {
+public:
+  SST_ELI_REGISTER_SUBCOMPONENT(
+        NNAccuracyCategorical,   // Class name
+        "neuralnet",             // Library name
+        "NNAccuracyCategorical", // Subcomponet name
+        SST_ELI_ELEMENT_VERSION(1,0,0),
+        "Neural network accuracy subcomponent.",
+        SST::NeuralNet::NNAccuracyCategorical) // Fully qualified API name
+  NNAccuracyCategorical(ComponentId_t id, Params& params) : NNAccuracyAPI(id,params) {};
+  ~NNAccuracyCategorical() {};
+
+  Eigen::MatrixX<bool>& compare(const Eigen::MatrixXd& predictions, const Eigen::MatrixXd& y) final;
+private:
+  const bool binary_=false; //TODO input parameter
+  const bool scalar_=false; //TODO input parameter
+  Eigen::MatrixX<bool> result_ = {};
+}; //class NNAccuracyCategorical
 
 } //namespace SST::NeuralNet
 

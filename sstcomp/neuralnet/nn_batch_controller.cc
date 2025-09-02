@@ -139,15 +139,6 @@ void NNBatchController::monitor_rcv(SST::Event *ev) {
   NNEvent* nnev = static_cast<NNEvent*>(ev);
   double sum = nnev->payload().X_batch.array().sum();
   output.verbose(CALL_INFO,0,0, "Forward Pass Result=%f\n",sum);
-
-  //TODO this should happen in the TBD loss layer and results sent back over monitor
-  // Calculate losses
-  // Losses losses = loss_->calculate(output, batch_y, Loss::REGULARIZATION::NONE, false);
-  // // Get predictions and calculate an accuracy
-  // Eigen::MatrixXd predictions = output_layer_activation_->predictions(output);
-  // double accuracy = accuracy_->calculate(predictions,batch_y, false);
-
-  // don't reregister clock here.
   delete(ev);
 }
 

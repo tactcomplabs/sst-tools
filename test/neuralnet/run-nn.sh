@@ -11,6 +11,7 @@ sst ../test-image.py $SSTOPTS -- \
     --epochs=4 \
     --evalImage="${HOME}/work/image_data/eval/pants.png" \
     --hiddenLayerSize=32 \
+    --initialWeightScaling=0.01 \
     --testImages="${HOME}/work/image_data/fashion_mnist_images/test" \
     --trainingImages="${HOME}/work/image_data/fashion_mnist_images/train" \
     --verbose=2

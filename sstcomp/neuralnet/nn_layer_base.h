@@ -18,8 +18,28 @@
 
 namespace SST::NeuralNet{
 
+  enum REGULARIZATION { NONE, INCL };
+
+  enum class ACTIVATION_TYPE : unsigned  {
+    RELU = 0,
+    SIGMOID = 1,
+    SOFTMAX = 2
+  };
+  
+  struct Losses {
+    double data_loss = 0;
+    double regularization_loss = 0;
+    double total_loss() { return data_loss + regularization_loss; }
+    Losses() {}
+    Losses(double d, double r) : data_loss(d), regularization_loss(r) {}
+    friend std::ostream& operator<<(std::ostream& os, const Losses losses ) {
+      os << "data_loss=" << losses.data_loss << ", regularization_loss=" << losses.regularization_loss;
+      return os;
+    }
+  };
+
 // -------------------------------------------------------
-// NNSubComponentAPI
+// NNSubComponentAPI (not registered)
 // -------------------------------------------------------
 class NNSubComponentAPI : public SST::SubComponent 
 {
@@ -33,11 +53,66 @@ public:
     virtual void backward(const payload_t& in, payload_t& o) = 0;
 
 protected:
-  // Flopped copies of transfered data
+  // Flopped inputs
   Eigen::MatrixXd inputs_ = {};
-  Eigen::MatrixXd output_ = {};
   //-- Helpers
   Eutils util = {};
+};
+
+// -------------------------------------------------------
+// NNLossLayerAPI (not registered)
+// -------------------------------------------------------
+class NNLossLayerAPI : public NNSubComponentAPI 
+{
+public:
+    // Tell SST that this class is a SubComponent API
+    SST_ELI_REGISTER_SUBCOMPONENT_API(SST::NeuralNet::NNLossLayerAPI)
+    SST_ELI_DOCUMENT_PARAMS(
+      {"predictionType",    "Type of previous layer. 0:relu, 1:sigmoid, 2:softmax [default:2]", "2" }
+    )
+
+    NNLossLayerAPI(ComponentId_t id, Params& params);
+    virtual ~NNLossLayerAPI() {}
+
+    // Calculates the data and regularization losses - classification
+    const Losses& calculate( Eigen::MatrixXd& sample_losses, REGULARIZATION include_regularization=NONE);
+    // Calculates accumulated loss
+    const Losses& calculated_accumulated(REGULARIZATION include_regularization=NONE);
+    // Activation type of previous layer determines prediction calculation
+    ACTIVATION_TYPE prediction_type() { return prediction_type_; }
+    // Perform predications
+    const Eigen::MatrixXd& predictions(const Eigen::MatrixXd& outputs);
+
+protected:
+    ACTIVATION_TYPE prediction_type_ = ACTIVATION_TYPE::SOFTMAX;
+    Losses losses_ = {};
+    Losses accumulated_losses_ = {};
+    Eigen::MatrixXd predictions_ = {};
+    double accumulated_sum_ = 0;
+    int accumulated_count_ = 0;
+
+};
+
+// -------------------------------------------------------
+// NNAccuracyAPI (not registered)
+// -------------------------------------------------------
+class NNAccuracyAPI : public SST::SubComponent 
+{
+public:
+    // Tell SST that this class is a SubComponent API
+    SST_ELI_REGISTER_SUBCOMPONENT_API(SST::NeuralNet::NNAccuracyAPI)
+
+    NNAccuracyAPI(ComponentId_t id, Params& params) : SubComponent(id) {}
+    virtual ~NNAccuracyAPI() {}
+    virtual Eigen::MatrixX<bool>& compare(const Eigen::MatrixXd& predictions, const Eigen::MatrixXd& y) = 0;
+    double calculate(const Eigen::MatrixXd& predictions, const Eigen::MatrixXi& y);
+    double calculate_accumulated();
+    void new_pass();
+
+private:
+  double accumulated_sum_ = 0;
+  double accumulated_count_ = 0;
+
 };
 
 // -------------------------------------------------------
@@ -56,12 +131,18 @@ public:
     { "forward_o",  "forward pass output port",  {"neuralnet.NNevent"} },
     { "backward_i", "backward pass input port",  {"neuralnet.NNevent"} },
     { "backward_o", "backward pass output port", {"neuralnet.NNevent"} },
-    { "monitor",     "monitoring port",          {"neuralnet.NNevent"} }
+    { "monitor",    "monitoring port",           {"neuralnet.NNevent"} }
   )
   SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
     { "transfer_function", 
-    "Operations for forward and backward passes",
-    "SST::NeuralNet::NNSubComponentAPI"}
+      "Primary forward and backward pass operations",
+      "SST::NeuralNet::NNSubComponentAPI" },
+    { "loss_function",
+      "Loss calculations for final layer in forward pass",
+      "SST::NeuralNet::NNLossLayerAPI" },
+    { "accuracy_function",
+      "Accuracy functions for final layer in forward pass",
+      "SST::NeuralNet::NNAccuracyAPI" }
   )
 
   explicit NNLayerBase(ComponentId_t id) : SST::Component(id) {}
@@ -69,10 +150,13 @@ public:
   ~NNLayerBase() {}
 
   protected:
-  // Subcomponent pointer
+  // Subcomponent pointers
   NNSubComponentAPI* transfer_function = nullptr;
+  NNLossLayerAPI* loss_function = nullptr;
+  NNAccuracyAPI* accuracy_function = nullptr;
 
-}; // class NNLayerBase
+}; //class NNLayerBase
+
 
 } //namespace SST::NeuralNet
 

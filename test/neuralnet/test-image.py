@@ -19,6 +19,7 @@ parser.add_argument("--classImageLimit", type=int, help="limited the number of i
 parser.add_argument("--epochs", type=int, help="number of training rounds", default=1)
 parser.add_argument("--evalImage", type=str, help="path to a single evaluation image", default="")
 parser.add_argument("--hiddenLayerSize", type=int, help="number of neurons in each hidden layer", default=128)
+parser.add_argument("--initialWeightScaling", type=float, help="scaling factor for random weights", default=0.1)
 parser.add_argument("--testImages", type=str, help="path to test data organized in class subdirectories", default="")
 parser.add_argument("--trainingImages", type=str, help="path to training data organized in class subdirectories", default="")
 parser.add_argument("--verbose", type=int, help="verbosity. 5=send/recv", default=1)
@@ -40,8 +41,6 @@ batch_controller.addParams({
   "verbose" : args.verbose,
 })
 
-hiddenLayerSize = args.hiddenLayerSize
-
 # Instantiate layers
 input   = sst.Component("input",   "neuralnet.NNLayer")
 input.setSubComponent(  "transfer_function", "neuralnet.NNInputLayer")
@@ -50,6 +49,7 @@ input.setSubComponent(  "transfer_function", "neuralnet.NNInputLayer")
 dense1  = sst.Component("dense1",  "neuralnet.NNLayer")
 subd1 = dense1.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
 subd1.addParams( {"nInputs" : 28*28, "nNeurons" : args.hiddenLayerSize} )
+subd1.addParams( {"initialWeightScaling" : args.initialWeightScaling} )
 
 relu1   = sst.Component("relu1",   "neuralnet.NNLayer")
 relu1.setSubComponent(  "transfer_function", "neuralnet.NNActivationReLULayer")
@@ -57,6 +57,7 @@ relu1.setSubComponent(  "transfer_function", "neuralnet.NNActivationReLULayer")
 dense2  = sst.Component("dense2",  "neuralnet.NNLayer")
 subd2 = dense2.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
 subd2.addParams( {"nInputs" : args.hiddenLayerSize, "nNeurons" : args.hiddenLayerSize} )
+subd2.addParams( {"initialWeightScaling" : args.initialWeightScaling} )
 
 relu2   = sst.Component("relu2",   "neuralnet.NNLayer")
 relu2.setSubComponent(  "transfer_function", "neuralnet.NNActivationReLULayer")
@@ -64,12 +65,15 @@ relu2.setSubComponent(  "transfer_function", "neuralnet.NNActivationReLULayer")
 dense3  = sst.Component("dense3",  "neuralnet.NNLayer")
 subd3 = dense3.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
 subd3.addParams( {"nInputs" : args.hiddenLayerSize, "nNeurons" : 10} )
+subd3.addParams( {"initialWeightScaling" : args.initialWeightScaling} )
 
 softmax = sst.Component("softmax", "neuralnet.NNLayer")
 softmax.setSubComponent("transfer_function", "neuralnet.NNActivationSoftmaxLayer")
 
 loss    = sst.Component("loss",    "neuralnet.NNLayer")
-loss.setSubComponent(   "transfer_function", "neuralnet.NNLossLayer")
+loss.setSubComponent( "accuracy_function", "neuralnet.NNAccuracyCategorical")
+loss.setSubComponent( "loss_function", "neuralnet.NNLoss_CategoricalCrossEntropy")
+loss.setSubComponent( "transfer_function", "neuralnet.NNInputLayer")
 loss.addParams( { "lastComponent" : 1 } )
 
 # Ordered lists

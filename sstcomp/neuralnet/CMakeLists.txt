@@ -38,6 +38,7 @@ install(CODE "execute_process(COMMAND sst-register NNInputLayer neuralnet_LIBDIR
 install(CODE "execute_process(COMMAND sst-register NNDenseLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 install(CODE "execute_process(COMMAND sst-register NNActivationReLULayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 install(CODE "execute_process(COMMAND sst-register NNActivationSoftmaxLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
-install(CODE "execute_process(COMMAND sst-register NNLossLayer neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register NNLoss_CategoricalCrossEntropy neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
+install(CODE "execute_process(COMMAND sst-register NNAccuracyCategorical neuralnet_LIBDIR=${CMAKE_CURRENT_SOURCE_DIR})")
 
 # EOF
