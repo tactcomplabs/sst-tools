@@ -40,11 +40,11 @@ const std::map<PortTypes, std::string> PortNames {
 
 struct payload_t {
   MODE mode = MODE::INVALID;
-  Eigen::MatrixXd X_batch = {};
-  Eigen::MatrixXi y_batch = {};
+  Eigen::MatrixXd data = {};
+  Eigen::MatrixXi classes = {};
   payload_t() {};
   payload_t(MODE m, Eigen::MatrixXd X, Eigen::MatrixXi y) :
-    mode(m), X_batch(X), y_batch(y) {}; 
+    mode(m), data(X), classes(y) {}; 
 };
 
 // -------------------------------------------------------

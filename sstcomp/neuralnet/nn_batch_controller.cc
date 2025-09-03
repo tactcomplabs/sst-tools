@@ -125,7 +125,7 @@ void NNBatchController::forward_o_snd(){
 
 void NNBatchController::backward_i_rcv(SST::Event *ev) {
   NNEvent* nnev = static_cast<NNEvent*>(ev);
-  double sum = nnev->payload().X_batch.array().sum();
+  double sum = nnev->payload().data.array().sum();
   output.verbose(CALL_INFO,0,0, "%s Epoch completed. Result=%f\n", 
                   getName().c_str(), sum);
   readyToSend = true;
@@ -137,7 +137,7 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
 void NNBatchController::monitor_rcv(SST::Event *ev) {
   output.verbose(CALL_INFO,2,0, "%s receiving monitor data\n", getName().c_str());
   NNEvent* nnev = static_cast<NNEvent*>(ev);
-  double sum = nnev->payload().X_batch.array().sum();
+  double sum = nnev->payload().data.array().sum();
   output.verbose(CALL_INFO,0,0, "Forward Pass Result=%f\n",sum);
   delete(ev);
 }

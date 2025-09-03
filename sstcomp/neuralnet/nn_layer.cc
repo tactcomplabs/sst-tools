@@ -102,10 +102,10 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
     loss_function->forward(forwardData_i, sampleLosses);
     // sampleLosses.X_batch is sample_losses
     // sampleLosses.y_batch is y_true
-    Losses losses = loss_function->calculate(sampleLosses.X_batch);
+    Losses losses = loss_function->calculate(sampleLosses.data);
     // Predictions and accuracy
-    Eigen::MatrixXd predictions = loss_function->predictions(forwardData_i.X_batch);
-    double accuracy = accuracy_function->calculate(predictions, forwardData_i.y_batch);
+    Eigen::MatrixXd predictions = loss_function->predictions(forwardData_i.data);
+    double accuracy = accuracy_function->calculate(predictions, forwardData_i.classes);
 
     std::cout << "### Forward pass result ###" << std::endl;
     std::cout << std::fixed << std::setprecision(3) 
@@ -221,21 +221,21 @@ NNDenseLayer::NNDenseLayer(ComponentId_t id, Params &params) : NNSubComponentAPI
 void NNDenseLayer::forward(const payload_t& in, payload_t& o)
 {
   // save for backpropagation
-  inputs_ = in.X_batch;
+  inputs_ = in.data;
   // Calculate output values from inputs, weights and biases
-  o.X_batch = inputs_ * weights_;
-  o.X_batch = o.X_batch.rowwise() + biases_;
+  o.data = inputs_ * weights_;
+  o.data = o.data.rowwise() + biases_;
 
   std::cout << "### Layer_Dense.forward ###"  << std::endl;
   std::cout << std::fixed << std::setprecision(7);
   std::cout << "inputs"  << util.shapestr(inputs_)  << "=\n" << HEAD(inputs_)  << std::endl;
   std::cout << "weights" << util.shapestr(weights_) << "=\n" << HEAD(weights_) << std::endl;
   std::cout << "biases"  << util.shapestr(biases_)  << "=\n" << HEAD(biases_)  << std::endl;
-  std::cout << "output"  << util.shapestr(o.X_batch)  << "=\n" << HEAD(o.X_batch)  << std::endl;
+  std::cout << "output"  << util.shapestr(o.data)  << "=\n" << HEAD(o.data)  << std::endl;
 
   //Complete paylod
   o.mode = in.mode;
-  o.y_batch = in.y_batch;
+  o.classes = in.classes;
 
 }
 
@@ -250,19 +250,19 @@ void NNDenseLayer::backward(const payload_t& in, payload_t& o)
 void NNActivationReLULayer::forward(const payload_t& in, payload_t& o)
 {
   // save for backpropagation
-  inputs_ = in.X_batch;
+  inputs_ = in.data;
   // Calculation output values from input
   //# self.output = np.maximum(0,inputs)
-  o.X_batch = in.X_batch.cwiseMax(0.0);
+  o.data = in.data.cwiseMax(0.0);
 
   std::cout << "### ReLU.forward ###" << std::endl;
-  std::cout << "inputs=\n" << HEAD(in.X_batch) << std::endl;
-  std::cout << "output=\n" << HEAD(o.X_batch) << std::endl;
+  std::cout << "inputs=\n" << HEAD(in.data) << std::endl;
+  std::cout << "output=\n" << HEAD(o.data) << std::endl;
   std::cout << "################################" << std::endl;
 
   // complete payload
   o.mode = in.mode;
-  o.y_batch = in.y_batch;
+  o.classes = in.classes;
 }
 
 void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
@@ -289,12 +289,12 @@ void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
 {
 
   // Remember input values
-  inputs_ = in.X_batch;
+  inputs_ = in.data;
 
   // Get unnormalized probabilities
   //# exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
-  Eigen::VectorXd row_max = (in.X_batch.rowwise().maxCoeff()).reshaped(in.X_batch.rows(),1); 
-  Eigen::MatrixXd exp_values = (in.X_batch.colwise() - row_max).array().exp();
+  Eigen::VectorXd row_max = (in.data.rowwise().maxCoeff()).reshaped(in.data.rows(),1); 
+  Eigen::MatrixXd exp_values = (in.data.colwise() - row_max).array().exp();
 
   // Normalize them for each sample
   //# probabilities = exp_values / np.sum(exp_values, axis=1, keepdims=True)
@@ -302,7 +302,7 @@ void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
   Eigen::MatrixXd probabilities = exp_values.array().colwise() / row_sum.array();
 
   // Save result
-  o.X_batch = probabilities;
+  o.data = probabilities;
 
   std::cout << "### Softmax.forward ###" << std::endl;
   std::cout << std::fixed << std::setprecision(7);
@@ -310,12 +310,12 @@ void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
   // std::cout << "rowmax=\n" << HEAD(row_max) << std::endl;
   std::cout << "exp_values=\n" << HEAD(exp_values) << std::endl;
   // std::cout << "row_sum=\n" << HEAD(row_sum) << std::endl;
-  std::cout << "output=\n" << HEAD(o.X_batch) << std::endl;
+  std::cout << "output=\n" << HEAD(o.data) << std::endl;
   std::cout << "################################" << std::endl;
 
   // complete payload
   o.mode = in.mode;
-  o.y_batch = in.y_batch;
+  o.classes = in.classes;
 }
 
 void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
@@ -323,8 +323,8 @@ void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
   assert(loss_type_==LOSS_TYPE::CATEGORICAL_CROSS_ENTROPY);
   // Using optimized combined loss and software backward pass function
 
-  Eigen::MatrixXd dvalues = in.X_batch; // TODO remove these deep copies.
-  Eigen::MatrixXi y_true = in.y_batch;
+  Eigen::MatrixXd dvalues = in.data; // TODO remove these deep copies.
+  Eigen::MatrixXi y_true = in.classes;
 
   // Number of samples
   auto samples = dvalues.rows();
@@ -412,9 +412,9 @@ const Eigen::MatrixXd &NNLossLayerAPI::predictions(const Eigen::MatrixXd &output
 // 
 void NNLoss_CategoricalCrossEntropy::forward(const payload_t& in, payload_t& o)
 {
-  // readability (temporary hopefully)
-  #define y_pred in.X_batch
-  #define y_true in.y_batch
+  // TODO remove these deep copies
+  Eigen::MatrixXd y_pred = in.data;
+  Eigen::MatrixXi y_true = in.classes;
 
   // Number of samples in a batch
   auto samples = y_pred.rows();
@@ -467,8 +467,8 @@ void NNLoss_CategoricalCrossEntropy::forward(const payload_t& in, payload_t& o)
 
   // output payload
   o.mode = in.mode;
-  o.X_batch = negative_log_likelihoods_;  // sample_losses
-  o.y_batch = in.y_batch; // y_true
+  o.data = negative_log_likelihoods_;  // sample_losses
+  o.classes = in.classes; // y_true
 }
 
 void NNLoss_CategoricalCrossEntropy::backward(const payload_t& in, payload_t& o)
