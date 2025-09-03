@@ -241,7 +241,76 @@ void NNDenseLayer::forward(const payload_t& in, payload_t& o)
 
 void NNDenseLayer::backward(const payload_t& in, payload_t& o)
 {
-  o = in;
+  Eigen::MatrixXd dvalues = in.data; // TODO remove deep copy
+
+  std::cout << "### Layer_Dense.backward ###" << std::endl;
+  std::cout << std::fixed << std::setprecision(7);
+  std::cout << "dvalues.shape=" <<  util.shapestr(dvalues) << std::endl;
+  std::cout << "dvalues.h=\n" << HEAD(dvalues.array()) << std::endl;
+  std::cout << "dvalues.t=\n" << TAIL(dvalues.array()) << std::endl;
+
+  // Gradients on parameters
+  //# self.dweights = self.inputs.T @ dvalues
+  dweights_ = inputs_.transpose() * dvalues;
+  // # self.dbiases = np.sum(dvalues, axis=0, keepdims=True)
+  dbiases_ = dvalues.colwise().sum(); // .reshaped(1, dvalues.cols());
+
+  std::cout << std::scientific << std::setprecision(7)
+            << "dweights(0)=\n" << HEAD(dweights_.array()) 
+            << "\ndbiases(0)=\n" << HEAD(dbiases_.array()) << std::endl;
+
+  // Gradients on regularization
+  // L1 on weights
+  if (weight_regularizer_l1_ > 0) {
+    //# dL1 = np.ones_like(self.weights)
+    Eigen::MatrixXd dL1 = Eigen::MatrixXd::Ones(weights_.rows(), weights_.cols());
+    //# dL1[self.weights < 0] = -1
+    dL1 = (weights_.array() < 0).select(-1, dL1.array());
+    //# self.dweights += self.weight_regularizer_l1 * dL1
+    dweights_ = dweights_.array() + weight_regularizer_l1_ * dL1.array();
+
+    std::cout << "dL1=\n" << HEAD(dL1.array()) << std::endl;
+    std::cout << "dweights(l1)=\n" << HEAD(dweights_.array()) << std::endl;
+  }
+  // L2 on weights
+  if (weight_regularizer_l2_ > 0) {
+    //# self.dweights += 2 * self.weight_regularizer_l2 * self.weights
+    dweights_ += 2 * weight_regularizer_l2_ * weights_;
+  }
+  // L1 on biases
+  if (bias_regularizer_l1_ > 0) {
+    //# dL1 = np.ones_like(self.biases)
+    Eigen::MatrixXd dL1 = Eigen::MatrixXd::Ones(biases_.rows(), biases_.cols());
+    //# dL1[self.biases < 0] = -1
+    dL1 = (biases_.array() < 0).select(-1, dL1.array());
+    //# self.dbiases += self.bias_regularizer_l1 * dL1
+    dbiases_ += bias_regularizer_l1_ * dL1;
+  }
+  // L2 on biases
+  if (bias_regularizer_l2_ > 0) {
+    //# self.dbiases += 2 * self.bias_regularizer_l2 * self.biases
+    dbiases_ += 2.0 * bias_regularizer_l2_ * biases_;
+  }
+
+  // Gradient on values
+  //# self.dinputs = dvalues @ self.weights.T
+  dinputs_ = dvalues * weights_.transpose();
+
+  std::cout << "weights=\n"  << HEAD(weights_.array())  << std::endl;
+  std::cout << "biases=\n"   << HEAD(biases_.array())   << std::endl;
+  std::cout << "dweights=\n" << HEAD(dweights_.array()) << std::endl;
+  std::cout << "dbiases=\n"  << HEAD(dbiases_.array())  << std::endl;
+  if (weight_regularizer_l1_>0) std::cout << "weight_regularizer_l1_=" << weight_regularizer_l1_ << std::endl;
+  if (weight_regularizer_l2_>0) std::cout << "weight_regularizer_l2_=" << weight_regularizer_l2_ << std::endl;
+  if (bias_regularizer_l1_>0) std::cout << "bias_regularizer_l1=" << bias_regularizer_l1_ << std::endl;
+  if (bias_regularizer_l2_>0) std::cout << "bias_regularizer_l2=" << bias_regularizer_l2_ << std::endl;
+  std::cout << "################################" << std::endl;
+
+  // complete payload
+  o.mode = in.mode;
+  o.data = dinputs_;
+  o.classes = in.classes;
+
 }
 
 // 
@@ -267,7 +336,26 @@ void NNActivationReLULayer::forward(const payload_t& in, payload_t& o)
 
 void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
 {
-  o = in;
+  // Internal copy
+  dinputs_ = in.data;
+  // Zero gradient where input values were negative
+  //# self.dinputs[self.inputs <= 0] = 0
+  Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic> mask = (inputs_.array() <= 0).cast<bool>();
+  Eigen::MatrixXd zeros(inputs_.rows(), inputs_.cols());
+  zeros.setZero();
+  dinputs_ = mask.select(zeros.array(), dinputs_);
+
+  std::cout << "### ReLU.backward ###" << std::endl;
+  std::cout << std::scientific << std::setprecision(7)
+    << "inputs=\n"  << HEAD(inputs_)
+    << "\ndvalues=\n"  << HEAD(in.data)
+    << "\ndinputs=\n" << HEAD(dinputs_)
+    << "\n################################" << std::endl;
+
+  // Complete payload
+  o.mode = in.mode;
+  o.data = dinputs_;
+  o.classes = in.classes;
 }
 
 // 
@@ -348,6 +436,11 @@ void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
   // Normalize gradient
   // # self.dinputs = self.dinputs / samples
   dinputs_ = dinputs_.array() / samples;
+
+  // Complete payload
+  o.mode = in.mode;
+  o.data = dinputs_;
+  o.classes = in.classes;
 }
 
 //
