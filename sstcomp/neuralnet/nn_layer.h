@@ -74,6 +74,7 @@ private:
   payload_t forwardData_o = {};
   payload_t backwardData_i = {};
   payload_t backwardData_o = {};
+  payload_t monitorData_o = {};
 
   // -- SST handlers
   TimeConverter* timeConverter;
@@ -165,7 +166,8 @@ public:
         "NNActivationReLULayer",   // Subcomponent name
         SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
         "Neural network input layer.",     // Description
-        SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
+        SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name  
+
   NNActivationReLULayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
   ~NNActivationReLULayer() {};
   virtual void forward(const payload_t& in, payload_t& o) final;
@@ -178,16 +180,27 @@ public:
 class NNActivationSoftmaxLayer : public NNSubComponentAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
-        NNActivationSoftmaxLayer,   // Class name
-        "neuralnet",    // Library name
-        "NNActivationSoftmaxLayer",   // Subcomponent name
-        SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
-        "Neural network input layer.",     // Description
-        SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
-  NNActivationSoftmaxLayer(ComponentId_t id, Params& params) : NNSubComponentAPI(id,params) {};
+    NNActivationSoftmaxLayer,          // Class name
+    "neuralnet",                       // Library name
+    "NNActivationSoftmaxLayer",        // Subcomponent name
+    SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
+    "Neural network input layer.",     // Description
+    SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
+  SST_ELI_DOCUMENT_PARAMS({ 
+    "lossType",
+    "Next layer loss type. 0:MeanSquaredError 1:BinaryCrossEntroy 2:CategoricalCrossEntropy [2]",
+    "2" })
+
+  NNActivationSoftmaxLayer(ComponentId_t id, Params& params);
   ~NNActivationSoftmaxLayer() {};
   virtual void forward(const payload_t& in, payload_t& o) final;
   virtual void backward(const payload_t& in, payload_t& o) final;
+
+  LOSS_TYPE loss_type() { return loss_type_; }
+
+private:
+  LOSS_TYPE loss_type_ = LOSS_TYPE::CATEGORICAL_CROSS_ENTROPY;
+
 }; //class NNActivationSoftmaxLayer
 
 // -------------------------------------------------------
@@ -196,9 +209,9 @@ public:
 class NNLoss_CategoricalCrossEntropy : public NNLossLayerAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
-        NNLoss_CategoricalCrossEntropy,   // Class name
-        "neuralnet",    // Library name
-        "NNLoss_CategoricalCrossEntropy",   // Subcomponent name
+        NNLoss_CategoricalCrossEntropy,    // Class name
+        "neuralnet",                       // Library name
+        "NNLoss_CategoricalCrossEntropy",  // Subcomponent name
         SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
         "Neural network input layer.",     // Description
         SST::NeuralNet::NNLossLayerAPI)    // Fully qualified API name
@@ -207,7 +220,7 @@ public:
   virtual void forward(const payload_t& in, payload_t& o) final;
   virtual void backward(const payload_t& in, payload_t& o) final;
 private:
-  Eigen::MatrixXd negative_log_likelihoods_ = {};
+  Eigen::MatrixXd negative_log_likelihoods_ = {}; // TODO remove
 }; //class NNLossLayer
 
 // -------------------------------------------------------

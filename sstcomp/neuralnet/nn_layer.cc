@@ -114,10 +114,13 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
       << " (data_loss: "  << losses.data_loss
       << ", reg_loss: "  << losses.regularization_loss << ")" << std::endl;
 
-    ///
-    backwardData_i = forwardData_o;
+    /// TODO send loss/accuracy info for printing at end of step
+    monitorData_o = forwardData_i;  // garbage
     monitor_snd();
     driveMonitor=false;
+    // set up backward pass.
+    assert(driveBackwardPass);
+    backwardData_i = forwardData_i; // start backward pass.
   }
   if (driveBackwardPass) {
     transfer_function->backward(backwardData_i, backwardData_o);
@@ -200,8 +203,8 @@ NNDenseLayer::NNDenseLayer(ComponentId_t id, Params &params) : NNSubComponentAPI
   // Regularization parameters
   weight_regularizer_l1_ = params.find<double>("weightRegularizerL1", "0");
   weight_regularizer_l2_ = params.find<double>("weightRegularizerL2", "0");
-  bias_regularizer_l1_ = params.find<double>("biasRegularizerL1", "0");
-  bias_regularizer_l2_ = params.find<double>("biasRegularizerL2", "0");
+  bias_regularizer_l1_   = params.find<double>("biasRegularizerL1", "0");
+  bias_regularizer_l2_   = params.find<double>("biasRegularizerL2", "0");
 
   // Initialize weights and biases
   bool normaldist = true;
@@ -270,6 +273,18 @@ void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
 // 
 // Softmax Activation Layer
 // 
+
+NNActivationSoftmaxLayer::NNActivationSoftmaxLayer(ComponentId_t id, Params& params)
+  : NNSubComponentAPI(id,params) 
+{
+  unsigned loss_type = params.find<unsigned>("lossType", 2);
+  assert(loss_type<=2);
+  loss_type_ = static_cast<LOSS_TYPE>(loss_type);
+
+  // only the combined software/crossentropy backward pass support for now
+  assert(loss_type_==LOSS_TYPE::CATEGORICAL_CROSS_ENTROPY);
+};
+
 void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
 {
 
@@ -305,9 +320,35 @@ void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
 
 void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
 {
-  o = in;
-}
+  assert(loss_type_==LOSS_TYPE::CATEGORICAL_CROSS_ENTROPY);
+  // Using optimized combined loss and software backward pass function
 
+  Eigen::MatrixXd dvalues = in.X_batch; // TODO remove these deep copies.
+  Eigen::MatrixXi y_true = in.y_batch;
+
+  // Number of samples
+  auto samples = dvalues.rows();
+
+  // If labels are one-hot encoded, turn them into discrete values
+  if (!ISVECTOR(y_true)){
+      // # y_true = np.argmax(y_true, axis=1)
+      assert(false);
+  }
+
+  // Copy so we can safely modify
+  dinputs_ = dvalues; // Eigen default deep copy
+  // Calculate gradient
+  // # self.dinputs[range(samples), y_true] -= 1
+  for (int i = 0; i < samples; i++)
+  {
+      double v = dinputs_(i, y_true(i));
+      dinputs_(i, y_true(i)) = v - 1;
+  }
+
+  // Normalize gradient
+  // # self.dinputs = self.dinputs / samples
+  dinputs_ = dinputs_.array() / samples;
+}
 
 //
 // Loss Layer API
