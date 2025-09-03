@@ -110,6 +110,8 @@ public:
 // -------------------------------------------------------
 class NNDenseLayer : public NNSubComponentAPI {
 public:
+  friend class NNAdamOptimizer;
+
   SST_ELI_REGISTER_SUBCOMPONENT(
     NNDenseLayer,   // Class name
     "neuralnet",    // Library name
@@ -126,11 +128,12 @@ public:
     {"weightRegularizerL1",  "L1 optimizer for weights", "0" },
     {"weightRegularizerL2",  "L2 optimizer for weights", "0" },
   )
-    
+
   NNDenseLayer(ComponentId_t id, Params& params);
   ~NNDenseLayer() {};
   virtual void forward(const payload_t& in, payload_t& o) final;
   virtual void backward(const payload_t& in, payload_t& o) final;
+  void enable_weight_cache();
 private:
   // Configuration
   unsigned n_inputs = 4;
@@ -150,9 +153,11 @@ private:
   Eigen::MatrixXd weight_cache = {};        // like weights
   Eigen::RowVectorXd bias_momentums = {};   // like biases
   Eigen::RowVectorXd bias_cache = {};       // like biases
+  bool has_weight_cache = false;
   // derivatives
   Eigen::MatrixXd dweights_ = {};
   Eigen::RowVectorXd dbiases_ = {};
+
 }; //class NNDenseLayer
 
 // -------------------------------------------------------
@@ -261,17 +266,17 @@ public:
     SST::NeuralNet::NNAdamOptimizer
   )
   SST_ELI_DOCUMENT_PARAMS(
-    {"decay",   "Optimizer Learning Rate",  "0.0" },
-    {"epsilon", "Optimizer Learning Rate",  "1e-7" },
-    {"beta_1",  "Optimizer Learning Rate",  "0.9" },
-    {"beta_2",  "Optimizer Learning Rate",  "0.999" },
+    {"decay",   "",  "0.0" },
+    {"epsilon", "",  "1e-7" },
+    {"beta_1",  "",  "0.9" },
+    {"beta_2",  "",  "0.999" },
   )
         
   NNAdamOptimizer(ComponentId_t id, Params& params);
   ~NNAdamOptimizer() {};
 
   void pre_update_params() final;
-  void update_params(NNDenseLayer* layer) final;
+  void update_params(NNDenseLayer* layer, const optimizer_data_t& opt) final;
   void post_update_params() final;
 
 private:
@@ -279,7 +284,6 @@ private:
   double epsilon_ = 1e-7; 
   double beta_1_ = 0.9;
   double beta_2_ = 0.999;
-  int iterations_ = 0;
 
 }; //class NNAccuracyCategorical
 

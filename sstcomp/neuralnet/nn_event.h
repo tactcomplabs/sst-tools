@@ -50,6 +50,14 @@ struct optimizer_data_t {
   // shadow version of common optimizer members
   double current_learning_rate = 0.;
   unsigned iterations = 0;
+  optimizer_data_t() : 
+    optimizerState(OPTIMIZER_STATE::INVALID),
+    current_learning_rate(0), 
+    iterations(0) {}
+  optimizer_data_t(OPTIMIZER_STATE state, double lr, unsigned iter) :
+    optimizerState(state),
+    current_learning_rate(lr), 
+    iterations(iter) {}
 };
 
 struct payload_t {

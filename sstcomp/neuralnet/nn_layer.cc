@@ -134,11 +134,16 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
         if (backwardData_o.optimizer_data.optimizerState == OPTIMIZER_STATE::PRE_UPDATE) {
           std::cout << "optimizer.preupdate" << std::endl;
           optimizer->pre_update_params();
-          backwardData_o.optimizer_data.optimizerState = OPTIMIZER_STATE::ACTIVE;
-        };
-        assert(backwardData_o.optimizer_data.optimizerState == OPTIMIZER_STATE::ACTIVE);
-        std::cout << "optimizer.update" << std::endl;
-        optimizer->update_params(dynamic_cast<NNDenseLayer*>(this));
+          backwardData_o.optimizer_data = { 
+            OPTIMIZER_STATE::ACTIVE, 
+            optimizer->current_learning_rate(),
+            optimizer->iterations() };
+          optimizer->post_update_params();
+        } else {
+          assert(backwardData_o.optimizer_data.optimizerState == OPTIMIZER_STATE::ACTIVE);
+          std::cout << "optimizer.update" << std::endl;
+          optimizer->update_params(static_cast<NNDenseLayer*>(transfer_function), backwardData_o.optimizer_data );
+        }
     }
     // drive output
     backward_o_snd();
@@ -328,6 +333,14 @@ void NNDenseLayer::backward(const payload_t& in, payload_t& o)
   o.data = dinputs_;
   o.classes = in.classes;
   o.optimizer_data = in.optimizer_data;
+}
+
+void NNDenseLayer::enable_weight_cache() {
+    weight_momentums = Eigen::MatrixXd::Zero(weights_.rows(), weights_.cols());
+    weight_cache = Eigen::MatrixXd::Zero(weights_.rows(), weights_.cols());
+    bias_momentums = Eigen::RowVectorXd::Zero(biases_.rows(), biases_.cols());
+    bias_cache = Eigen::RowVectorXd::Zero(biases_.rows(), biases_.cols());
+    has_weight_cache = true;
 }
 
 // 
@@ -653,10 +666,10 @@ NNOptimizerAPI::NNOptimizerAPI(ComponentId_t id, Params &params)
 //
 NNAdamOptimizer::NNAdamOptimizer(ComponentId_t id, Params &params) : NNOptimizerAPI(id,params)
 {
-  decay_   = params.find<double>("decay_", "0");
-  epsilon_ = params.find<double>("epsilon_", "1e-7");
-  beta_1_  = params.find<double>("beta_1_", "0.9");
-  beta_2_  = params.find<double>("beta_2_", "0.999");
+  decay_   = params.find<double>("decay", "0");
+  epsilon_ = params.find<double>("epsilon", "1e-7");
+  beta_1_  = params.find<double>("beta_1", "0.9");
+  beta_2_  = params.find<double>("beta_2", "0.999");
 }
 
 void NNAdamOptimizer::pre_update_params() {
@@ -665,12 +678,86 @@ void NNAdamOptimizer::pre_update_params() {
   }
 }
 
-void NNAdamOptimizer::update_params(NNDenseLayer *layer)
-{
+void NNAdamOptimizer::update_params(NNDenseLayer *layer, const optimizer_data_t& opt) {
+
+  assert(layer);
+
+  // Unlike the centralized optimizer in the functional model, 
+  // the current learning rate and iterations must be passed in from the backward pass information
+  current_learning_rate_ = opt.current_learning_rate;
+  iterations_ = opt.iterations;
+  assert(opt.optimizerState == OPTIMIZER_STATE::ACTIVE);
+
+  // If layer does not contain cache arrays, create them filled with zeros
+  if (! layer->has_weight_cache)
+      layer->enable_weight_cache();
+
+  std::cout << "### Optimizer_Adam.update_params ###" << std::endl;
+  std::cout << "beta_1=" << beta_1_ << std::endl;
+  std::cout << "weight_momentums(i)=\n" << HEAD(layer->weight_momentums) << std::endl;
+  std::cout << "bias_momentums(i)=\n" << HEAD(layer->bias_momentums) << std::endl;
+
+  // Update momentum  with current gradients
+  layer->weight_momentums = beta_1_ * layer->weight_momentums.array()
+                  + ( 1. - beta_1_) * layer->dweights_.array();
+  layer->bias_momentums = beta_1_ * layer->bias_momentums.array()
+                  + ( 1. - beta_1_) * layer->dbiases_.array();
+
+  std::cout << "weight_momentums(f)=\n" << HEAD(layer->weight_momentums) << std::endl;
+  std::cout << "bias_momentums(f)=\n" << HEAD(layer->bias_momentums) << std::endl;
+
+  // Get corrected momentum
+  // iteration is 0 at first pass and we need to start with 1 here
+  Eigen::MatrixXd weight_momentums_corrected = 
+      layer->weight_momentums.array() / ( 1. - pow(beta_1_ ,(iterations_ + 1.)) );
+  Eigen::MatrixXd bias_momentums_corrected = 
+      layer->bias_momentums.array() / ( 1. - pow(beta_1_ ,(iterations_ + 1.)) );
+
+  std::cout << "iterations=" << iterations_ << std::endl;
+  std::cout << "weight_momentums_corrected=\n" << HEAD(weight_momentums_corrected) << std::endl;
+  std::cout << "bias_momentums_corrected=\n" << HEAD(bias_momentums_corrected) << std::endl;
+  std::cout << "beta_2=" << beta_2_ << std::endl;
+  std::cout << "weight_cache(i)=\n" << HEAD(layer->weight_cache) << std::endl;
+  std::cout << "bias_cache(i)=\n" << HEAD(layer->bias_cache) << std::endl;
+
+  // Update cache with squared current gradients
+  layer->weight_cache = beta_2_ * layer->weight_cache.array() + 
+      (1 - beta_2_) * layer->dweights_.array().pow(2);
+  layer->bias_cache = beta_2_ * layer->bias_cache.array() + 
+      (1 - beta_2_) * layer->dbiases_.array().pow(2);
+
+  std::cout << "weight_cache(f)=\n" << HEAD(layer->weight_cache) << std::endl;
+  std::cout << "bias_cache(f)=\n" << HEAD(layer->bias_cache) << std::endl;   
+
+  // Get correct cache
+  Eigen::MatrixXd weight_cache_corrected = layer->weight_cache /
+          (1 - pow(beta_2_, (iterations_ + 1)));
+  Eigen::MatrixXd bias_cache_corrected = layer->bias_cache /
+          (1 - pow(beta_2_, (iterations_ + 1)));
+
+  std::cout << "weight_cache_corrected=\n" << HEAD(weight_cache_corrected) << std::endl;
+  std::cout << "bias_cache_corrected=\n" << HEAD(bias_cache_corrected) << std::endl;   
+  std::cout << "current_learning_rate" << current_learning_rate_ << std::endl;
+  std::cout << "weights_(i)=\n" << HEAD(layer->weights_) << std::endl;
+  std::cout << "biases(i)=\n" << HEAD(layer->biases_) << std::endl;   
+
+  // Vanilla SGD parameter update + normalization
+  // with square rooted cache
+  layer->weights_ = layer->weights_.array() - current_learning_rate_ *
+                      weight_momentums_corrected.array() /
+                      (weight_cache_corrected.array().sqrt() + epsilon_);
+  layer->biases_ = layer->biases_.array() - current_learning_rate_ *
+                      bias_momentums_corrected.array() /
+                      (bias_cache_corrected.array().sqrt()+
+                      epsilon_);
+
+  std::cout << "weights_(f)=\n" << HEAD(layer->weights_) << std::endl;
+  std::cout << "biases(f)=\n" << HEAD(layer->biases_) << std::endl;
+
 }
 
 void NNAdamOptimizer::post_update_params() {
-  
+  iterations_++;
 }
 
 } // namespace SST::NNLayer

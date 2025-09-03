@@ -5,7 +5,7 @@
 #
 # See LICENSE in the top level directory for licensing details
 #
-# dbgcli-test1.py
+# test-image.py
 #
 
 import argparse
@@ -41,6 +41,15 @@ batch_controller.addParams({
   "verbose" : args.verbose,
 })
 
+# Optimizer parameters
+optimizer_params = {
+  "learningRate" : 0.001,
+  "decay" : 1e-3,
+  "epsilon" : 1e-7,
+  "beta_1" : 0.9,
+  "beta_2" : 0.999
+ }
+
 # Instantiate layers
 input   = sst.Component("input",   "neuralnet.NNLayer")
 input.setSubComponent(  "transfer_function", "neuralnet.NNInputLayer")
@@ -51,6 +60,7 @@ subd1 = dense1.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
 subd1.addParams( {"nInputs" : 28*28, "nNeurons" : args.hiddenLayerSize} )
 subd1.addParams( {"initialWeightScaling" : args.initialWeightScaling} )
 subd1Opt = dense1.setSubComponent( "optimizer", "neuralnet.NNAdamOptimizer")
+subd1Opt.addParams( optimizer_params )
 
 relu1   = sst.Component("relu1",   "neuralnet.NNLayer")
 relu1.setSubComponent(  "transfer_function", "neuralnet.NNActivationReLULayer")
@@ -60,6 +70,7 @@ subd2 = dense2.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
 subd2.addParams( {"nInputs" : args.hiddenLayerSize, "nNeurons" : args.hiddenLayerSize} )
 subd2.addParams( {"initialWeightScaling" : args.initialWeightScaling} )
 subd2Opt = dense2.setSubComponent( "optimizer", "neuralnet.NNAdamOptimizer")
+subd2Opt.addParams( optimizer_params )
 
 relu2   = sst.Component("relu2",   "neuralnet.NNLayer")
 relu2.setSubComponent(  "transfer_function", "neuralnet.NNActivationReLULayer")
@@ -69,15 +80,18 @@ subd3 = dense3.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
 subd3.addParams( {"nInputs" : args.hiddenLayerSize, "nNeurons" : 10} )
 subd3.addParams( {"initialWeightScaling" : args.initialWeightScaling} )
 subd3Opt = dense3.setSubComponent( "optimizer", "neuralnet.NNAdamOptimizer")
+subd3Opt.addParams( optimizer_params )
 
 softmax = sst.Component("softmax", "neuralnet.NNLayer")
 softmax.setSubComponent("transfer_function", "neuralnet.NNActivationSoftmaxLayer")
 
 loss    = sst.Component("loss",    "neuralnet.NNLayer")
+loss.setSubComponent( "transfer_function", "neuralnet.NNInputLayer")
 loss.setSubComponent( "accuracy_function", "neuralnet.NNAccuracyCategorical")
 loss.setSubComponent( "loss_function", "neuralnet.NNLoss_CategoricalCrossEntropy")
-loss.setSubComponent( "transfer_function", "neuralnet.NNInputLayer")
-loss.addParams( { "lastComponent" : 1 } )
+loss.addParams( { "lastComponent" : 1 } ) # TODO we can determine this from the type
+lossOpt = loss.setSubComponent( "optimizer", "neuralnet.NNAdamOptimizer" )
+lossOpt.addParams( optimizer_params )
 
 # Ordered lists
 components = []

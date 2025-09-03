@@ -142,16 +142,17 @@ public:
   // Call once before any parameter updates
   virtual void pre_update_params() = 0;
   // Update parameters
-  virtual void update_params(NNDenseLayer* layer) = 0;
+  virtual void update_params(NNDenseLayer* layer, const optimizer_data_t& opt) = 0;
   // Call once after any parameter updates
   virtual void post_update_params() = 0;
-  
+  // Getters
+  double current_learning_rate() { return current_learning_rate_; }
+  unsigned iterations() { return iterations_; }
 protected:
   double learning_rate_ = 0.001;
   double current_learning_rate_ = 0.001;
-  // Getters
-  double current_learning_rate() { return current_learning_rate_; }
-  double learning_rate() { return learning_rate_; }
+  unsigned iterations_ = 0;
+
 };
 
 // -------------------------------------------------------
