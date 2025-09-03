@@ -124,8 +124,12 @@ void NNBatchController::forward_o_snd(){
 }
 
 void NNBatchController::backward_i_rcv(SST::Event *ev) {
+  // check the backward data
   NNEvent* nnev = static_cast<NNEvent*>(ev);
-  double sum = nnev->payload().data.array().sum();
+  payload_t payload = nnev->payload();
+  double sum = payload.data.array().sum();
+  // assert(payload.optimizer_data.optimizerState == OPTIMIZER_STATE::POST_UPDATE);
+ 
   output.verbose(CALL_INFO,0,0, "%s Epoch completed. Result=%f\n", 
                   getName().c_str(), sum);
   readyToSend = true;

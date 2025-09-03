@@ -45,6 +45,8 @@ NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
   }
   transfer_function = loadUserSubComponent<NNSubComponentAPI>("transfer_function");
   assert(transfer_function);
+  // optimizer associated with layers with weights only
+  optimizer = loadUserSubComponent<NNOptimizerAPI>("optimizer");
 
   // Configure Links
   linkHandlers[PortTypes::forward_i] = 
@@ -119,11 +121,26 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
     monitor_snd();
     driveMonitor=false;
     // set up backward pass.
+    backwardData_i = forwardData_i;
+    backwardData_i.optimizer_data.optimizerState = OPTIMIZER_STATE::PRE_UPDATE;
     assert(driveBackwardPass);
-    backwardData_i = forwardData_i; // start backward pass.
   }
   if (driveBackwardPass) {
+    // backward pass transfer function
     transfer_function->backward(backwardData_i, backwardData_o);
+    // Optimizer for layers with weights
+    if (optimizer) {
+        // optimizer
+        if (backwardData_o.optimizer_data.optimizerState == OPTIMIZER_STATE::PRE_UPDATE) {
+          std::cout << "optimizer.preupdate" << std::endl;
+          optimizer->pre_update_params();
+          backwardData_o.optimizer_data.optimizerState = OPTIMIZER_STATE::ACTIVE;
+        };
+        assert(backwardData_o.optimizer_data.optimizerState == OPTIMIZER_STATE::ACTIVE);
+        std::cout << "optimizer.update" << std::endl;
+        optimizer->update_params(dynamic_cast<NNDenseLayer*>(this));
+    }
+    // drive output
     backward_o_snd();
     driveBackwardPass=false;
   }
@@ -220,7 +237,7 @@ NNDenseLayer::NNDenseLayer(ComponentId_t id, Params &params) : NNSubComponentAPI
 
 void NNDenseLayer::forward(const payload_t& in, payload_t& o)
 {
-  // save for backpropagation
+  // save for back propagation
   inputs_ = in.data;
   // Calculate output values from inputs, weights and biases
   o.data = inputs_ * weights_;
@@ -310,7 +327,7 @@ void NNDenseLayer::backward(const payload_t& in, payload_t& o)
   o.mode = in.mode;
   o.data = dinputs_;
   o.classes = in.classes;
-
+  o.optimizer_data = in.optimizer_data;
 }
 
 // 
@@ -356,6 +373,7 @@ void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
   o.mode = in.mode;
   o.data = dinputs_;
   o.classes = in.classes;
+  o.optimizer_data = in.optimizer_data;
 }
 
 // 
@@ -441,6 +459,7 @@ void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
   o.mode = in.mode;
   o.data = dinputs_;
   o.classes = in.classes;
+  o.optimizer_data = in.optimizer_data;
 }
 
 //
@@ -590,7 +609,6 @@ double NNAccuracyAPI::calculate(const Eigen::MatrixXd& predictions, const Eigen:
   std::cout << "accumulated_sum=" << accumulated_sum_ << std::endl;
   std::cout << "accumulated_count=" << accumulated_count_ << std::endl;
 
-  // return accuracy
   return accuracy;
 }
 
@@ -617,6 +635,42 @@ Eigen::MatrixX<bool>& NNAccuracyCategorical::compare(const Eigen::MatrixXd &pred
     result_ =  (predictions.array() == y.array());
   }
   return result_;
+}
+
+//
+// NNOptimizerAPI
+//
+NNOptimizerAPI::NNOptimizerAPI(ComponentId_t id, Params &params) 
+  : SubComponent(id)
+{
+  learning_rate_ = params.find<double>("learningRate", "0.001");
+  assert(learning_rate_>0);
+  current_learning_rate_ = learning_rate_;
+}
+
+//
+// NNAdamOptimizer
+//
+NNAdamOptimizer::NNAdamOptimizer(ComponentId_t id, Params &params) : NNOptimizerAPI(id,params)
+{
+  decay_   = params.find<double>("decay_", "0");
+  epsilon_ = params.find<double>("epsilon_", "1e-7");
+  beta_1_  = params.find<double>("beta_1_", "0.9");
+  beta_2_  = params.find<double>("beta_2_", "0.999");
+}
+
+void NNAdamOptimizer::pre_update_params() {
+  if (decay_ != 0) {
+    current_learning_rate_ = learning_rate_ * ( 1. / (1. + decay_ * iterations_ ));
+  }
+}
+
+void NNAdamOptimizer::update_params(NNDenseLayer *layer)
+{
+}
+
+void NNAdamOptimizer::post_update_params() {
+  
 }
 
 } // namespace SST::NNLayer

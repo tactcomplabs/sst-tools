@@ -38,10 +38,25 @@ const std::map<PortTypes, std::string> PortNames {
   { PortTypes::monitor, "monitor"}
 };
 
+enum class OPTIMIZER_STATE: unsigned {
+  INVALID = 0,
+  PRE_UPDATE = 1,
+  ACTIVE = 2,
+  POST_UPDATE = 3
+};
+
+struct optimizer_data_t {
+  OPTIMIZER_STATE optimizerState = OPTIMIZER_STATE::INVALID;
+  // shadow version of common optimizer members
+  double current_learning_rate = 0.;
+  unsigned iterations = 0;
+};
+
 struct payload_t {
   MODE mode = MODE::INVALID;
   Eigen::MatrixXd data = {};
   Eigen::MatrixXi classes = {};
+  optimizer_data_t optimizer_data = {};
   payload_t() {};
   payload_t(MODE m, Eigen::MatrixXd X, Eigen::MatrixXi y) :
     mode(m), data(X), classes(y) {}; 

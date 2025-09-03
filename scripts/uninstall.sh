@@ -15,6 +15,13 @@ sst-register -u dbgcli
 sst-register -u gridtest
 sst-register -u NNBatchController
 sst-register -u NNLayer
+sst-register -u NNInputLayer
+sst-register -u NNDenseLayer
+sst-register -u NNActivationReLULayer
+sst-register -u NNActivationSoftmaxLayer
+sst-register -u NNLoss_CategoricalCrossEntropy
+sst-register -u NNAccuracyCategorical
+sst-register -u NNAdamOptimizer
 
 #-- forcible remove it from the local script
 CONFIG=~/.sst/sstsimulator.conf
@@ -31,5 +38,12 @@ if test -f "$CONFIG"; then
   sed -i.bak '/gridtest/d' $CONFIG
   sed -i.back'/NNBatchController/d' $CONFIG
   sed -i.back'/NNLayer/d' $CONFIG
+  sed -i.back'/NNInputLayer/d' $CONFIG
+  sed -i.back'/NNDenseLayer/d' $CONFIG
+  sed -i.back'/NNActivationReLULayer/d' $CONFIG
+  sed -i.back'/NNActivationSoftmaxLayer/d' $CONFIG
+  sed -i.back'/NNLoss_CategoricalCrossEntropy/d' $CONFIG
+  sed -i.back'/NNAccuracyCategorical/d' $CONFIG
+  sed -i.back'/NNAdamOptimizer/d' $CONFIG
 fi
 

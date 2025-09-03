@@ -111,12 +111,12 @@ public:
 class NNDenseLayer : public NNSubComponentAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
-        NNDenseLayer,   // Class name
-        "neuralnet",    // Library name
-        "NNDenseLayer",   // Subcomponent name
-        SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
-        "Neural network input layer.",     // Description
-        SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
+    NNDenseLayer,   // Class name
+    "neuralnet",    // Library name
+    "NNDenseLayer",   // Subcomponent name
+    SST_ELI_ELEMENT_VERSION(1,0,0),    // A version number
+    "Neural network input layer.",     // Description
+    SST::NeuralNet::NNSubComponentAPI) // Fully qualified API name
   SST_ELI_DOCUMENT_PARAMS(
     {"biasRegularizerL1",    "L1 optimizer for biases",  "0" },
     {"biasRegularizerL2",    "L2 optimizer for biases",  "0" },
@@ -229,21 +229,60 @@ private:
 class NNAccuracyCategorical : public NNAccuracyAPI {
 public:
   SST_ELI_REGISTER_SUBCOMPONENT(
-        NNAccuracyCategorical,   // Class name
-        "neuralnet",             // Library name
-        "NNAccuracyCategorical", // Subcomponet name
-        SST_ELI_ELEMENT_VERSION(1,0,0),
-        "Neural network accuracy subcomponent.",
-        SST::NeuralNet::NNAccuracyCategorical) // Fully qualified API name
+    NNAccuracyCategorical,   // Class name
+    "neuralnet",             // Library name
+    "NNAccuracyCategorical", // Subcomponet name
+    SST_ELI_ELEMENT_VERSION(1,0,0),
+    "Neural network accuracy subcomponent.",
+    SST::NeuralNet::NNAccuracyCategorical
+  )
+
   NNAccuracyCategorical(ComponentId_t id, Params& params) : NNAccuracyAPI(id,params) {};
   ~NNAccuracyCategorical() {};
-
   Eigen::MatrixX<bool>& compare(const Eigen::MatrixXd& predictions, const Eigen::MatrixXd& y) final;
+
 private:
   const bool binary_=false; //TODO input parameter
   const bool scalar_=false; //TODO input parameter
   Eigen::MatrixX<bool> result_ = {};
 }; //class NNAccuracyCategorical
+
+// -------------------------------------------------------
+// NNAdamOptimizer
+// -------------------------------------------------------
+class NNAdamOptimizer : public NNOptimizerAPI {
+public:
+  SST_ELI_REGISTER_SUBCOMPONENT(
+    NNAdamOptimizer,   // Class name
+    "neuralnet",       // Library name
+    "NNAdamOptimizer", // Subcomponet name
+    SST_ELI_ELEMENT_VERSION(1,0,0),
+    "Neural network accuracy subcomponent.",
+    SST::NeuralNet::NNAdamOptimizer
+  )
+  SST_ELI_DOCUMENT_PARAMS(
+    {"decay",   "Optimizer Learning Rate",  "0.0" },
+    {"epsilon", "Optimizer Learning Rate",  "1e-7" },
+    {"beta_1",  "Optimizer Learning Rate",  "0.9" },
+    {"beta_2",  "Optimizer Learning Rate",  "0.999" },
+  )
+        
+  NNAdamOptimizer(ComponentId_t id, Params& params);
+  ~NNAdamOptimizer() {};
+
+  void pre_update_params() final;
+  void update_params(NNDenseLayer* layer) final;
+  void post_update_params() final;
+
+private:
+  double decay_= 0.;
+  double epsilon_ = 1e-7; 
+  double beta_1_ = 0.9;
+  double beta_2_ = 0.999;
+  int iterations_ = 0;
+
+}; //class NNAccuracyCategorical
+
 
 } //namespace SST::NeuralNet
 

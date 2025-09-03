@@ -31,6 +31,11 @@ namespace SST::NeuralNet{
     BINARY_CROSS_ENTROPY = 1,
     CATEGORICAL_CROSS_ENTROPY = 2
   };
+
+  enum class OPTIMIZER_TYPE : unsigned {
+    INVALID = 0,
+    ADAM = 1,
+  };
   
   struct Losses {
     double data_loss = 0;
@@ -105,8 +110,7 @@ protected:
 // -------------------------------------------------------
 // NNAccuracyAPI (not registered)
 // -------------------------------------------------------
-class NNAccuracyAPI : public SST::SubComponent 
-{
+class NNAccuracyAPI : public SST::SubComponent {
 public:
     // Tell SST that this class is a SubComponent API
     SST_ELI_REGISTER_SUBCOMPONENT_API(SST::NeuralNet::NNAccuracyAPI)
@@ -120,6 +124,34 @@ public:
 private:
   double accumulated_sum_ = 0;
   double accumulated_count_ = 0;
+};
+
+// -------------------------------------------------------
+// NNOptimizerAPI (not registered)
+// -------------------------------------------------------
+class NNDenseLayer;
+
+class NNOptimizerAPI : public SST::SubComponent {
+public:
+  // Tell SST that this class is a SubComponent API
+  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::NeuralNet::NNOptimizerAPI)
+
+  NNOptimizerAPI(ComponentId_t id, Params& params);
+  virtual ~NNOptimizerAPI() {}
+
+  // Call once before any parameter updates
+  virtual void pre_update_params() = 0;
+  // Update parameters
+  virtual void update_params(NNDenseLayer* layer) = 0;
+  // Call once after any parameter updates
+  virtual void post_update_params() = 0;
+  
+protected:
+  double learning_rate_ = 0.001;
+  double current_learning_rate_ = 0.001;
+  // Getters
+  double current_learning_rate() { return current_learning_rate_; }
+  double learning_rate() { return learning_rate_; }
 };
 
 // -------------------------------------------------------
@@ -144,12 +176,17 @@ public:
     { "transfer_function", 
       "Primary forward and backward pass operations",
       "SST::NeuralNet::NNSubComponentAPI" },
+    // TODO LossLayerBase class?
     { "loss_function",
       "Loss calculations for final layer in forward pass",
       "SST::NeuralNet::NNLossLayerAPI" },
     { "accuracy_function",
       "Accuracy functions for final layer in forward pass",
-      "SST::NeuralNet::NNAccuracyAPI" }
+      "SST::NeuralNet::NNAccuracyAPI" },
+    // TODO DenseLayerBase class?
+    { "optimizer",
+      "Optimizer initial",
+      "SST::NeuralNet::NNOptimizerAPI" }
   )
 
   explicit NNLayerBase(ComponentId_t id) : SST::Component(id) {}
@@ -161,6 +198,7 @@ public:
   NNSubComponentAPI* transfer_function = nullptr;
   NNLossLayerAPI* loss_function = nullptr;
   NNAccuracyAPI* accuracy_function = nullptr;
+  NNOptimizerAPI* optimizer = nullptr;
 
 }; //class NNLayerBase
 
