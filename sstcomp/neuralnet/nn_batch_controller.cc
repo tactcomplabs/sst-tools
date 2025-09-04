@@ -27,6 +27,7 @@ NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& p
   classImageLimit = params.find<unsigned>("classImageLimit", 100000);
   epochs = params.find<unsigned>("epochs", 0);
   evalImageStr = params.find<std::string>("evalImage");
+  print_every = params.find<unsigned>("printEvery", 100);
   testImagesStr = params.find<std::string>("testImages");
   trainingImagesStr = params.find<std::string>("trainingImages");
   uint32_t Verbosity = params.find< uint32_t >( "verbose", 0 );
@@ -131,16 +132,19 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
    output.verbose(CALL_INFO,0,0, "%s step completed. checksum=%f\n", 
                   getName().c_str(), sum);
   optimizer_data_t opt = payload.optimizer_data;
+  
   // Print a summary
-  std::cout  << "step: " << step 
-        << std::fixed << std::setprecision(3)
-        << ", acc: "   << payload.accuracy
-        << ", loss: "  << payload.losses.total_loss()
-        << " (data_loss: "  << payload.losses.data_loss
-        << ", reg_loss: "  << payload.losses.regularization_loss
-        << std::setprecision(10)
-        << ") ,lr: "    << opt.current_learning_rate
-        << std::endl;
+  if ( (step % print_every) == 0 || step == (train_steps-1) ) {
+    std::cout  << "epoch: " << epoch << ", step: " << step 
+      << std::fixed << std::setprecision(3)
+      << ", acc: "   << payload.accuracy
+      << ", loss: "  << payload.losses.total_loss()
+      << " (data_loss: "  << payload.losses.data_loss
+      << ", reg_loss: "  << payload.losses.regularization_loss
+      << std::setprecision(10)
+      << ") ,lr: "    << opt.current_learning_rate
+      << std::endl;
+  }
        
   // Signal to send the next batch
   readyToSend = true;
@@ -183,6 +187,7 @@ bool NNBatchController::initTraining()
   assert(epochs > 0);
 
   // first training step
+  std::cout << "epoch: " << epoch << std::endl;
   return launchTrainingStep();
 }
 
@@ -200,6 +205,7 @@ bool NNBatchController::stepTraining() {
       return false; // keep clocking
     }
     // Next epoch
+    std::cout << "epoch: " << epoch << std::endl;
     // Reset accumulated values in loss and accuracy objects
     accumulatedAccuracy = {};
     accumulatedLoss = {};

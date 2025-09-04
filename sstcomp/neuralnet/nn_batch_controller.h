@@ -73,10 +73,10 @@ public:
     {"classImageLimit", "Maximum images per class to load [100000]", "100000"},
     {"epochs",          "Training iterations", "1"},
     {"evalImage",       "Path to single evaluation image", NULL},
+    {"printEvery",      "Epochs between printed summary information", "100"},
     {"testImages",      "Directory containing test images in class subdirs", NULL},
     {"trainingImages",  "Directory containing training images in class subdirs", NULL}
   )
-
 
 private:
   // -- SST handlers
@@ -88,6 +88,7 @@ private:
   unsigned batch_size = 128;                      ///< number of images per batch
   unsigned classImageLimit = 100000;              ///< maximum images to load for each classification set
   unsigned epochs = 1;                            ///< training epochs
+  unsigned print_every = 100;                     ///< epochs between printing summary information
   std::string evalImageStr = {};                  ///< path to a single evaluation image file
   std::string testImagesStr = {};                 ///< path to directory containing test images
   std::string trainingImagesStr = {};             ///< path to directory containing training images
