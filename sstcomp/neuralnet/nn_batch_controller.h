@@ -105,7 +105,7 @@ private:
   std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
   void forward_i_snd() { assert(false); }
   void forward_i_rcv(SST::Event *ev) {assert(false);}
-  void forward_o_snd();
+  void forward_o_snd(MODE mode);
   void forward_o_rcv(SST::Event *ev) { assert(false);}
   void backward_i_snd() { assert(false); }
   void backward_i_rcv(SST::Event *ev);

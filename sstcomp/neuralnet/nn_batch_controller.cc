@@ -118,9 +118,11 @@ void NNBatchController::emergencyShutdown(){
 void NNBatchController::printStatus( Output& out ){
 }
 
-void NNBatchController::forward_o_snd(){
-  output.verbose(CALL_INFO,2,0, "%s sending forward pass data\n", getName().c_str());
-  NNEvent *nnev = new NNEvent({MODE::TRAINING, batch_X, batch_y});
+void NNBatchController::forward_o_snd(MODE mode){
+  output.verbose(CALL_INFO,2,0, 
+    "%s sending %s forward pass data\n",
+    getName().c_str(), mode2str.at(mode).c_str());
+  NNEvent *nnev = new NNEvent({mode, batch_X, batch_y});
   linkHandlers.at(PortTypes::forward_o)->send(nnev);
 }
 
@@ -237,7 +239,7 @@ bool NNBatchController::launchTrainingStep() {
 
   // Initiate the forward pass (backward pass included)
   output.verbose(CALL_INFO, 2, 0, "epoch:%" PRId32 " step:%" PRId32 "\n", epoch, step);
-  forward_o_snd();
+  forward_o_snd(MODE::TRAINING);
   busy = true;  // lock controller
   return true;  // disable controller clock
 }
