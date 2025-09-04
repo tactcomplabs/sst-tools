@@ -109,12 +109,14 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
     Eigen::MatrixXd predictions = loss_function->predictions(forwardData_i.data);
     double accuracy = accuracy_function->calculate(predictions, forwardData_i.classes);
 
-    std::cout << "### Forward pass result ###" << std::endl;
-    std::cout << std::fixed << std::setprecision(3) 
-      << "acc: " << accuracy
-      << ", loss: "  << losses.total_loss()
-      << " (data_loss: "  << losses.data_loss
-      << ", reg_loss: "  << losses.regularization_loss << ")" << std::endl;
+    if (sstout.getVerboseLevel() >= 2 ) {
+      std::cout << "### Forward pass result ###" << std::endl;
+      std::cout << std::fixed << std::setprecision(3) 
+        << "acc: " << accuracy
+        << ", loss: "  << losses.total_loss()
+        << " (data_loss: "  << losses.data_loss
+        << ", reg_loss: "  << losses.regularization_loss << ")" << std::endl;
+    }
 
     /// TODO send loss/accuracy info for printing at end of step
     monitorData_o = forwardData_i;  // garbage
@@ -134,7 +136,6 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
     if (optimizer) {
         // optimizer
         if (backwardData_o.optimizer_data.optimizerState == OPTIMIZER_STATE::PRE_UPDATE) {
-          std::cout << "optimizer.preupdate" << std::endl;
           optimizer->pre_update_params();
           backwardData_o.optimizer_data = { 
             OPTIMIZER_STATE::ACTIVE, 
@@ -143,7 +144,6 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
           optimizer->post_update_params();
         } else {
           assert(backwardData_o.optimizer_data.optimizerState == OPTIMIZER_STATE::ACTIVE);
-          std::cout << "optimizer.update" << std::endl;
           optimizer->update_params(static_cast<NNDenseLayer*>(transfer_function), backwardData_o.optimizer_data );
         }
     }

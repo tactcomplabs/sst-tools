@@ -128,9 +128,9 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
   // check the backward data
   NNEvent* nnev = static_cast<NNEvent*>(ev);
   payload_t payload = nnev->payload();
-  double sum = payload.data.array().sum();
-   output.verbose(CALL_INFO,0,0, "%s step completed. checksum=%f\n", 
-                  getName().c_str(), sum);
+  // double sum = payload.data.array().sum();
+  // output.verbose(CALL_INFO,2,0, "%s step completed. checksum=%f\n", 
+  //                 getName().c_str(), sum);
   optimizer_data_t opt = payload.optimizer_data;
   
   // Print a summary
@@ -153,10 +153,10 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
 }
 
 void NNBatchController::monitor_rcv(SST::Event *ev) {
-  output.verbose(CALL_INFO,2,0, "%s receiving monitor data\n", getName().c_str());
-  NNEvent* nnev = static_cast<NNEvent*>(ev);
-  double sum = nnev->payload().data.array().sum();
-  output.verbose(CALL_INFO,0,0, "Forward Pass Result=%f\n",sum);
+  // output.verbose(CALL_INFO,2,0, "%s receiving monitor data\n", getName().c_str());
+  // NNEvent* nnev = static_cast<NNEvent*>(ev);
+  // double sum = nnev->payload().data.array().sum();
+  // output.verbose(CALL_INFO,0,0, "Forward Pass Result=%f\n",sum);
   delete(ev);
 }
 
@@ -192,7 +192,6 @@ bool NNBatchController::initTraining()
 }
 
 bool NNBatchController::stepTraining() {
-  output.verbose(CALL_INFO, 0, 0, "Advancing training FSM\n");
   assert(step < train_steps);
   if (++step == train_steps) {
     // Done with steps. Check epoch
@@ -245,7 +244,7 @@ bool NNBatchController::launchTrainingStep() {
 
 bool NNBatchController::initValidation()
 {
-  output.verbose(CALL_INFO, 0, 0, "Starting validation phase\n");
+  output.verbose(CALL_INFO, 2, 0, "Starting validation phase\n");
 
   // Calculate number of steps
   unsigned rows = (unsigned) testImages.data.rows();
