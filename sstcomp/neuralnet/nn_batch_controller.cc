@@ -75,55 +75,52 @@ void NNBatchController::init( unsigned int phase ){
 
 void NNBatchController::setup(){
 
-  if (trainingImagesStr.size()>0) {
-    trainingImages.load(trainingImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);
-    mode_sequence.push(MODE::TRAINING);
-  }
-
-  if (testImagesStr.size()>0) {
-    testImages.load(testImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);
-    mode_sequence.push(MODE::VALIDATION);
-  }
-
-  if (evalImageStr.size()>0) {
-    evalImage.load(evalImageStr.c_str(), 
-      EigenImage::TRANSFORM::INVERT, 
-      EigenImage::TRANSFORM::LINEARIZE, 
-      true);
-    mode_sequence.push(MODE::EVALUATION);
-  }
-
-  if (mode_sequence.empty())
+  if (!enableTraining() && !enableValidation() && !enableEvaluation())
     output.fatal(CALL_INFO, -1, "Nothing to do. Please set --trainingImages, --testImages, and/or --evalImage");
 
-  // TODO use SST debug and mask features
-  if (output.getVerboseLevel() >= 2 ) {
-    std::cout << "X" << util.shapestr(trainingImages.data) << "=\n" << HEAD(trainingImages.data) << std::endl;
-    std::cout << "y" << util.shapestr(trainingImages.classes) << "=\n" << HEAD(trainingImages.classes.transpose()) << std::endl;
-    std::cout << "X_test"   << util.shapestr(testImages.data) << "=\n" << HEAD(testImages.data) << std::endl;
-    std::cout << "y_test.T" << util.shapestr(testImages.classes) << ".T=\n" << HEAD(testImages.classes.transpose()) << std::endl;
+  if (enableTraining()) {
+    trainingImages.load(trainingImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);
+    if (output.getVerboseLevel() >= 2 ) {
+      std::cout << "X" << util.shapestr(trainingImages.data) << "=\n" << HEAD(trainingImages.data) << std::endl;
+      std::cout << "y" << util.shapestr(trainingImages.classes) << "=\n" << HEAD(trainingImages.classes.transpose()) << std::endl;
+    }
+    fsmState = MODE::TRAINING;
+  }
+
+  if (enableValidation()) {
+    testImages.load(testImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);
+    if (output.getVerboseLevel() >= 2 ) {
+      std::cout << "X_test"   << util.shapestr(testImages.data) << "=\n" << HEAD(testImages.data) << std::endl;
+      std::cout << "y_test.T" << util.shapestr(testImages.classes) << ".T=\n" << HEAD(testImages.classes.transpose()) << std::endl;
+    }
+    if (fsmState==MODE::INVALID) fsmState = MODE::VALIDATION;
+  }
+
+  if (enableEvaluation()) {
+    evalImage.load(evalImageStr.c_str(), EigenImage::TRANSFORM::INVERT, EigenImage::TRANSFORM::LINEARIZE, true);
+    if (output.getVerboseLevel() >= 2 ) {
+      std::cout << "X_eval"   << util.shapestr(evalImage.linear_image) << "=\n" << HEAD(evalImage.linear_image) << std::endl;
+    }
+    if (fsmState==MODE::INVALID) fsmState = MODE::EVALUATION;
   }
  
 }
 
-void NNBatchController::complete( unsigned int phase ){
-}
+void NNBatchController::complete( unsigned int phase ){}
 
-void NNBatchController::finish(){
-}
+void NNBatchController::finish(){}
 
-void NNBatchController::emergencyShutdown(){
-}
+void NNBatchController::emergencyShutdown(){}
 
-void NNBatchController::printStatus( Output& out ){
-}
+void NNBatchController::printStatus( Output& out ){}
 
-void NNBatchController::forward_o_snd(MODE mode){
-  output.verbose(CALL_INFO,2,0, 
-    "%s sending %s forward pass data\n",
-    getName().c_str(), mode2str.at(mode).c_str());
-  NNEvent *nnev = new NNEvent({mode, batch_X, batch_y});
-  linkHandlers.at(PortTypes::forward_o)->send(nnev);
+void NNBatchController::forward_o_snd(MODE mode)
+{
+    output.verbose(CALL_INFO, 2, 0,
+                   "%s sending %s forward pass data\n",
+                   getName().c_str(), mode2str.at(mode).c_str());
+    NNEvent *nnev = new NNEvent({mode, batch_X, batch_y});
+    linkHandlers.at(PortTypes::forward_o)->send(nnev);
 }
 
 void NNBatchController::backward_i_rcv(SST::Event *ev) {
@@ -200,8 +197,9 @@ bool NNBatchController::stepTraining() {
     output.verbose(CALL_INFO, 2,0, "Finished epoch\n");
     assert(epoch < epochs);
     if (++epoch == epochs) {
+      trainingComplete = true;
       output.verbose(CALL_INFO, 2, 0, "Completed training\n");
-      // Release controller so it can go to next instruction
+      // Release controller
       busy=false;   // release controller
       return false; // keep clocking
     }
@@ -215,7 +213,6 @@ bool NNBatchController::stepTraining() {
   }
   // next step
   return launchTrainingStep();
-  
 }
 
 bool NNBatchController::launchTrainingStep() {
@@ -244,9 +241,10 @@ bool NNBatchController::launchTrainingStep() {
   return true;  // disable controller clock
 }
 
-bool NNBatchController::initValidation()
-{
+bool NNBatchController::initValidation() {
   output.verbose(CALL_INFO, 2, 0, "Starting validation phase\n");
+  fsmState = MODE::EVALUATION;
+  evaluationComplete = true; // TODO remove
 
   // Calculate number of steps
   unsigned rows = (unsigned) testImages.data.rows();
@@ -266,48 +264,64 @@ bool NNBatchController::initValidation()
   return false; // TODO return true
 }
 
-bool NNBatchController::stepValidation()
-{
+bool NNBatchController::stepValidation() {
   return false;
 }
 
-bool NNBatchController::initEvaluation()
-{
+bool NNBatchController::initEvaluation() {
   output.verbose(CALL_INFO, 0, 0, "Starting evaluation phase\n");
+  fsmState = MODE::EVALUATION;
+  evaluationComplete = true;
   return false;
 }
 
-bool NNBatchController::stepEvaluation()
-{ 
+bool NNBatchController::stepEvaluation() { 
   return false;
 }
 
+bool NNBatchController::complete()
+{
+  fsmState = MODE::COMPLETE;
+  output.verbose(CALL_INFO, 2, 0,
+                "%s has completed. Ending simulation.\n",
+                getName().c_str());
+  primaryComponentOKToEndSim();
+  return true;
+}
 
 bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
   // Clocking control should ensure we have something to do.
   assert( !busy || readyToSend);
 
-  if (mode_sequence.empty()) {
-    output.verbose(CALL_INFO, 2, 0,
-                  "%s has nothing else to do. Ending simulation.\n",
-                  getName().c_str());
-    primaryComponentOKToEndSim();
-    return true;
-  }
-
   if (!busy) {
     assert(readyToSend==false); 
-    // not busy so get next task
-    current_mode = mode_sequence.front();
-    mode_sequence.pop();
-
-    switch (current_mode) {
+    // not busy so what's next
+    switch (fsmState) {
+      // Training includes validation for every epoch
       case MODE::TRAINING:
-        return initTraining();
+        if (enableTraining())
+          return initTraining();
+        else if (enableEvaluation())
+          return initEvaluation();
+        else
+          return complete(); 
+
+      // Validation (when training not specified)
       case MODE::VALIDATION:
-        return initValidation();
+        if (enableValidation())
+          return initValidation();
+        else if (enableEvaluation())
+          return initEvaluation();
+        else
+          return complete();
+
+      // Evaluation (can be pipelined)
       case MODE::EVALUATION:
-        return initEvaluation();
+        if (enableEvaluation())
+          return initEvaluation();
+        else
+          return complete();
+
       default:
         assert(false);
     }
@@ -319,15 +333,17 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
   assert(readyToSend==true);
   readyToSend = false;
 
-  switch (current_mode) {
+  switch (fsmState) {
     case MODE::TRAINING:
       return stepTraining();
     case MODE::VALIDATION:
       return stepValidation();
     case MODE::EVALUATION:
       return stepEvaluation();
+    // Never should see other states.
     default:
-      assert(false);
+      output.fatal(CALL_INFO, -1, "FSM should not have entered %s state\n", mode2str.at(fsmState).c_str());
+      break;
   }
 
   return false;

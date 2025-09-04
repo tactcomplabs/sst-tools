@@ -29,17 +29,18 @@
 
 namespace SST::NeuralNet{
 
-enum class MODE {INVALID, TRAINING, VALIDATION, EVALUATION};
+enum class MODE {INVALID, TRAINING, VALIDATION, EVALUATION, COMPLETE};
 const std::map<const MODE, const std::string> mode2str {
   { MODE::INVALID, "INVALID" },
   { MODE::TRAINING, "TRAINING" },
   { MODE::VALIDATION, "VALIDATION" },
-  { MODE::EVALUATION, "EVALUATION"}
+  { MODE::EVALUATION, "EVALUATION"},
+  { MODE::COMPLETE, "COMPLETE"}
 };
 
 enum class PortTypes { forward_i, forward_o, backward_i, backward_o, monitor };
 const std::map<PortTypes, std::string> PortNames {
-  { PortTypes::forward_i, "forward_i"}, { PortTypes::forward_o, "forward_o"},
+  { PortTypes::forward_i,  "forward_i"},  {  PortTypes::forward_o,  "forward_o"},
   { PortTypes::backward_i, "backward_i" }, { PortTypes::backward_o, "backward_o" },
   { PortTypes::monitor, "monitor"}
 };

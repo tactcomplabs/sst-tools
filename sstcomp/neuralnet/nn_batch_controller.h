@@ -94,8 +94,14 @@ private:
   std::string trainingImagesStr = {};             ///< path to directory containing training images
   
   // -- Internal State
-  MODE current_mode = MODE::INVALID;
-  std::queue<MODE> mode_sequence = {};
+  bool enableTraining()   { return (trainingImagesStr.size()>0 && !trainingComplete); }
+  bool enableValidation() { return (testImagesStr.size()>0 && !validationComplete); }
+  bool enableEvaluation() { return (evalImageStr.size()>0 && !evaluationComplete); }
+  MODE fsmState = MODE::INVALID;
+  bool trainingComplete = false;
+  bool validationComplete = false;
+  bool evaluationComplete = false;
+
   unsigned epoch = 0;                             ///< training interations counter
   unsigned step = 0;                              ///< step counter
   unsigned train_steps = 1;                       ///< total steps per training epoch
@@ -127,13 +133,14 @@ private:
   Dataset testImages = {};
   EigenImage evalImage = {};
   
-  //-- FSMs
+  //-- FSM support ( call from clocktick )
   bool initTraining();  // returns true to disable clocking
   bool stepTraining();
   bool initValidation();
   bool stepValidation();
   bool initEvaluation();
   bool stepEvaluation();
+  bool complete();
 
   //-- Sequences
   bool launchTrainingStep();
