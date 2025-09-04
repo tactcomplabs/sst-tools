@@ -97,7 +97,7 @@ void NNBatchController::setup(){
     output.fatal(CALL_INFO, -1, "Nothing to do. Please set --trainingImages, --testImages, and/or --evalImage");
 
   // TODO use SST debug and mask features
-  if (output.getVerboseLevel() >= 1 ) {
+  if (output.getVerboseLevel() >= 2 ) {
     std::cout << "X" << util.shapestr(trainingImages.data) << "=\n" << HEAD(trainingImages.data) << std::endl;
     std::cout << "y" << util.shapestr(trainingImages.classes) << "=\n" << HEAD(trainingImages.classes.transpose()) << std::endl;
     std::cout << "X_test"   << util.shapestr(testImages.data) << "=\n" << HEAD(testImages.data) << std::endl;
@@ -187,7 +187,7 @@ bool NNBatchController::initTraining()
   assert(epochs > 0);
 
   // first training step
-  std::cout << "epoch: " << epoch << std::endl;
+  // std::cout << "epoch: " << epoch << std::endl;
   return launchTrainingStep();
 }
 
@@ -205,7 +205,7 @@ bool NNBatchController::stepTraining() {
       return false; // keep clocking
     }
     // Next epoch
-    std::cout << "epoch: " << epoch << std::endl;
+    // std::cout << "epoch: " << epoch << std::endl;
     // Reset accumulated values in loss and accuracy objects
     accumulatedAccuracy = {};
     accumulatedLoss = {};

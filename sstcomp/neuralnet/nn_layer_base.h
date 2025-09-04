@@ -45,13 +45,18 @@ class NNSubComponentAPI : public SST::SubComponent
 public:
     // Tell SST that this class is a SubComponent API
     SST_ELI_REGISTER_SUBCOMPONENT_API(SST::NeuralNet::NNSubComponentAPI)
-    NNSubComponentAPI(ComponentId_t id, Params& params) : SubComponent(id) {}
+    SST_ELI_DOCUMENT_PARAMS(
+      {"verbose",         "Sets the verbosity level of output",   "0" }
+    )
+    NNSubComponentAPI(ComponentId_t id, Params& params);
     virtual ~NNSubComponentAPI() {}
 
     virtual void forward(const payload_t& in, payload_t& o) = 0;
     virtual void backward(const payload_t& in, payload_t& o) = 0;
 
 protected:
+  // SST Handlers
+  SST::Output sstout;
   // Flopped forward pass inputs
   Eigen::MatrixXd inputs_ = {};
   // Flopped backwas pass outputs (derivatives)
@@ -98,17 +103,22 @@ protected:
 // -------------------------------------------------------
 // NNAccuracyAPI (not registered)
 // -------------------------------------------------------
-class NNAccuracyAPI : public SST::SubComponent {
+class NNAccuracyAPI : public SST::SubComponent { //TODO create common API for debug/output support
 public:
-    // Tell SST that this class is a SubComponent API
-    SST_ELI_REGISTER_SUBCOMPONENT_API(SST::NeuralNet::NNAccuracyAPI)
-
-    NNAccuracyAPI(ComponentId_t id, Params& params) : SubComponent(id) {}
-    virtual ~NNAccuracyAPI() {}
-    virtual Eigen::MatrixX<bool>& compare(const Eigen::MatrixXd& predictions, const Eigen::MatrixXd& y) = 0;
-    double calculate(const Eigen::MatrixXd& predictions, const Eigen::MatrixXi& y);
-    double calculate_accumulated();
-    void new_pass();
+  // Tell SST that this class is a SubComponent API
+  SST_ELI_REGISTER_SUBCOMPONENT_API(SST::NeuralNet::NNAccuracyAPI)
+  SST_ELI_DOCUMENT_PARAMS(
+    {"verbose",         "Sets the verbosity level of output",   "0" }
+  )
+  NNAccuracyAPI(ComponentId_t id, Params& params);
+  virtual ~NNAccuracyAPI() {}
+  virtual Eigen::MatrixX<bool>& compare(const Eigen::MatrixXd& predictions, const Eigen::MatrixXd& y) = 0;
+  double calculate(const Eigen::MatrixXd& predictions, const Eigen::MatrixXi& y);
+  double calculate_accumulated();
+  void new_pass();
+protected:
+  // SST Handlers
+  SST::Output sstout;
 private:
   double accumulated_sum_ = 0;
   double accumulated_count_ = 0;
@@ -123,6 +133,9 @@ class NNOptimizerAPI : public SST::SubComponent {
 public:
   // Tell SST that this class is a SubComponent API
   SST_ELI_REGISTER_SUBCOMPONENT_API(SST::NeuralNet::NNOptimizerAPI)
+  SST_ELI_DOCUMENT_PARAMS(
+    {"verbose",         "Sets the verbosity level of output",   "0" }
+  )
 
   NNOptimizerAPI(ComponentId_t id, Params& params);
   virtual ~NNOptimizerAPI() {}
@@ -137,6 +150,7 @@ public:
   double current_learning_rate() { return current_learning_rate_; }
   unsigned iterations() { return iterations_; }
 protected:
+  SST::Output sstout;
   double learning_rate_ = 0.001;
   double current_learning_rate_ = 0.001;
   unsigned iterations_ = 0;
