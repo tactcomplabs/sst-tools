@@ -28,9 +28,11 @@
 
 namespace SST::NeuralNet{
 
-struct AccumulatedData_t {
-    double sum = 0;
-    double data = 0;
+struct AccumulatedSums_t {
+  double accuracy = 0;
+  Losses loss = {};
+  unsigned count = 0;
+  double current_learning_rate = 0;
 };
 
 // -------------------------------------------------------
@@ -105,7 +107,7 @@ private:
   unsigned epoch = 0;                             ///< training interations counter
   unsigned step = 0;                              ///< step counter
   unsigned train_steps = 1;                       ///< total steps per training epoch
-  unsigned validation_steps = 0;                  ///< total steps for validation run
+  unsigned validation_steps = 1;                  ///< total steps for validation run
 
   // -- Communication
   std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
@@ -136,6 +138,7 @@ private:
   //-- FSM support ( call from clocktick )
   bool initTraining();  // returns true to disable clocking
   bool stepTraining();
+  bool continueTraining(); // resume after validation step
   bool initValidation();
   bool stepValidation();
   bool initEvaluation();
@@ -144,10 +147,10 @@ private:
 
   //-- Sequences
   bool launchTrainingStep();
+  bool launchValidationStep();
 
   //-- Loss/Accuracy
-  AccumulatedData_t accumulatedLoss = {};
-  AccumulatedData_t accumulatedAccuracy = {};
+  AccumulatedSums_t accumulatedSums = {};
 
   //-- Helpers
   Eutils util = {};

@@ -43,6 +43,7 @@ batch_controller.addParams({
 
 # Optimizer parameters
 optimizer_params = {
+  "verbose" : args.verbose,
   "learningRate" : 0.001,
   "decay" : 1e-3,
   "epsilon" : 1e-7,
@@ -57,39 +58,54 @@ input.setSubComponent(  "transfer_function", "neuralnet.NNInputLayer")
 # Limit input images to 28 x 28.
 dense1  = sst.Component("dense1",  "neuralnet.NNLayer")
 subd1 = dense1.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
-subd1.addParams( {"nInputs" : 28*28, "nNeurons" : args.hiddenLayerSize} )
-subd1.addParams( {"initialWeightScaling" : args.initialWeightScaling} )
+subd1.addParams( {"nInputs" : 28*28, "nNeurons" : args.hiddenLayerSize,
+                 "initialWeightScaling" : args.initialWeightScaling,
+                 "verbose" : args.verbose } )
 subd1Opt = dense1.setSubComponent( "optimizer", "neuralnet.NNAdamOptimizer")
 subd1Opt.addParams( optimizer_params )
 
 relu1   = sst.Component("relu1",   "neuralnet.NNLayer")
 relu1.setSubComponent(  "transfer_function", "neuralnet.NNActivationReLULayer")
+relu1.addParams( {"verbose" : args.verbose} )
 
 dense2  = sst.Component("dense2",  "neuralnet.NNLayer")
 subd2 = dense2.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
-subd2.addParams( {"nInputs" : args.hiddenLayerSize, "nNeurons" : args.hiddenLayerSize} )
-subd2.addParams( {"initialWeightScaling" : args.initialWeightScaling} )
+subd2.addParams( {"nInputs" : args.hiddenLayerSize, "nNeurons" : args.hiddenLayerSize,
+                 "initialWeightScaling" : args.initialWeightScaling,
+                 "verbose" : args.verbose } )
 subd2Opt = dense2.setSubComponent( "optimizer", "neuralnet.NNAdamOptimizer")
 subd2Opt.addParams( optimizer_params )
 
 relu2   = sst.Component("relu2",   "neuralnet.NNLayer")
 relu2.setSubComponent(  "transfer_function", "neuralnet.NNActivationReLULayer")
+relu2.addParams( {"verbose" : args.verbose} )
 
 dense3  = sst.Component("dense3",  "neuralnet.NNLayer")
-subd3 = dense3.setSubComponent( "transfer_function", "neuralnet.NNDenseLayer")
-subd3.addParams( {"nInputs" : args.hiddenLayerSize, "nNeurons" : 10} )
-subd3.addParams( {"initialWeightScaling" : args.initialWeightScaling} )
+subd3 = dense3.setSubComponent("transfer_function", "neuralnet.NNDenseLayer" )
+subd3.addParams( {"nInputs" : args.hiddenLayerSize, "nNeurons" : 10,
+                 "initialWeightScaling" : args.initialWeightScaling,
+                 "verbose" : args.verbose } )
 subd3Opt = dense3.setSubComponent( "optimizer", "neuralnet.NNAdamOptimizer")
 subd3Opt.addParams( optimizer_params )
 
 softmax = sst.Component("softmax", "neuralnet.NNLayer")
-softmax.setSubComponent("transfer_function", "neuralnet.NNActivationSoftmaxLayer")
+subsoftmax = softmax.setSubComponent("transfer_function", "neuralnet.NNActivationSoftmaxLayer")
+subsoftmax.addParams( {"verbose" : args.verbose} )
+
+# Final stage: Loss Layer
 
 loss    = sst.Component("loss",    "neuralnet.NNLayer")
-loss.setSubComponent( "transfer_function", "neuralnet.NNInputLayer")
-loss.setSubComponent( "accuracy_function", "neuralnet.NNAccuracyCategorical")
-loss.setSubComponent( "loss_function", "neuralnet.NNLoss_CategoricalCrossEntropy")
-loss.addParams( { "lastComponent" : 1 } ) # TODO we can determine this from the type
+loss.addParams( { "lastComponent" : 1, "verbose" : args.verbose} )
+
+loss_xfr = loss.setSubComponent( "transfer_function", "neuralnet.NNInputLayer")
+loss_xfr.addParams( {"verbose" : args.verbose} );
+
+loss_acc=loss.setSubComponent( "accuracy_function", "neuralnet.NNAccuracyCategorical")
+loss_acc.addParams( {"verbose" : args.verbose} );
+
+loss_fnc = loss.setSubComponent( "loss_function", "neuralnet.NNLoss_CategoricalCrossEntropy")
+loss_fnc.addParams( {"verbose" : args.verbose} );
+
 lossOpt = loss.setSubComponent( "optimizer", "neuralnet.NNAdamOptimizer" )
 lossOpt.addParams( optimizer_params )
 

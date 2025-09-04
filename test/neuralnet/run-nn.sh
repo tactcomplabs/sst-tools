@@ -23,7 +23,7 @@ if [ $largesim -eq 0 ]; then
         --initialWeightScaling=0.01 \
         --testImages="${HOME}/work/image_data/fashion_mnist_images/test" \
         --trainingImages="${HOME}/work/image_data/fashion_mnist_images/train" \
-        --verbose=2
+        --verbose=0
 else
     echo "Running large simulation"
     sst ../test-image.py $SSTOPTS -- \

@@ -96,6 +96,19 @@ struct payload_t {
     accuracy = in.accuracy;
     losses = in.losses;
   }
+  friend std::ostream& operator<<(std::ostream& os, const payload_t p) {
+    os << "MODE=" << mode2str.at(p.mode) 
+      << " data(" << p.data.rows() << "," << p.data.cols() << ")"
+      << " classes(" << p.classes.rows() << "," << p.classes.cols() << ")"
+      << " accuracy=" << p.accuracy
+      << " losses={" << p.losses <<  "}";
+      return os;
+  }
+  std::string str() {
+    std::stringstream s;
+    s << *this;
+    return s.str();
+  }
 };
 
 // -------------------------------------------------------

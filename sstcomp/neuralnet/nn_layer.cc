@@ -96,6 +96,7 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
     forward_o_snd();
     driveForwardPass=false;
   }
+
   if (driveMonitor) {
     // Loss calculation at end of first pass
     assert(lastComponent);
@@ -118,16 +119,19 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
         << ", reg_loss: "  << losses.regularization_loss << ")" << std::endl;
     }
 
-    /// TODO send loss/accuracy info for printing at end of step
-    monitorData_o = forwardData_i;  // garbage
+    // Send results to batch_controller
+    monitorData_o = sampleLosses;
+    monitorData_o.accuracy = accuracy;
+    monitorData_o.losses = losses;
     monitor_snd();
     driveMonitor=false;
-    // set up backward pass.
-    backwardData_i = forwardData_i;
-    backwardData_i.optimizer_data.optimizerState = OPTIMIZER_STATE::PRE_UPDATE;
-    backwardData_i.accuracy = accuracy;
-    backwardData_i.losses = losses;
-    assert(driveBackwardPass);
+    if (driveBackwardPass) {
+      // Provide accuracy and losses through backward passes to batch controller
+      backwardData_i = forwardData_i;
+      backwardData_i.optimizer_data.optimizerState = OPTIMIZER_STATE::PRE_UPDATE;
+      backwardData_i.accuracy = accuracy;
+      backwardData_i.losses = losses;
+    }
   }
   if (driveBackwardPass) {
     // backward pass transfer function
@@ -159,7 +163,8 @@ void NNLayer::forward_i_rcv(SST::Event *ev){
   forwardData_i = nnev->payload();
   if (lastComponent) {
     driveMonitor = true;
-    driveBackwardPass = true;
+    if (forwardData_i.mode == MODE::TRAINING)
+      driveBackwardPass = true;
   }
   else
     driveForwardPass = true;
@@ -191,7 +196,7 @@ void NNLayer::forward_o_snd(){
 
 void NNLayer::monitor_snd() {
   sstout.verbose(CALL_INFO,2,0, "%s sending monitor data\n", getName().c_str());
-  NNEvent* nnev = new NNEvent(forwardData_o);
+  NNEvent* nnev = new NNEvent(monitorData_o);
   linkHandlers.at(PortTypes::monitor)->send(nnev);
 }
 
@@ -201,11 +206,13 @@ void NNLayer::monitor_snd() {
 void NNInputLayer::forward(const payload_t& in, payload_t& o)
 {
   o = in;
+  sstout.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
 }
 
 void NNInputLayer::backward(const payload_t& in, payload_t& o)
 {
   o = in;
+  sstout.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
 }
 
 //
@@ -274,6 +281,7 @@ void NNDenseLayer::forward(const payload_t& in, payload_t& o)
 
   // Complete payload
   o.copyWithNoData(in);
+  sstout.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
 }
 
 void NNDenseLayer::backward(const payload_t& in, payload_t& o)
@@ -384,6 +392,7 @@ void NNActivationReLULayer::forward(const payload_t& in, payload_t& o)
 
   // complete payload
   o.copyWithNoData(in);
+  sstout.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
 }
 
 void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
@@ -458,6 +467,7 @@ void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
 
   // Complete payload
   o.copyWithNoData(in);
+  sstout.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
 }
 
 void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
@@ -617,6 +627,7 @@ void NNLoss_CategoricalCrossEntropy::forward(const payload_t& in, payload_t& o)
   // output payload
   o.data = negative_log_likelihoods_;  // sample_losses
   o.copyWithNoData(in);
+  sstout.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
 }
 
 void NNLoss_CategoricalCrossEntropy::backward(const payload_t& in, payload_t& o)

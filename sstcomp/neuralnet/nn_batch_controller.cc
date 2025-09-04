@@ -127,9 +127,8 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
   // check the backward data
   NNEvent* nnev = static_cast<NNEvent*>(ev);
   payload_t payload = nnev->payload();
-  // double sum = payload.data.array().sum();
-  // output.verbose(CALL_INFO,2,0, "%s step completed. checksum=%f\n", 
-  //                 getName().c_str(), sum);
+  assert(payload.mode == MODE::TRAINING);
+
   optimizer_data_t opt = payload.optimizer_data;
   
   // Print a summary
@@ -144,7 +143,14 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
       << ") ,lr: "    << opt.current_learning_rate
       << std::endl;
   }
-       
+
+  // Get and print epoch loss and accuracy
+  accumulatedSums.count++;
+  accumulatedSums.accuracy += payload.accuracy;
+  accumulatedSums.loss.data_loss += payload.losses.data_loss;
+  accumulatedSums.loss.regularization_loss += payload.losses.regularization_loss; 
+  accumulatedSums.current_learning_rate = opt.current_learning_rate;
+  
   // Signal to send the next batch
   readyToSend = true;
   reregisterClock(timeConverter, clockHandler);
@@ -152,10 +158,24 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
 }
 
 void NNBatchController::monitor_rcv(SST::Event *ev) {
-  // output.verbose(CALL_INFO,2,0, "%s receiving monitor data\n", getName().c_str());
-  // NNEvent* nnev = static_cast<NNEvent*>(ev);
-  // double sum = nnev->payload().data.array().sum();
-  // output.verbose(CALL_INFO,0,0, "Forward Pass Result=%f\n",sum);
+  NNEvent* nnev = static_cast<NNEvent*>(ev);
+  payload_t payload = nnev->payload();
+  output.verbose(CALL_INFO,2,0, "Forward Pass Result: %s\n", payload.str().c_str());
+
+  // Signal to send the next batch
+  MODE mode = payload.mode;
+  if (mode != MODE::TRAINING) {
+    assert(mode == MODE::EVALUATION || mode == MODE::VALIDATION);
+    
+    accumulatedSums.count++;
+    accumulatedSums.accuracy += payload.accuracy;
+    accumulatedSums.loss.data_loss += payload.losses.data_loss;
+    accumulatedSums.loss.regularization_loss += payload.losses.regularization_loss; 
+    accumulatedSums.current_learning_rate = payload.optimizer_data.current_learning_rate;
+  
+    readyToSend = true;
+    reregisterClock(timeConverter, clockHandler);
+  }
   delete(ev);
 }
 
@@ -165,6 +185,7 @@ bool NNBatchController::initTraining()
   
   // Initialize epoch counter
   epoch = 0;
+  accumulatedSums = {};
 
   // Calculate number of steps
   unsigned rows = (unsigned) trainingImages.data.rows();
@@ -185,34 +206,70 @@ bool NNBatchController::initTraining()
 
   assert(epochs > 0);
 
-  // first training step
-  // std::cout << "epoch: " << epoch << std::endl;
+  // First training step
   return launchTrainingStep();
 }
 
 bool NNBatchController::stepTraining() {
   assert(step < train_steps);
   if (++step == train_steps) {
-    // Done with steps. Check epoch
+    // Finished all steps for epoch
     output.verbose(CALL_INFO, 2,0, "Finished epoch\n");
     assert(epoch < epochs);
     if (++epoch == epochs) {
       trainingComplete = true;
       output.verbose(CALL_INFO, 2, 0, "Completed training\n");
-      // Release controller
+    }
+    
+    // At end of epoch. Print accumulated loss and accuracy
+    Losses epoch_losses;
+    epoch_losses.data_loss = accumulatedSums.loss.data_loss / accumulatedSums.count;
+    epoch_losses.regularization_loss = accumulatedSums.loss.regularization_loss / accumulatedSums.count;
+    double epoch_loss = epoch_losses.total_loss();
+    double epoch_accuracy = accumulatedSums.accuracy / accumulatedSums.count;
+
+    std::cout  << "training"
+        << std::fixed << std::setprecision(3)
+        << ", acc: "   << epoch_accuracy
+        << ", loss: "  << epoch_loss
+        << " (data_loss: "  << epoch_losses.data_loss
+        << ", reg_loss: "  << epoch_losses.regularization_loss
+        << std::setprecision(10)
+        << ") ,lr: "    << accumulatedSums.current_learning_rate
+        << std::endl;
+
+    // Switch to validation mode if enabled before next training epoch.
+    if (enableValidation()) {
+      std::cout << "### Validating model" << std::endl;
+      fsmState = MODE::VALIDATION;
+      step=0;
+      busy=false;
+      return false;
+    } 
+
+    if (trainingComplete) {
       busy=false;   // release controller
       return false; // keep clocking
     }
+
     // Next epoch
-    // std::cout << "epoch: " << epoch << std::endl;
-    // Reset accumulated values in loss and accuracy objects
-    accumulatedAccuracy = {};
-    accumulatedLoss = {};
-    // Reset step counter
-    step = 0;
+    return continueTraining();
   }
+
   // next step
   return launchTrainingStep();
+}
+
+bool NNBatchController::continueTraining()
+{
+    fsmState = MODE::TRAINING;
+    // Next epoch
+    std::cout << "epoch: " << epoch << std::endl;
+    // Reset accumulated values in loss and accuracy objects
+    accumulatedSums = {};
+    // Reset step counter
+    step = 0;
+    return launchTrainingStep();
 }
 
 bool NNBatchController::launchTrainingStep() {
@@ -241,12 +298,39 @@ bool NNBatchController::launchTrainingStep() {
   return true;  // disable controller clock
 }
 
+bool NNBatchController::launchValidationStep() {
+  // If batch size is not set, train using one step and full dataset
+  if (batch_size==0) {
+      batch_X = trainingImages.data;
+      batch_y = trainingImages.classes;
+  } else { 
+      // Otherwise slice a batch
+      unsigned p = step*batch_size;
+      assert(trainingImages.data.rows()==trainingImages.data.rows());
+      unsigned r = std::min((unsigned)trainingImages.data.rows()-p, batch_size);
+      batch_X = trainingImages.data.block(p, 0, r, trainingImages.data.cols());
+      batch_y = trainingImages.classes.block(p, 0, r, trainingImages.classes.cols());
+  }
+
+  // std::cout << "batch_X" << util.shapestr(batch_X) << "=\n" << HEAD(batch_X) << std::endl;
+  // std::cout << "batch_y" << util.shapestr(batch_y) << "=\n" << HEAD(batch_y) << std::endl;
+  output.verbose(CALL_INFO, 2, 0, "batch_X %s\n", util.shapestr(batch_X).c_str());
+  output.verbose(CALL_INFO, 2, 0, "batch_y %s\n", util.shapestr(batch_y).c_str());
+
+  // Initiate the forward pass (completed on monitor_rcv)
+  output.verbose(CALL_INFO, 2, 0, "step:%" PRId32 "\n", step);
+  forward_o_snd(MODE::VALIDATION);
+  busy = true;  // lock controller
+  return true;  // disable controller clock
+}
+
 bool NNBatchController::initValidation() {
   output.verbose(CALL_INFO, 2, 0, "Starting validation phase\n");
-  fsmState = MODE::EVALUATION;
-  evaluationComplete = true; // TODO remove
+  fsmState = MODE::VALIDATION;
+  accumulatedSums = {};
 
   // Calculate number of steps
+  validation_steps = 1;
   unsigned rows = (unsigned) testImages.data.rows();
   if (batch_size > 0) {
     validation_steps = (unsigned int) rows / batch_size;
@@ -261,11 +345,36 @@ bool NNBatchController::initValidation() {
   output.verbose(CALL_INFO, 1, 0, "X_val.rows()=%" PRId32 "\n", rows);
   output.verbose(CALL_INFO, 1, 0, "batch_size=%" PRId32 "\n", batch_size);
   output.verbose(CALL_INFO, 1, 0, "validation_steps=%" PRId32 "\n", validation_steps);
-  return false; // TODO return true
+  
+  // First validation step
+  return launchValidationStep();
 }
 
 bool NNBatchController::stepValidation() {
-  return false;
+  assert(step < validation_steps);
+  if (++step == validation_steps) {
+    // Finished all validation steps.
+    validationComplete = true;
+    output.verbose(CALL_INFO, 2, 0, "Completed validation\n");
+
+    // Get and print validation loss and accuracy
+    Losses validation_losses;
+    validation_losses.data_loss = accumulatedSums.loss.data_loss / accumulatedSums.count;
+    validation_losses.regularization_loss = accumulatedSums.loss.regularization_loss / accumulatedSums.count;
+    double validation_accuracy = accumulatedSums.accuracy / accumulatedSums.count;
+
+    std::cout << std::fixed << std::setprecision(3)
+        << "validation, acc: "  << validation_accuracy 
+        << " loss: " << validation_losses.total_loss() 
+        << std::endl;
+
+    // Release controller
+    busy=false;   // release controller
+    return false; // keep clocking
+  }
+
+  // next validaiton step
+  return launchValidationStep();
 }
 
 bool NNBatchController::initEvaluation() {
@@ -297,7 +406,7 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
     assert(readyToSend==false); 
     // not busy so what's next
     switch (fsmState) {
-      // Training includes validation for every epoch
+      
       case MODE::TRAINING:
         if (enableTraining())
           return initTraining();
@@ -306,16 +415,17 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
         else
           return complete(); 
 
-      // Validation (when training not specified)
       case MODE::VALIDATION:
         if (enableValidation())
           return initValidation();
-        else if (enableEvaluation())
+        else if (enableTraining()) {
+          validationComplete = false;
+          return continueTraining();
+        } else if (enableEvaluation())
           return initEvaluation();
         else
           return complete();
 
-      // Evaluation (can be pipelined)
       case MODE::EVALUATION:
         if (enableEvaluation())
           return initEvaluation();
