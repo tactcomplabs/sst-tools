@@ -128,12 +128,22 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
   NNEvent* nnev = static_cast<NNEvent*>(ev);
   payload_t payload = nnev->payload();
   double sum = payload.data.array().sum();
-  // assert(payload.optimizer_data.optimizerState == OPTIMIZER_STATE::POST_UPDATE);
- 
-  output.verbose(CALL_INFO,0,0, "%s Epoch completed. Result=%f\n", 
+   output.verbose(CALL_INFO,0,0, "%s step completed. checksum=%f\n", 
                   getName().c_str(), sum);
+  optimizer_data_t opt = payload.optimizer_data;
+  // Print a summary
+  std::cout  << "step: " << step 
+        << std::fixed << std::setprecision(3)
+        << ", acc: "   << payload.accuracy
+        << ", loss: "  << payload.losses.total_loss()
+        << " (data_loss: "  << payload.losses.data_loss
+        << ", reg_loss: "  << payload.losses.regularization_loss
+        << std::setprecision(10)
+        << ") ,lr: "    << opt.current_learning_rate
+        << std::endl;
+       
+  // Signal to send the next batch
   readyToSend = true;
-  //reregister clock for next batch
   reregisterClock(timeConverter, clockHandler);
   delete(ev);
 }
@@ -202,8 +212,7 @@ bool NNBatchController::stepTraining() {
 }
 
 bool NNBatchController::launchTrainingStep() {
-  // If batch size is not set -
-  // train using one step and full dataset
+  // If batch size is not set, train using one step and full dataset
   if (batch_size==0) {
       batch_X = trainingImages.data;
       batch_y = trainingImages.classes;
@@ -226,16 +235,6 @@ bool NNBatchController::launchTrainingStep() {
   forward_o_snd();
   busy = true;  // lock controller
   return true;  // disable controller clock
-
-  //TODO This can happen in each trainable layer after it's backward pass finishes.
-  // Optimize (update parameters)
-  // optimizer_->pre_update_params();
-  // for ( NeuronLayer* layer: trainable_layers_) {
-  //   optimizer_->update_params(layer);
-  // }
-  // optimizer_->post_update_params();
-
-  //TODO
 }
 
 bool NNBatchController::initValidation()

@@ -123,6 +123,8 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
     // set up backward pass.
     backwardData_i = forwardData_i;
     backwardData_i.optimizer_data.optimizerState = OPTIMIZER_STATE::PRE_UPDATE;
+    backwardData_i.accuracy = accuracy;
+    backwardData_i.losses = losses;
     assert(driveBackwardPass);
   }
   if (driveBackwardPass) {
@@ -255,10 +257,8 @@ void NNDenseLayer::forward(const payload_t& in, payload_t& o)
   std::cout << "biases"  << util.shapestr(biases_)  << "=\n" << HEAD(biases_)  << std::endl;
   std::cout << "output"  << util.shapestr(o.data)  << "=\n" << HEAD(o.data)  << std::endl;
 
-  //Complete paylod
-  o.mode = in.mode;
-  o.classes = in.classes;
-
+  // Complete payload
+  o.copyWithNoData(in);
 }
 
 void NNDenseLayer::backward(const payload_t& in, payload_t& o)
@@ -329,10 +329,8 @@ void NNDenseLayer::backward(const payload_t& in, payload_t& o)
   std::cout << "################################" << std::endl;
 
   // complete payload
-  o.mode = in.mode;
   o.data = dinputs_;
-  o.classes = in.classes;
-  o.optimizer_data = in.optimizer_data;
+  o.copyWithNoData(in);
 }
 
 void NNDenseLayer::enable_weight_cache() {
@@ -360,8 +358,7 @@ void NNActivationReLULayer::forward(const payload_t& in, payload_t& o)
   std::cout << "################################" << std::endl;
 
   // complete payload
-  o.mode = in.mode;
-  o.classes = in.classes;
+  o.copyWithNoData(in);
 }
 
 void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
@@ -383,10 +380,8 @@ void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
     << "\n################################" << std::endl;
 
   // Complete payload
-  o.mode = in.mode;
   o.data = dinputs_;
-  o.classes = in.classes;
-  o.optimizer_data = in.optimizer_data;
+  o.copyWithNoData(in);
 }
 
 // 
@@ -432,9 +427,8 @@ void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
   std::cout << "output=\n" << HEAD(o.data) << std::endl;
   std::cout << "################################" << std::endl;
 
-  // complete payload
-  o.mode = in.mode;
-  o.classes = in.classes;
+  // Complete payload
+  o.copyWithNoData(in);
 }
 
 void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
@@ -469,10 +463,8 @@ void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
   dinputs_ = dinputs_.array() / samples;
 
   // Complete payload
-  o.mode = in.mode;
   o.data = dinputs_;
-  o.classes = in.classes;
-  o.optimizer_data = in.optimizer_data;
+  o.copyWithNoData(in);
 }
 
 //
@@ -591,9 +583,8 @@ void NNLoss_CategoricalCrossEntropy::forward(const payload_t& in, payload_t& o)
   std::cout << "################################" << std::endl;
 
   // output payload
-  o.mode = in.mode;
   o.data = negative_log_likelihoods_;  // sample_losses
-  o.classes = in.classes; // y_true
+  o.copyWithNoData(in);
 }
 
 void NNLoss_CategoricalCrossEntropy::backward(const payload_t& in, payload_t& o)

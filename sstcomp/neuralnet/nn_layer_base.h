@@ -36,18 +36,6 @@ namespace SST::NeuralNet{
     INVALID = 0,
     ADAM = 1,
   };
-  
-  struct Losses {
-    double data_loss = 0;
-    double regularization_loss = 0;
-    double total_loss() { return data_loss + regularization_loss; }
-    Losses() {}
-    Losses(double d, double r) : data_loss(d), regularization_loss(r) {}
-    friend std::ostream& operator<<(std::ostream& os, const Losses losses ) {
-      os << "data_loss=" << losses.data_loss << ", regularization_loss=" << losses.regularization_loss;
-      return os;
-    }
-  };
 
 // -------------------------------------------------------
 // NNSubComponentAPI (not registered)

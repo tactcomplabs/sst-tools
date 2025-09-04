@@ -60,14 +60,35 @@ struct optimizer_data_t {
     iterations(iter) {}
 };
 
+struct Losses {
+  double data_loss = 0;
+  double regularization_loss = 0;
+  double total_loss() { return data_loss + regularization_loss; }
+  Losses() {}
+  Losses(double d, double r) : data_loss(d), regularization_loss(r) {}
+  friend std::ostream& operator<<(std::ostream& os, const Losses losses ) {
+    os << "data_loss=" << losses.data_loss << ", regularization_loss=" << losses.regularization_loss;
+    return os;
+  }
+};
+
 struct payload_t {
   MODE mode = MODE::INVALID;
   Eigen::MatrixXd data = {};
   Eigen::MatrixXi classes = {};
   optimizer_data_t optimizer_data = {};
+  double accuracy = 0;
+  Losses losses = {};
   payload_t() {};
   payload_t(MODE m, Eigen::MatrixXd X, Eigen::MatrixXi y) :
-    mode(m), data(X), classes(y) {}; 
+    mode(m), data(X), classes(y) {};
+  void copyWithNoData(const payload_t& in) {
+    mode = in.mode;
+    classes = in.classes;
+    optimizer_data = in.optimizer_data;
+    accuracy = in.accuracy;
+    losses = in.losses;
+  }
 };
 
 // -------------------------------------------------------
