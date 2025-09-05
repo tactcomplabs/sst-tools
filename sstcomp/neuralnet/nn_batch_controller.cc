@@ -218,7 +218,6 @@ bool NNBatchController::stepTraining() {
     assert(epoch < epochs);
     if (++epoch == epochs) {
       trainingComplete = true;
-      output.verbose(CALL_INFO, 2, 0, "Completed training\n");
     }
     
     // At end of epoch. Print accumulated loss and accuracy
@@ -242,12 +241,15 @@ bool NNBatchController::stepTraining() {
     if (enableValidation()) {
       std::cout << "### Validating model" << std::endl;
       fsmState = MODE::VALIDATION;
-      step=0;
-      busy=false;
+      step=0;     // reset counter
+      busy=false; // release controller
       return false;
     } 
 
     if (trainingComplete) {
+      // only get here if no validation images provided.
+      assert(false); //TODO remove this after confirming operation
+      std::cout << "\nTraining done\n" << std::endl;
       busy=false;   // release controller
       return false; // keep clocking
     }
@@ -301,15 +303,15 @@ bool NNBatchController::launchTrainingStep() {
 bool NNBatchController::launchValidationStep() {
   // If batch size is not set, train using one step and full dataset
   if (batch_size==0) {
-      batch_X = trainingImages.data;
-      batch_y = trainingImages.classes;
+      batch_X = testImages.data;
+      batch_y = testImages.classes;
   } else { 
       // Otherwise slice a batch
       unsigned p = step*batch_size;
-      assert(trainingImages.data.rows()==trainingImages.data.rows());
-      unsigned r = std::min((unsigned)trainingImages.data.rows()-p, batch_size);
-      batch_X = trainingImages.data.block(p, 0, r, trainingImages.data.cols());
-      batch_y = trainingImages.classes.block(p, 0, r, trainingImages.classes.cols());
+      assert(testImages.data.rows()==testImages.data.rows());
+      unsigned r = std::min((unsigned)testImages.data.rows()-p, batch_size);
+      batch_X = testImages.data.block(p, 0, r, testImages.data.cols());
+      batch_y = testImages.classes.block(p, 0, r, testImages.classes.cols());
   }
 
   // std::cout << "batch_X" << util.shapestr(batch_X) << "=\n" << HEAD(batch_X) << std::endl;
@@ -419,7 +421,7 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
         if (enableValidation())
           return initValidation();
         else if (enableTraining()) {
-          validationComplete = false;
+          validationComplete = false; // validate after each training epoch
           return continueTraining();
         } else if (enableEvaluation())
           return initEvaluation();
