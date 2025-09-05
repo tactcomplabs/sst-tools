@@ -18,6 +18,7 @@ parser.add_argument("--batchSize", type=int, help="number of images for each tra
 parser.add_argument("--classImageLimit", type=int, help="limited the number of images loaded per class", default=100000)
 parser.add_argument("--epochs", type=int, help="number of training rounds", default=1)
 parser.add_argument("--evalImage", type=str, help="path to a single evaluation image", default="")
+parser.add_argument("--evalImages", type=str, help="path to a collection of evaluation images", default="")
 parser.add_argument("--hiddenLayerSize", type=int, help="number of neurons in each hidden layer", default=128)
 parser.add_argument("--initialWeightScaling", type=float, help="scaling factor for random weights", default=0.1)
 parser.add_argument("--testImages", type=str, help="path to test data organized in class subdirectories", default="")
@@ -36,6 +37,7 @@ batch_controller.addParams({
   "classImageLimit" : args.classImageLimit,
   "epochs" : args.epochs,
   "evalImage" : args.evalImage,
+  "evalImages" : args.evalImages,
   "testImages" : args.testImages,
   "trainingImages" : args.trainingImages,
   "verbose" : args.verbose,

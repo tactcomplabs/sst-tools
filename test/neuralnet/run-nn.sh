@@ -12,6 +12,11 @@ cd run
 # SSTOPTS='--exit-after="5s"'
 SSTOPTS=''
 
+verbose=0
+if [ ! -z "${VERBOSE}" ]; then
+    verbose=${VERBOSE}
+fi
+
 if [ $largesim -eq 0 ]; then
     echo "Running small simulation"
     sst ../test-image.py $SSTOPTS -- \
@@ -19,22 +24,24 @@ if [ $largesim -eq 0 ]; then
         --classImageLimit=4 \
         --epochs=4 \
         --evalImage="${HOME}/work/image_data/eval/pants.png" \
+        --evalImages="${HOME}/work/image_data/eval" \
         --hiddenLayerSize=32 \
         --initialWeightScaling=0.01 \
         --testImages="${HOME}/work/image_data/fashion_mnist_images/test" \
         --trainingImages="${HOME}/work/image_data/fashion_mnist_images/train" \
-        --verbose=0
+        --verbose=${verbose}
 else
     echo "Running large simulation"
     sst ../test-image.py $SSTOPTS -- \
         --batchSize=128 \
         --epochs=10 \
         --evalImage="${HOME}/work/image_data/eval/pants.png" \
+        --evalImages="${HOME}/work/image_data/eval" \
         --hiddenLayerSize=128 \
         --initialWeightScaling=0.01 \
         --testImages="${HOME}/work/image_data/fashion_mnist_images/test" \
         --trainingImages="${HOME}/work/image_data/fashion_mnist_images/train" \
-        --verbose=0
+        --verbose=${verbose}
 fi
 
 wait

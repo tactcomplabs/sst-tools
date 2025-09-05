@@ -104,11 +104,13 @@ struct EigenImage {
 struct MNIST_image_t {
   Eigen::MatrixXd data = {};
   int label = -1;
+  fs::path image_path = {};
 };
 
 class Dataset {
 public:
   enum DTYPE { INVALID, SIMPLE_CLASSIFICATION, SCALAR, IMAGE };
+  std::string imagePath(size_t n) { return mnist_images[n].image_path; }
 private:
   DTYPE dtype_ = INVALID;
   int n_samples = 0;
@@ -150,10 +152,9 @@ public:
         assert(false);
     }
   }
+    
   bool valid() { return n_samples > 0;}
-
-  private:
-
+  
   void load_class_data(FILE *f, bool print) {
     int rc = fscanf(f, "%d %d\n", &n_samples, &n_classes); assert(rc);
     int n_total = n_samples * n_classes;
@@ -316,6 +317,66 @@ public:
     if (print)
       std::cout << "Loaded " << total_rows << " images" << std::endl;
   
+  }
+
+  // Evaluation data ( no class info )
+  void load_eval_images(const std::string& pathstring, EigenImage::TRANSFORM invert, EigenImage::TRANSFORM linearize, bool print=false) 
+  {
+    dtype_ = DTYPE::IMAGE;
+    const char* path = pathstring.c_str();
+    if (print)
+      std::cout << "Reading " << path << std::endl;
+    FILE* f = fopen(path, "r");
+    if (!f) {
+      std::cerr << "Error opening " << path << std::endl;
+      assert(false);
+    }
+    assert(this->data.size()==0);
+    fs::path imgdir = pathstring;
+    Eigen::Index image_rows = 0;
+    Eigen::Index image_cols = 0;
+    try {
+      for (const auto& entry : fs::directory_iterator(imgdir)) {
+        MNIST_image_t mnist_image = {};
+        mnist_image.image_path = entry;
+        std::string path = entry.path().string();
+        // Load the image
+        EigenImage eigenImage;
+        eigenImage.load(path.c_str(), invert, linearize, true);
+        // And append it and label to the lists
+        mnist_image.data = eigenImage.image_matrix;
+        // consistency checking
+        if (image_rows==0) {
+          image_rows = mnist_image.data.rows();
+          image_cols = mnist_image.data.cols();
+        } else {
+          assert(image_rows == mnist_image.data.rows());
+          assert(image_cols == mnist_image.data.cols());
+        }
+        // push image
+        mnist_images.emplace_back(mnist_image);
+      }
+    } catch (const fs::filesystem_error& e) {
+        std::cerr << "Error accessing directory: " << e.what() << std::endl;
+        exit(1);
+    }
+  
+    // convert mnist vector data to a 2D array where each row 
+    // is an entire serialized image.
+    unsigned total_rows = (unsigned) mnist_images.size();
+    unsigned total_cols = (unsigned)(image_rows * image_cols);
+    data.resize(total_rows, total_cols);
+    for ( unsigned mnist_index=0; mnist_index<total_rows; mnist_index++) {
+      for (unsigned row=0; row<image_rows; row++) {
+        for (unsigned col=0; col<image_cols; col++) {
+          data(mnist_index,row*image_cols + col) = mnist_images[mnist_index].data(row,col);
+        }
+      }
+    }
+
+    if (print)
+      std::cout << "Loaded " << total_rows << " images" << std::endl;
+    
   }
 
 }; //struct dataset

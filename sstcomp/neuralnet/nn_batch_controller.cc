@@ -26,7 +26,7 @@ NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& p
   batch_size = params.find<unsigned>("batchSize", 128);
   classImageLimit = params.find<unsigned>("classImageLimit", 100000);
   epochs = params.find<unsigned>("epochs", 0);
-  evalImageStr = params.find<std::string>("evalImage");
+  evalImagesStr = params.find<std::string>("evalImages");
   print_every = params.find<unsigned>("printEvery", 100);
   testImagesStr = params.find<std::string>("testImages");
   trainingImagesStr = params.find<std::string>("trainingImages");
@@ -76,7 +76,7 @@ void NNBatchController::init( unsigned int phase ){
 void NNBatchController::setup(){
 
   if (!enableTraining() && !enableValidation() && !enableEvaluation())
-    output.fatal(CALL_INFO, -1, "Nothing to do. Please set --trainingImages, --testImages, and/or --evalImage");
+    output.fatal(CALL_INFO, -1, "Nothing to do. Please set --trainingImages, --testImages, and/or --evalImages");
 
   if (enableTraining()) {
     trainingImages.load(trainingImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);
@@ -97,9 +97,9 @@ void NNBatchController::setup(){
   }
 
   if (enableEvaluation()) {
-    evalImage.load(evalImageStr.c_str(), EigenImage::TRANSFORM::INVERT, EigenImage::TRANSFORM::LINEARIZE, true);
+    evalImages.load_eval_images(evalImagesStr.c_str(), EigenImage::TRANSFORM::INVERT, EigenImage::TRANSFORM::LINEARIZE, true);
     if (output.getVerboseLevel() >= 2 ) {
-      std::cout << "X_eval"   << util.shapestr(evalImage.linear_image) << "=\n" << HEAD(evalImage.linear_image) << std::endl;
+      std::cout << "X_eval"   << util.shapestr(evalImages.data) << "=\n" << HEAD(evalImages.data) << std::endl;
     }
     if (fsmState==MODE::INVALID) fsmState = MODE::EVALUATION;
   }
@@ -391,25 +391,24 @@ bool NNBatchController::stepValidation() {
 
 bool NNBatchController::initEvaluation() {
 
-  std::cout << "### Performing predication on " << evalImageStr << std::endl;
-
-  output.verbose(CALL_INFO, 2, 0, "Starting evaluation phase\n");
+  std::cout << "### Evaluating images" << std::endl;
   fsmState = MODE::EVALUATION;
   accumulatedSums = {};
   step=0;
 
   // Calculate number of steps
   prediction_steps = 1;
-  unsigned rows = (unsigned) evalImage.linear_image.rows();
-  assert(rows==1); //TODO
+  unsigned rows = (unsigned) evalImages.data.rows();
+  assert(rows>0);
   if (eval_batch_size > 0) {
-    assert(false); // TODO
     prediction_steps = (unsigned int) rows / eval_batch_size;
     // Dividing rounds down. If there are some remaining
     // data but nor full batch, this won't include it
     // Add `1` to include this not full batch
     if (prediction_steps * eval_batch_size < rows)
       prediction_steps += 1;
+  } else {
+    assert(false); //TODO
   }
 
   output.verbose(CALL_INFO, 1, 0, "### Evaluation setup\n");
@@ -425,21 +424,20 @@ bool NNBatchController::launchEvaluationStep() {
 
   // If batch size is not set, train using one step and full dataset
   if (eval_batch_size==0) {
-      batch_X = evalImage.linear_image;
+      assert(false);
   } else {
-      assert(false); // TODO
       // Otherwise slice a batch
       unsigned p = step*eval_batch_size;
-      unsigned r = std::min((unsigned)evalImage.linear_image.rows()-p, eval_batch_size);
+      unsigned r = std::min((unsigned)evalImages.data.rows()-p, eval_batch_size);
       assert(r);
-      batch_X = evalImage.linear_image.block(p, 0, r, evalImage.linear_image.cols());
+      batch_X = evalImages.data.block(p, 0, r, evalImages.data.cols());
   }
 
   // std::cout << "batch_X" << util.shapestr(batch_X) << "=\n" << HEAD(batch_X) << std::endl;
   output.verbose(CALL_INFO, 2, 0, "batch_X %s\n", util.shapestr(batch_X).c_str());
 
   // Initiate the forward pass (completed on monitor_rcv)
-  output.verbose(CALL_INFO, 2, 0, "step:%" PRId32 "\n", step);
+  output.verbose(CALL_INFO, 2, 0, "step: %" PRId32 "\n", step);
   forward_o_snd(MODE::EVALUATION);
   busy = true;  // lock controller
   return true;  // disable controller clock
@@ -447,16 +445,16 @@ bool NNBatchController::launchEvaluationStep() {
 
 bool NNBatchController::stepEvaluation() { 
   assert(step < prediction_steps);
-  if (++step == prediction_steps) {
 
+  // Show prediction ( each step is 1 image )
+  MNISTinfo info;
+  std::cout << "Prediction for " << evalImages.imagePath(step) << " ... ";
+  std::cout << "Survey says ### " << info.toString((int) monitor_payload.predictions(0)) << " ###" << std::endl;
+
+  if (++step == prediction_steps) {
     // Finished all evaluation steps.
     evaluationComplete = true;
-    output.verbose(CALL_INFO, 2, 0, "Completed evaluation\n");
-
-    // Get label name
-    MNISTinfo info;
-    std::cout << "Survey says: ### " << info.toString((int) monitor_payload.predictions(0)) << " ###" << std::endl;
-
+    output.verbose(CALL_INFO, 2, 0, "Evaluations completed\n");
     // Release controller
     busy=false;   // release controller
     return false; // keep clocking

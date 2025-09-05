@@ -74,12 +74,14 @@ public:
     {"batchSize",       "Number of images per batch", "128"},
     {"classImageLimit", "Maximum images per class to load [100000]", "100000"},
     {"epochs",          "Training iterations", "1"},
-    {"evalImage",       "Path to single evaluation image", NULL},
+    {"evalImages",      "Path to directory containing evaluation images", NULL},
     {"printEvery",      "Epochs between printed summary information", "100"},
     {"testImages",      "Directory containing test images in class subdirs", NULL},
     {"trainingImages",  "Directory containing training images in class subdirs", NULL}
   )
 
+public:
+  
 private:
   // -- SST handlers
   SST::Output    output;                          ///< SST output handler
@@ -88,18 +90,18 @@ private:
 
   // -- Component Parameters  
   unsigned batch_size = 128;                      ///< number of images per batch
-  const unsigned eval_batch_size = 0;             ///< TODO support more than 1 image for prediction
+  const unsigned eval_batch_size = 1;             ///< Predictions ship 1 image at time (for now?)
   unsigned classImageLimit = 100000;              ///< maximum images to load for each classification set
   unsigned epochs = 1;                            ///< training epochs
   unsigned print_every = 100;                     ///< epochs between printing summary information
-  std::string evalImageStr = {};                  ///< path to a single evaluation image file
-  std::string testImagesStr = {};                 ///< path to directory containing test images
-  std::string trainingImagesStr = {};             ///< path to directory containing training images
+  std::string evalImagesStr = {};                 ///< path to directory containing evaluation images
+  std::string testImagesStr = {};                 ///< path to directory containing test images in class subdirs
+  std::string trainingImagesStr = {};             ///< path to directory containing training images in class subdirs
   
   // -- Internal State
   bool enableTraining()   { return (trainingImagesStr.size()>0 && !trainingComplete); }
   bool enableValidation() { return (testImagesStr.size()>0 && !validationComplete); }
-  bool enableEvaluation() { return (evalImageStr.size()>0 && !evaluationComplete); }
+  bool enableEvaluation() { return (evalImagesStr.size()>0 && !evaluationComplete); }
   MODE fsmState = MODE::INVALID;
   bool trainingComplete = false;
   bool validationComplete = false;
@@ -135,9 +137,11 @@ private:
   bool busy=false;
 
   //-- Image Management
+  //-- training and validation load everything by class directory
   Dataset trainingImages = {};
   Dataset testImages = {};
-  EigenImage evalImage = {};
+  //-- evaluation/prediction load images from a single directory (no class info)
+  Dataset evalImages = {};
   
   //-- FSM support ( call from clocktick )
   bool initTraining();  // returns true to disable clocking
