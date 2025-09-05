@@ -86,6 +86,7 @@ struct payload_t {
   optimizer_data_t optimizer_data = {};
   double accuracy = 0;
   Losses losses = {};
+  Eigen::MatrixXd predictions = {};
   payload_t() {};
   payload_t(MODE m, Eigen::MatrixXd X, Eigen::MatrixXi y) :
     mode(m), data(X), classes(y) {};
@@ -95,6 +96,7 @@ struct payload_t {
     optimizer_data = in.optimizer_data;
     accuracy = in.accuracy;
     losses = in.losses;
+    predictions = in.predictions;
   }
   friend std::ostream& operator<<(std::ostream& os, const payload_t p) {
     os << "MODE=" << mode2str.at(p.mode) 

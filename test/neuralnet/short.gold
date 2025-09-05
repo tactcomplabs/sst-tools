@@ -1,0 +1,43 @@
+Running small simulation
+configuration:
+	 batchSize  =  1
+	 classImageLimit  =  4
+	 epochs  =  4
+	 evalImage  =  /Users/kgriesser/work/image_data/eval/pants.png
+	 hiddenLayerSize  =  32
+	 initialWeightScaling  =  0.01
+	 testImages  =  /Users/kgriesser/work/image_data/fashion_mnist_images/test
+	 trainingImages  =  /Users/kgriesser/work/image_data/fashion_mnist_images/train
+	 verbose  =  0
+Reading /Users/kgriesser/work/image_data/fashion_mnist_images/train
+Loaded 16 images
+Reading /Users/kgriesser/work/image_data/fashion_mnist_images/test
+Loaded 16 images
+Loading image from /Users/kgriesser/work/image_data/eval/pants.png
+NNBatchController[batch_controller:initTraining:1000]: Starting training phase
+epoch: 0, step: 0, acc: 0.000, loss: 2.303 (data_loss: 2.303, reg_loss: 0.000) ,lr: 0.0010000000
+epoch: 0, step: 15, acc: 0.000, loss: 2.287 (data_loss: 2.287, reg_loss: 0.000) ,lr: 0.0009852217
+training, acc: 0.188, loss: 2.296 (data_loss: 2.296, reg_loss: 0.000) ,lr: 0.0009852217
+### Validating model
+validation, acc: 0.250 loss: 2.269
+epoch: 1
+epoch: 1, step: 0, acc: 1.000, loss: 2.221 (data_loss: 2.221, reg_loss: 0.000) ,lr: 0.0009842520
+epoch: 1, step: 15, acc: 0.000, loss: 2.118 (data_loss: 2.118, reg_loss: 0.000) ,lr: 0.0009699321
+training, acc: 0.250, loss: 2.183 (data_loss: 2.183, reg_loss: 0.000) ,lr: 0.0009699321
+### Validating model
+validation, acc: 0.250 loss: 1.981
+epoch: 2
+epoch: 2, step: 0, acc: 1.000, loss: 1.640 (data_loss: 1.640, reg_loss: 0.000) ,lr: 0.0009689922
+epoch: 2, step: 15, acc: 0.000, loss: 1.695 (data_loss: 1.695, reg_loss: 0.000) ,lr: 0.0009551098
+training, acc: 0.250, loss: 1.699 (data_loss: 1.699, reg_loss: 0.000) ,lr: 0.0009551098
+### Validating model
+validation, acc: 0.250 loss: 1.450
+epoch: 3
+epoch: 3, step: 0, acc: 1.000, loss: 0.831 (data_loss: 0.831, reg_loss: 0.000) ,lr: 0.0009541985
+epoch: 3, step: 15, acc: 1.000, loss: 1.319 (data_loss: 1.319, reg_loss: 0.000) ,lr: 0.0009407338
+training, acc: 0.312, loss: 1.341 (data_loss: 1.341, reg_loss: 0.000) ,lr: 0.0009407338
+### Validating model
+validation, acc: 0.500 loss: 1.285
+### Performing predication on /Users/kgriesser/work/image_data/eval/pants.png
+Survey says: ### TOP ###
+Simulation is complete, simulated time: 1.61062 ms

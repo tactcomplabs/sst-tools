@@ -159,22 +159,28 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
 
 void NNBatchController::monitor_rcv(SST::Event *ev) {
   NNEvent* nnev = static_cast<NNEvent*>(ev);
-  payload_t payload = nnev->payload();
-  output.verbose(CALL_INFO,2,0, "Forward Pass Result: %s\n", payload.str().c_str());
+  monitor_payload = nnev->payload();
+  output.verbose(CALL_INFO,2,0, "Monitor Data Received: %s\n", monitor_payload.str().c_str());
 
   // Signal to send the next batch
-  MODE mode = payload.mode;
-  if (mode != MODE::TRAINING) {
+  MODE mode = monitor_payload.mode;
+  if (mode == MODE::VALIDATION) {
     assert(mode == MODE::EVALUATION || mode == MODE::VALIDATION);
     
     accumulatedSums.count++;
-    accumulatedSums.accuracy += payload.accuracy;
-    accumulatedSums.loss.data_loss += payload.losses.data_loss;
-    accumulatedSums.loss.regularization_loss += payload.losses.regularization_loss; 
-    accumulatedSums.current_learning_rate = payload.optimizer_data.current_learning_rate;
+    accumulatedSums.accuracy += monitor_payload.accuracy;
+    accumulatedSums.loss.data_loss += monitor_payload.losses.data_loss;
+    accumulatedSums.loss.regularization_loss += monitor_payload.losses.regularization_loss; 
+    accumulatedSums.current_learning_rate = monitor_payload.optimizer_data.current_learning_rate;
   
     readyToSend = true;
     reregisterClock(timeConverter, clockHandler);
+  } else if (mode == MODE::EVALUATION) {
+    // std::cout << "predictions=" << monitor_payload.predictions.transpose() << std::endl;
+    readyToSend = true;
+    reregisterClock(timeConverter, clockHandler);
+  } else {
+    assert(mode == MODE::TRAINING);
   }
   delete(ev);
 }
@@ -186,6 +192,7 @@ bool NNBatchController::initTraining()
   // Initialize epoch counter
   epoch = 0;
   accumulatedSums = {};
+  step = 0;
 
   // Calculate number of steps
   unsigned rows = (unsigned) trainingImages.data.rows();
@@ -284,6 +291,7 @@ bool NNBatchController::launchTrainingStep() {
       unsigned p = step*batch_size;
       assert(trainingImages.data.rows()==trainingImages.data.rows());
       unsigned r = std::min((unsigned)trainingImages.data.rows()-p, batch_size);
+      assert(r);
       batch_X = trainingImages.data.block(p, 0, r, trainingImages.data.cols());
       batch_y = trainingImages.classes.block(p, 0, r, trainingImages.classes.cols());
   }
@@ -310,6 +318,7 @@ bool NNBatchController::launchValidationStep() {
       unsigned p = step*batch_size;
       assert(testImages.data.rows()==testImages.data.rows());
       unsigned r = std::min((unsigned)testImages.data.rows()-p, batch_size);
+      assert(r);
       batch_X = testImages.data.block(p, 0, r, testImages.data.cols());
       batch_y = testImages.classes.block(p, 0, r, testImages.classes.cols());
   }
@@ -330,6 +339,7 @@ bool NNBatchController::initValidation() {
   output.verbose(CALL_INFO, 2, 0, "Starting validation phase\n");
   fsmState = MODE::VALIDATION;
   accumulatedSums = {};
+  step=0;
 
   // Calculate number of steps
   validation_steps = 1;
@@ -380,14 +390,80 @@ bool NNBatchController::stepValidation() {
 }
 
 bool NNBatchController::initEvaluation() {
-  output.verbose(CALL_INFO, 0, 0, "Starting evaluation phase\n");
+
+  std::cout << "### Performing predication on " << evalImageStr << std::endl;
+
+  output.verbose(CALL_INFO, 2, 0, "Starting evaluation phase\n");
   fsmState = MODE::EVALUATION;
-  evaluationComplete = true;
-  return false;
+  accumulatedSums = {};
+  step=0;
+
+  // Calculate number of steps
+  prediction_steps = 1;
+  unsigned rows = (unsigned) evalImage.linear_image.rows();
+  assert(rows==1); //TODO
+  if (eval_batch_size > 0) {
+    assert(false); // TODO
+    prediction_steps = (unsigned int) rows / eval_batch_size;
+    // Dividing rounds down. If there are some remaining
+    // data but nor full batch, this won't include it
+    // Add `1` to include this not full batch
+    if (prediction_steps * eval_batch_size < rows)
+      prediction_steps += 1;
+  }
+
+  output.verbose(CALL_INFO, 1, 0, "### Evaluation setup\n");
+  output.verbose(CALL_INFO, 1, 0, "X.rows()=%" PRId32 "\n", rows);
+  output.verbose(CALL_INFO, 1, 0, "eval_batch_size=%" PRId32 "\n", eval_batch_size);
+  output.verbose(CALL_INFO, 1, 0, "prediction_steps=%" PRId32 "\n", prediction_steps);
+  
+  // First validation step
+  return launchEvaluationStep();
+}
+
+bool NNBatchController::launchEvaluationStep() {
+
+  // If batch size is not set, train using one step and full dataset
+  if (eval_batch_size==0) {
+      batch_X = evalImage.linear_image;
+  } else {
+      assert(false); // TODO
+      // Otherwise slice a batch
+      unsigned p = step*eval_batch_size;
+      unsigned r = std::min((unsigned)evalImage.linear_image.rows()-p, eval_batch_size);
+      assert(r);
+      batch_X = evalImage.linear_image.block(p, 0, r, evalImage.linear_image.cols());
+  }
+
+  // std::cout << "batch_X" << util.shapestr(batch_X) << "=\n" << HEAD(batch_X) << std::endl;
+  output.verbose(CALL_INFO, 2, 0, "batch_X %s\n", util.shapestr(batch_X).c_str());
+
+  // Initiate the forward pass (completed on monitor_rcv)
+  output.verbose(CALL_INFO, 2, 0, "step:%" PRId32 "\n", step);
+  forward_o_snd(MODE::EVALUATION);
+  busy = true;  // lock controller
+  return true;  // disable controller clock
 }
 
 bool NNBatchController::stepEvaluation() { 
-  return false;
+  assert(step < prediction_steps);
+  if (++step == prediction_steps) {
+
+    // Finished all evaluation steps.
+    evaluationComplete = true;
+    output.verbose(CALL_INFO, 2, 0, "Completed evaluation\n");
+
+    // Get label name
+    MNISTinfo info;
+    std::cout << "Survey says: ### " << info.toString((int) monitor_payload.predictions(0)) << " ###" << std::endl;
+
+    // Release controller
+    busy=false;   // release controller
+    return false; // keep clocking
+  }
+
+  // next evaluation step
+  return launchEvaluationStep();
 }
 
 bool NNBatchController::complete()

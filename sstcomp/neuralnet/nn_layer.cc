@@ -98,40 +98,49 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
   }
 
   if (driveMonitor) {
-    // Loss calculation at end of first pass
+    MODE mode = forwardData_i.mode;
     assert(lastComponent);
-    assert(loss_function);
-    payload_t sampleLosses = {};
-    loss_function->forward(forwardData_i, sampleLosses);
-    // sampleLosses.X_batch is sample_losses
-    // sampleLosses.y_batch is y_true
-    Losses losses = loss_function->calculate(sampleLosses.data);
-    // Predictions and accuracy
-    Eigen::MatrixXd predictions = loss_function->predictions(forwardData_i.data);
-    double accuracy = accuracy_function->calculate(predictions, forwardData_i.classes);
+    if (mode==MODE::VALIDATION || mode==MODE::TRAINING) {
+      // Loss calculation at end of first pass
+      assert(loss_function);
+      payload_t sampleLosses = {};
+      loss_function->forward(forwardData_i, sampleLosses);
+      // sampleLosses.X_batch is sample_losses
+      // sampleLosses.y_batch is y_true
+      Losses losses = loss_function->calculate(sampleLosses.data);
+      // Predictions and accuracy
+      Eigen::MatrixXd predictions = loss_function->predictions(forwardData_i.data);
+      double accuracy = accuracy_function->calculate(predictions, forwardData_i.classes);
 
-    if (sstout.getVerboseLevel() >= 2 ) {
-      std::cout << "### Forward pass result ###" << std::endl;
-      std::cout << std::fixed << std::setprecision(3) 
-        << "acc: " << accuracy
-        << ", loss: "  << losses.total_loss()
-        << " (data_loss: "  << losses.data_loss
-        << ", reg_loss: "  << losses.regularization_loss << ")" << std::endl;
+      if (sstout.getVerboseLevel() >= 2 ) {
+        std::cout << "### Forward pass result ###" << std::endl;
+        std::cout << std::fixed << std::setprecision(3) 
+          << "acc: " << accuracy
+          << ", loss: "  << losses.total_loss()
+          << " (data_loss: "  << losses.data_loss
+          << ", reg_loss: "  << losses.regularization_loss << ")" << std::endl;
+      }
+
+      // Send results to batch_controller
+      monitorData_o = sampleLosses;
+      monitorData_o.accuracy = accuracy;
+      monitorData_o.losses = losses;
+      if (driveBackwardPass) {
+        // Provide accuracy and losses through backward passes to batch controller
+        backwardData_i = forwardData_i;
+        backwardData_i.optimizer_data.optimizerState = OPTIMIZER_STATE::PRE_UPDATE;
+        backwardData_i.accuracy = accuracy;
+        backwardData_i.losses = losses;
+      }
+    } else if (mode==MODE::EVALUATION) {
+      monitorData_o = forwardData_i;
+      monitorData_o.predictions = loss_function->predictions(forwardData_i.data);
+    } else {
+      assert(false);
     }
-
-    // Send results to batch_controller
-    monitorData_o = sampleLosses;
-    monitorData_o.accuracy = accuracy;
-    monitorData_o.losses = losses;
+    // Send data back to controller
     monitor_snd();
     driveMonitor=false;
-    if (driveBackwardPass) {
-      // Provide accuracy and losses through backward passes to batch controller
-      backwardData_i = forwardData_i;
-      backwardData_i.optimizer_data.optimizerState = OPTIMIZER_STATE::PRE_UPDATE;
-      backwardData_i.accuracy = accuracy;
-      backwardData_i.losses = losses;
-    }
   }
   if (driveBackwardPass) {
     // backward pass transfer function

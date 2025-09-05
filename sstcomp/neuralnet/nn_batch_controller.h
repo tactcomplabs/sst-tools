@@ -88,6 +88,7 @@ private:
 
   // -- Component Parameters  
   unsigned batch_size = 128;                      ///< number of images per batch
+  const unsigned eval_batch_size = 0;             ///< TODO support more than 1 image for prediction
   unsigned classImageLimit = 100000;              ///< maximum images to load for each classification set
   unsigned epochs = 1;                            ///< training epochs
   unsigned print_every = 100;                     ///< epochs between printing summary information
@@ -108,6 +109,9 @@ private:
   unsigned step = 0;                              ///< step counter
   unsigned train_steps = 1;                       ///< total steps per training epoch
   unsigned validation_steps = 1;                  ///< total steps for validation run
+  unsigned prediction_steps = 1;                  ///< total steps for evaluation run
+
+  payload_t monitor_payload = {};                 ///< last data received on monitor port
 
   // -- Communication
   std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
@@ -148,6 +152,7 @@ private:
   //-- Sequences
   bool launchTrainingStep();
   bool launchValidationStep();
+  bool launchEvaluationStep();
 
   //-- Loss/Accuracy
   AccumulatedSums_t accumulatedSums = {};
