@@ -10,6 +10,7 @@
 
 import argparse
 import sst
+import sys
 from enum import Enum
 
 parser = argparse.ArgumentParser(description="test image")
@@ -31,6 +32,12 @@ print("configuration:")
 for arg in vars(args):
   print("\t", arg, " = ", getattr(args, arg))
 
+if (args.hiddenLayers < 3):
+  print("hiddenLayers requires minimum value of 3", file=sys.stderr)
+  sys.exit(1)
+
+# current simple test images are 28x28
+image_size = 28 * 28
 
 batch_controller_params = {
   "batchSize" : args.batchSize,
@@ -97,47 +104,42 @@ class Loss_CategoricalCrossEntropy:
     self.optimizer = self.comp.setSubComponent( "optimizer", "neuralnet.NNAdamOptimizer" )
     self.optimizer.addParams( optimizer_params )
 
-# Primary controller
-batch_controller = sst.Component("batch_controller", "neuralnet.NNBatchController")
-batch_controller.addParams(batch_controller_params)
-
-# Layers
-image_size = 28 * 28
-input = sst.Component("input",   "neuralnet.NNLayer")
-input.setSubComponent("transfer_function", "neuralnet.NNInputLayer")
-dense1 = DenseLayer("dense1", image_size, args.hiddenLayerSize)
-relu1 = ReLU("relu1")
-dense2 = DenseLayer("dense2", args.hiddenLayerSize, args.hiddenLayerSize)
-relu2 = ReLU("relu2")
-dense3 = DenseLayer("dense3", args.hiddenLayerSize, 10)
-softmax = Softmax("softmax")
-loss = Loss_CategoricalCrossEntropy("loss")
-
-# Connections
-components = []
+# Model construction
+comps = []
 forward_links = []
 backward_links = []
 
-components.append(batch_controller)
-components.append(input)
-components.append(dense1.comp)
-components.append(relu1.comp)
-components.append(dense2.comp)
-components.append(relu2.comp)
-components.append(dense3.comp)
-components.append(softmax.comp)
-components.append(loss.comp)
+# Primary controller
+comps.append(sst.Component("batch_controller", "neuralnet.NNBatchController"))
+comps[-1].addParams(batch_controller_params)
 
-for i in range(len(components)):
-  components[i].addParams( { "verbose" : args.verbose } )
-  if i < len(components)-1:
+# Input Layer
+input = sst.Component("input",   "neuralnet.NNLayer")
+input.setSubComponent("transfer_function", "neuralnet.NNInputLayer")
+comps.append(input)
+
+# Hidden Layers
+comps.append(DenseLayer("dense1", image_size, args.hiddenLayerSize).comp)
+comps.append(ReLU("relu1").comp)
+for i in range(2, args.hiddenLayers):
+  comps.append(DenseLayer(f"dense{i}", args.hiddenLayerSize, args.hiddenLayerSize).comp)
+  comps.append(ReLU(f"relu{i}").comp)
+comps.append(DenseLayer(f"dense{args.hiddenLayers}", args.hiddenLayerSize, 10).comp)
+
+# Output Layers
+comps.append(Softmax("softmax").comp)
+comps.append(Loss_CategoricalCrossEntropy("loss").comp)
+
+# Connections
+for i in range(len(comps)):
+  if i < len(comps)-1:
     forward_links.append(sst.Link(f"F{i}"))
     backward_links.append(sst.Link(f"B{i}"))
-    forward_links[i].connect(  (components[i],  "forward_o", "1us"),     (components[i+1], "forward_i", "1us") )
-    backward_links[i].connect( (components[i+1], "backward_o", "1us"),  (components[i], "backward_i", "1us") )
+    forward_links[i].connect(  (comps[i],  "forward_o", "1us"),     (comps[i+1], "forward_i", "1us") )
+    backward_links[i].connect( (comps[i+1], "backward_o", "1us"),  (comps[i], "backward_i", "1us") )
   else:
-    # loss layer feeds results back into the primary controller 
+    # loss layer feeds results back into the primary controller
     monitor_link = sst.Link("M")
-    monitor_link.connect( (components[i], "monitor", "1us"), (components[0], "monitor", "1us") )
+    monitor_link.connect( (comps[i], "monitor", "1us"), (comps[0], "monitor", "1us") )
 
 #EOF

@@ -5,6 +5,7 @@ configuration:
 	 epochs  =  10
 	 evalImage  =  /Users/kgriesser/work/image_data/eval/pants.png
 	 evalImages  =  /Users/kgriesser/work/image_data/eval
+	 hiddenLayers  =  3
 	 hiddenLayerSize  =  128
 	 initialWeightScaling  =  0.01
 	 testImages  =  /Users/kgriesser/work/image_data/fashion_mnist_images/test

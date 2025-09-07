@@ -17,6 +17,8 @@ if [ ! -z "${VERBOSE}" ]; then
     verbose=${VERBOSE}
 fi
 
+hiddenLayers=5
+
 if [ $largesim -eq 0 ]; then
     echo "Running small simulation"
     sst ../test-image.py ${SSTOPTS} -- \
@@ -25,6 +27,7 @@ if [ $largesim -eq 0 ]; then
         --epochs=4 \
         --evalImage="${HOME}/work/image_data/eval/pants.png" \
         --evalImages="${HOME}/work/image_data/eval" \
+        --hiddenLayers=${hiddenLayers} \
         --hiddenLayerSize=32 \
         --initialWeightScaling=0.01 \
         --testImages="${HOME}/work/image_data/fashion_mnist_images/test" \
@@ -37,6 +40,7 @@ else
         --epochs=10 \
         --evalImage="${HOME}/work/image_data/eval/pants.png" \
         --evalImages="${HOME}/work/image_data/eval" \
+        --hiddenLayers=${hiddenLayers} \
         --hiddenLayerSize=128 \
         --initialWeightScaling=0.01 \
         --testImages="${HOME}/work/image_data/fashion_mnist_images/test" \
