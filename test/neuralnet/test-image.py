@@ -19,6 +19,7 @@ parser.add_argument("--classImageLimit",      type=int,   help="limited the numb
 parser.add_argument("--epochs",               type=int,   help="number of training rounds", default=1)
 parser.add_argument("--evalImage",            type=str,   help="path to a single evaluation image", default="")
 parser.add_argument("--evalImages",           type=str,   help="path to a collection of evaluation images", default="")
+parser.add_argument("--hiddenLayers",         type=int,   help="number of hidden layers (3 minimum)", default=3)
 parser.add_argument("--hiddenLayerSize",      type=int,   help="number of neurons in each hidden layer", default=128)
 parser.add_argument("--initialWeightScaling", type=float, help="scaling factor for random weights", default=0.1)
 parser.add_argument("--testImages",           type=str,   help="path to test data organized in class subdirectories", default="")
@@ -30,9 +31,8 @@ print("configuration:")
 for arg in vars(args):
   print("\t", arg, " = ", getattr(args, arg))
 
-# Primary controller
-batch_controller = sst.Component("batch_controller", "neuralnet.NNBatchController")
-batch_controller.addParams({
+
+batch_controller_params = {
   "batchSize" : args.batchSize,
   "classImageLimit" : args.classImageLimit,
   "epochs" : args.epochs,
@@ -41,7 +41,7 @@ batch_controller.addParams({
   "testImages" : args.testImages,
   "trainingImages" : args.trainingImages,
   "verbose" : args.verbose,
-})
+}
 
 # Optimizer parameters
 optimizer_params = {
@@ -96,6 +96,10 @@ class Loss_CategoricalCrossEntropy:
     self.loss_function.addParams( {"verbose" : args.verbose} )
     self.optimizer = self.comp.setSubComponent( "optimizer", "neuralnet.NNAdamOptimizer" )
     self.optimizer.addParams( optimizer_params )
+
+# Primary controller
+batch_controller = sst.Component("batch_controller", "neuralnet.NNBatchController")
+batch_controller.addParams(batch_controller_params)
 
 # Layers
 image_size = 28 * 28

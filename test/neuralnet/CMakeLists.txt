@@ -10,7 +10,7 @@
 add_test(
   NAME neuralnet
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-  COMMAND ./run-nn.sh
+  COMMAND ./test-basic.sh
 )
 set_tests_properties(neuralnet PROPERTIES
   LABELS "neuralnet"
