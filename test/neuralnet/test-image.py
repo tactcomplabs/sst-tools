@@ -25,7 +25,7 @@ parser.add_argument("--hiddenLayerSize",      type=int,   help="number of neuron
 parser.add_argument("--initialWeightScaling", type=float, help="scaling factor for random weights", default=0.1)
 parser.add_argument("--testImages",           type=str,   help="path to test data organized in class subdirectories", default="")
 parser.add_argument("--trainingImages",       type=str,   help="path to training data organized in class subdirectories", default="")
-parser.add_argument("--verbose",              type=int,   help="verbosity. 5=send/recv", default=1)  
+parser.add_argument("--verbose",              type=int,   help="verbosity", default=1)
 
 args = parser.parse_args()
 print("configuration:")
