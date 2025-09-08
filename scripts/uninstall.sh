@@ -36,14 +36,14 @@ if test -f "$CONFIG"; then
   sed -i.bak '/CPTSubCompVecInt/d' $CONFIG
   sed -i.bak '/dbgcli/d' $CONFIG
   sed -i.bak '/gridtest/d' $CONFIG
-  sed -i.back'/NNBatchController/d' $CONFIG
-  sed -i.back'/NNLayer/d' $CONFIG
-  sed -i.back'/NNInputLayer/d' $CONFIG
-  sed -i.back'/NNDenseLayer/d' $CONFIG
-  sed -i.back'/NNActivationReLULayer/d' $CONFIG
-  sed -i.back'/NNActivationSoftmaxLayer/d' $CONFIG
-  sed -i.back'/NNLoss_CategoricalCrossEntropy/d' $CONFIG
-  sed -i.back'/NNAccuracyCategorical/d' $CONFIG
-  sed -i.back'/NNAdamOptimizer/d' $CONFIG
+  sed -i.bak '/NNBatchController/d' $CONFIG
+  sed -i.bak '/NNLayer/d' $CONFIG
+  sed -i.bak '/NNInputLayer/d' $CONFIG
+  sed -i.bak '/NNDenseLayer/d' $CONFIG
+  sed -i.bak '/NNActivationReLULayer/d' $CONFIG
+  sed -i.bak '/NNActivationSoftmaxLayer/d' $CONFIG
+  sed -i.bak '/NNLoss_CategoricalCrossEntropy/d' $CONFIG
+  sed -i.bak '/NNAccuracyCategorical/d' $CONFIG
+  sed -i.bak '/NNAdamOptimizer/d' $CONFIG
 fi
 

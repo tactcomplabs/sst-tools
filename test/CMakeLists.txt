@@ -21,7 +21,9 @@ endif()
 message(STATUS "[SST-TOOLS] Enabling CPTAPI testing")
 add_subdirectory(cptapi)
 
-message(STATUS "[SST-TOOLS] Enabling NEURALNET testing")
-add_subdirectory(neuralnet)
+if (${SST_TOOLS_NEURALNET})
+  message(STATUS "[SST-TOOLS] Enabling NEURALNET testing")
+  add_subdirectory(neuralnet)
+endif()
 
 # EOF

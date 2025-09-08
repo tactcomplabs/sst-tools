@@ -128,6 +128,11 @@ option(SST_TOOLS_CLEAN_TESTS "Clean test directories after running" ON)
 option(SST_TOOLS_ENABLE_TESTING "Enable testing" OFF)
 option(SST_TOOLS_SOCKETS "Enable tests using sockets" ON)
 
+#-- Neural Net build (requires Eigen OpenCV
+option(SST_TOOLS_NEURALNET "Enable neural net (requires Eigen and OpenCV)" OFF)
+message(STATUS "[SST-TOOLS] SST_TOOLS_NEURALNET is ${SST_TOOLS_NEURALNET}")
+#--
+
 #-- Checkpoint Serialization build flags (temporary)
 if ( ${SST_MAJOR_VERSION} EQUAL "90" )
   set(TCL_SCHEMA ON)

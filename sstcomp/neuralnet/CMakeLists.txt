@@ -16,7 +16,9 @@ add_library(neuralnet SHARED ${NNSrcs})
 
 #-- Eigen headers
 find_path( EIGEN_INCLUDE_DIR Eigen 
-  PATHS /usr/local/include/eigen3 /opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3)
+  PATHS /usr/local/include/eigen3
+        /opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3
+	$ENV{EIGEN_HOME}/include/eigen3 )
 if(EIGEN_INCLUDE_DIR)
   message("[CPPNNFS] EIGEN_INCLUDE_DIR=${EIGEN_INCLUDE_DIR}")
 else()
@@ -28,7 +30,15 @@ target_include_directories(neuralnet PUBLIC
   ${EIGEN_INCLUDE_DIR}
 )
 #-- OpenCV
-find_package(OpenCV REQUIRED COMPONENTS core imgcodecs)
+find_package(OpenCV REQUIRED
+		    COMPONENTS core imgcodecs
+		    PATHS $ENV{OPENCV_HOME})
+if (OpenCV_FOUND)
+   message(STATUS, "OpenCV found at: ${OpenCV_INCLUDE_DIRS}")
+else()
+   message(FATAL, "OpenCV not found")
+endif()
+
 target_link_libraries(neuralnet ${OpenCV_LIBS})
 
 install(TARGETS neuralnet DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})

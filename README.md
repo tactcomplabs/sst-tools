@@ -33,6 +33,7 @@ CMake configuration options include:
     SST_TOOLS_CLEAN_TESTS    - delete saved checkpoint directories (ON)
     SST_TOOLS_ENABLE_TESTING - enable all tests (OFF)
     SST_TOOLS_WERROR         - enabled -Werror compile flag (ON)
+    SST_TOOLS_NEURALNET      - enable neural network model (requires Eigen and OpenCV) (OFF)
 
 ## Experimental Code
 

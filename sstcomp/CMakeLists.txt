@@ -20,7 +20,10 @@ message(STATUS "[SST-TOOLS] Enabling dbgcli")
 add_subdirectory(dbgcli)
 message(STATUS "[SST-TOOLS] Enabling gridtest")
 add_subdirectory(gridtest)
-message(STATUS "[SST-TOOLS] Enable neuralnet")
-add_subdirectory(neuralnet)
+
+if (${SST_TOOLS_NEURALNET})
+  message(STATUS "[SST-TOOLS] Enabling neuralnet")
+  add_subdirectory(neuralnet)
+endif()
 
 # EOF
