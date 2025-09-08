@@ -1,4 +1,8 @@
 # Local Environment Setup for Neural Network Compilation
+#
+# This describes UBUNTU only.
+# MacOS install verified but not documented yet
+#
 
 ## Eigen
 Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
