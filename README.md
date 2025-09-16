@@ -43,6 +43,9 @@ For information on instrumenting code using the component debug probe methodolog
 ### Checkpoint API Prototype
 For information on generating json schema files for checkpoints and interacting with them using a Python API see the [cptapi documentation](test/cptapi/README.md).
 
+### SST Neural Network
+For an example neural network in SST see the [neural network documentation](test/neuralnet/README.md).
+
 ## Contributing
 
 We welcome outside contributions from corporate, academic and individual

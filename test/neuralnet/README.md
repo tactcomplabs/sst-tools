@@ -1,14 +1,10 @@
 # Local Environment Setup for Neural Network Compilation
-#
-# This describes UBUNTU only.
-# MacOS install verified but not documented yet
-#
 
 ## Eigen
 Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
 For more information go to http://eigen.tuxfamily.org/ or https://libeigen.gitlab.io/docs/.
 
-To clone and build Eigen source code:
+To clone and build Eigen from the source code:
 ```
 git clone https://gitlab.com/libeigen/eigen.git
 cd eigen
@@ -16,7 +12,11 @@ mkdir -p build && cd build
 export EIGEN_HOME=$PWD
 cmake .. -DCMAKE_INSTALL_PREFIX=$EIGEN_HOME
 make install
+```
 
+It is available on MacOS Homebrew as well.
+```
+brew install eigen
 ```
 
 ## OpenCV
@@ -35,11 +35,16 @@ cmake ..
 make -j 8
 ls bin
 ls lib
-```Z
+```
+
+It is available on MacOS Homebrew as well.
+```
+brew install opencv
+```
 
 ## User Profile
 
-Add to ~/.profile
+If not using a package manager you may need to set these environment variables in your shell setup script.
 ```
 export EIGEN_HOME=<eigen location>
 export OPENCV_HOME=<opencv location>
