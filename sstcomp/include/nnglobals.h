@@ -13,6 +13,6 @@ static const bool g_debug = false;
 static const bool g_useDropout = false;
 static const bool g_smallsim = false;
 static const bool g_shuffle = true;
-static const bool g_randFromFile = true;
+static const bool g_randFromFile = false;
 
 #endif //_NNGLOBALS_H
