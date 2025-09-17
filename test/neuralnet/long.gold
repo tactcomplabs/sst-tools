@@ -3,21 +3,21 @@ configuration:
 	 batchSize  =  128
 	 classImageLimit  =  100000
 	 epochs  =  10
-	 evalImage  =  /Users/kgriesser/work/image_data/eval/pants.png
-	 evalImages  =  /Users/kgriesser/work/image_data/eval
+	 evalImage  =  
+	 evalImages  =  /Users/kgriesser/work/sst-tools/image_data/eval
 	 hiddenLayers  =  3
 	 hiddenLayerSize  =  128
 	 initialWeightScaling  =  0.01
-	 testImages  =  /Users/kgriesser/work/image_data/fashion_mnist_images/test
-	 trainingImages  =  /Users/kgriesser/work/image_data/fashion_mnist_images/train
+	 testImages  =  /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test
+	 trainingImages  =  /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train
 	 verbose  =  0
-Reading /Users/kgriesser/work/image_data/fashion_mnist_images/train
+Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train
 Loaded 60000 images
-Reading /Users/kgriesser/work/image_data/fashion_mnist_images/test
+Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test
 Loaded 10000 images
-Reading /Users/kgriesser/work/image_data/eval
-Loading image from /Users/kgriesser/work/image_data/eval/tshirt.png
-Loading image from /Users/kgriesser/work/image_data/eval/pants.png
+Reading /Users/kgriesser/work/sst-tools/image_data/eval
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/pants.png
 Loaded 2 images
 NNBatchController[batch_controller:initTraining:1000]: Starting training phase
 epoch: 0, step: 0, acc: 0.148, loss: 2.303 (data_loss: 2.303, reg_loss: 0.000) ,lr: 0.0010000000
@@ -120,6 +120,6 @@ training, acc: 0.895, loss: 0.289 (data_loss: 0.289, reg_loss: 0.000) ,lr: 0.000
 ### Validating model
 validation, acc: 0.876 loss: 0.349
 ### Evaluating images
-Prediction for /Users/kgriesser/work/image_data/eval/tshirt.png ... Survey says ### TOP ###
-Prediction for /Users/kgriesser/work/image_data/eval/pants.png ... Survey says ### TROUSER ###
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png ... Survey says ### TOP ###
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/pants.png ... Survey says ### TROUSER ###
 Simulation is complete, simulated time: 82.2502 ms
