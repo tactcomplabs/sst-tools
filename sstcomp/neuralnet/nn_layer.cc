@@ -209,6 +209,11 @@ void NNLayer::monitor_snd() {
   linkHandlers.at(PortTypes::monitor)->send(nnev);
 }
 
+void NNLayer::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNLayerBase::serialize_order(ser);
+}
+
 //
 // Input Layer
 //
@@ -224,9 +229,20 @@ void NNInputLayer::backward(const payload_t& in, payload_t& o)
   sstout.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
 }
 
+void NNInputLayer::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNSubComponentAPI::serialize_order(ser);
+}
+
+
 //
 // NNSubComponentAPI
 //
+void NNSubComponentAPI::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  SubComponent::serialize_order(ser);
+}
+
 NNSubComponentAPI::NNSubComponentAPI(ComponentId_t id, Params &params) : SubComponent(id)
 {
   // parameters
@@ -381,6 +397,11 @@ void NNDenseLayer::enable_weight_cache() {
     has_weight_cache = true;
 }
 
+void NNDenseLayer::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNSubComponentAPI::serialize_order(ser);
+}
+
 // 
 // ReLU Activation Layer
 // 
@@ -427,6 +448,11 @@ void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
   // Complete payload
   o.data = dinputs_;
   o.copyWithNoData(in);
+}
+
+void NNActivationReLULayer::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNSubComponentAPI::serialize_order(ser);
 }
 
 // 
@@ -515,6 +541,11 @@ void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
   o.copyWithNoData(in);
 }
 
+void NNActivationSoftmaxLayer::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNSubComponentAPI::serialize_order(ser);
+}
+
 //
 // Loss Layer API
 //
@@ -572,6 +603,11 @@ const Eigen::MatrixXd &NNLossLayerAPI::predictions(const Eigen::MatrixXd &output
     assert(prediction_type_ == ACTIVATION_TYPE::SOFTMAX);
     util.argmax(predictions_, outputs);
     return predictions_;
+}
+
+void NNLossLayerAPI::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNSubComponentAPI::serialize_order(ser);
 }
 
 // 
@@ -644,6 +680,11 @@ void NNLoss_CategoricalCrossEntropy::backward(const payload_t& in, payload_t& o)
   o = in;
 }
 
+void NNLoss_CategoricalCrossEntropy::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNLossLayerAPI::serialize_order(ser);
+}
+
 // 
 // NNAccuracyAPI
 //
@@ -680,6 +721,11 @@ void NNAccuracyAPI::new_pass() {
   accumulated_count_ = 0;
 }
 
+void NNAccuracyAPI::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  SubComponent::serialize_order(ser);
+}
+
 // 
 // NNAccuracyCategorical
 //
@@ -701,6 +747,11 @@ Eigen::MatrixX<bool> &NNAccuracyCategorical::compare(const Eigen::MatrixXd &pred
     result_ =  (predictions.array() == y.array());
   }
   return result_;
+}
+
+void NNAccuracyCategorical::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNAccuracyAPI::serialize_order(ser);
 }
 
 //
@@ -827,8 +878,18 @@ void NNAdamOptimizer::update_params(NNDenseLayer *layer, const optimizer_data_t&
 
 }
 
+void NNOptimizerAPI::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  SubComponent::serialize_order(ser);
+}
+
 void NNAdamOptimizer::post_update_params() {
   iterations_++;
+}
+
+void NNAdamOptimizer::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNOptimizerAPI::serialize_order(ser);
 }
 
 } // namespace SST::NNLayer

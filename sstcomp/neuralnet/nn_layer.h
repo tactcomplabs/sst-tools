@@ -85,6 +85,15 @@ private:
   bool driveBackwardPass = false;
   bool driveMonitor = false;
 
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNLayer() : NNLayerBase() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
+
 };  //class NNLayer
 
 // -------------------------------------------------------
@@ -103,6 +112,15 @@ public:
   ~NNInputLayer() {};
   virtual void forward(const payload_t& in, payload_t& o) final;
   virtual void backward(const payload_t& in, payload_t& o) final;
+
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNInputLayer() : NNSubComponentAPI() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
 }; //class NNInputLayer
 
 // -------------------------------------------------------
@@ -158,6 +176,15 @@ private:
   Eigen::MatrixXd dweights_ = {};
   Eigen::RowVectorXd dbiases_ = {};
 
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNDenseLayer() : NNSubComponentAPI() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
+
 }; //class NNDenseLayer
 
 // -------------------------------------------------------
@@ -177,6 +204,14 @@ public:
   ~NNActivationReLULayer() {};
   virtual void forward(const payload_t& in, payload_t& o) final;
   virtual void backward(const payload_t& in, payload_t& o) final;
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNActivationReLULayer() : NNSubComponentAPI() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
 }; //class NNActivationReLULayer
 
 // -------------------------------------------------------
@@ -206,6 +241,15 @@ public:
 private:
   LOSS_TYPE loss_type_ = LOSS_TYPE::CATEGORICAL_CROSS_ENTROPY;
 
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNActivationSoftmaxLayer() : NNSubComponentAPI() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
+
 }; //class NNActivationSoftmaxLayer
 
 // -------------------------------------------------------
@@ -226,6 +270,14 @@ public:
   virtual void backward(const payload_t& in, payload_t& o) final;
 private:
   Eigen::MatrixXd negative_log_likelihoods_ = {}; // TODO remove
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNLoss_CategoricalCrossEntropy() : NNLossLayerAPI() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
 }; //class NNLossLayer
 
 // -------------------------------------------------------
@@ -250,6 +302,16 @@ private:
   const bool binary_=false; //TODO input parameter
   const bool scalar_=false; //TODO input parameter
   Eigen::MatrixX<bool> result_ = {};
+
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNAccuracyCategorical() : NNAccuracyAPI() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
+
 }; //class NNAccuracyCategorical
 
 // -------------------------------------------------------
@@ -285,6 +347,14 @@ private:
   double beta_1_ = 0.9;
   double beta_2_ = 0.999;
 
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNAdamOptimizer() : NNOptimizerAPI() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
 }; //class NNAccuracyCategorical
 
 

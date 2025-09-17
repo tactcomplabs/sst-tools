@@ -443,6 +443,12 @@ bool NNBatchController::launchEvaluationStep() {
   return true;  // disable controller clock
 }
 
+void NNBatchController::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNLayerBase::serialize_order(ser);
+  SST_SER(output);
+}
+
 bool NNBatchController::stepEvaluation() { 
   assert(step < prediction_steps);
 

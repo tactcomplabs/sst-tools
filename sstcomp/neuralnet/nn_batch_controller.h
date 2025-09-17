@@ -80,8 +80,6 @@ public:
     {"trainingImages",  "Directory containing training images in class subdirs", NULL}
   )
 
-public:
-  
 private:
   // -- SST handlers
   SST::Output    output;                          ///< SST output handler
@@ -163,6 +161,15 @@ private:
 
   //-- Helpers
   Eutils util = {};
+
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNBatchController() : NNLayerBase() {};
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
 
 };  //class NNBatchController
 }   //namespace SST::NeuralNet

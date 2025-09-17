@@ -118,12 +118,19 @@ struct payload_t {
 // -------------------------------------------------------
 class NNEvent : public SST::Event{
 public:
-  NNEvent() : SST::Event() {}
   NNEvent(const payload_t& p) : SST::Event(), payload_(p) {}
   virtual ~NNEvent() {}
   const payload_t& payload() { return payload_; }
 private:
   payload_t payload_;
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNEvent() : Event() {};
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
 }; //class NNEvent
 
 } //namespace SST::NeuralNet

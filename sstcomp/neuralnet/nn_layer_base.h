@@ -64,6 +64,15 @@ protected:
 
   //-- Helpers
   Eutils util = {};
+
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNSubComponentAPI() : SubComponent() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
 };
 
 // -------------------------------------------------------
@@ -98,6 +107,14 @@ protected:
     double accumulated_sum_ = 0;
     int accumulated_count_ = 0;
 
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNLossLayerAPI() : NNSubComponentAPI() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
 };
 
 // -------------------------------------------------------
@@ -122,6 +139,14 @@ protected:
 private:
   double accumulated_sum_ = 0;
   double accumulated_count_ = 0;
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNAccuracyAPI() : SubComponent() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
 };
 
 // -------------------------------------------------------
@@ -154,6 +179,14 @@ protected:
   double learning_rate_ = 0.001;
   double current_learning_rate_ = 0.001;
   unsigned iterations_ = 0;
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNOptimizerAPI() : SubComponent() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
 
 };
 
@@ -193,7 +226,6 @@ public:
   )
 
   explicit NNLayerBase(ComponentId_t id) : SST::Component(id) {}
-  NNLayerBase() : SST::Component() {}
   ~NNLayerBase() {}
 
   protected:
@@ -202,6 +234,17 @@ public:
   NNLossLayerAPI* loss_function = nullptr;
   NNAccuracyAPI* accuracy_function = nullptr;
   NNOptimizerAPI* optimizer = nullptr;
+
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNLayerBase() : SST::Component() {}
+  // Serialization function 
+  void serialize_order(SST::Core::Serialization::serializer& ser) override {
+    Component::serialize_order(ser); 
+  }
 
 }; //class NNLayerBase
 

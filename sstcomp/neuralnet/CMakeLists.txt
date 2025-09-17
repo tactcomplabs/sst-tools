@@ -9,6 +9,7 @@
 
 set(NNSrcs
   nn_batch_controller.cc
+  nn_event.cc
   nn_layer.cc
 )
 
