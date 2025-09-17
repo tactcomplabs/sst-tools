@@ -93,6 +93,8 @@ public:
   NNLayer() : NNLayerBase() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNLayer)
 
 };  //class NNLayer
 
@@ -121,6 +123,8 @@ public:
   NNInputLayer() : NNSubComponentAPI() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNInputLayer)
 }; //class NNInputLayer
 
 // -------------------------------------------------------
@@ -184,6 +188,8 @@ public:
   NNDenseLayer() : NNSubComponentAPI() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNDenseLayer)
 
 }; //class NNDenseLayer
 
@@ -212,6 +218,8 @@ public:
   NNActivationReLULayer() : NNSubComponentAPI() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNActivationReLULayer)
 }; //class NNActivationReLULayer
 
 // -------------------------------------------------------
@@ -249,6 +257,8 @@ public:
   NNActivationSoftmaxLayer() : NNSubComponentAPI() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNActivationSoftmaxLayer)
 
 }; //class NNActivationSoftmaxLayer
 
@@ -278,6 +288,8 @@ public:
   NNLoss_CategoricalCrossEntropy() : NNLossLayerAPI() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNLoss_CategoricalCrossEntropy)
 }; //class NNLossLayer
 
 // -------------------------------------------------------
@@ -311,6 +323,8 @@ public:
   NNAccuracyCategorical() : NNAccuracyAPI() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNAccuracyCategorical)
 
 }; //class NNAccuracyCategorical
 
@@ -355,6 +369,8 @@ public:
   NNAdamOptimizer() : NNOptimizerAPI() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNAdamOptimizer)
 }; //class NNAccuracyCategorical
 
 

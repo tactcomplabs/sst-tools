@@ -131,6 +131,8 @@ public:
   NNEvent() : Event() {};
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNEvent)
 }; //class NNEvent
 
 } //namespace SST::NeuralNet

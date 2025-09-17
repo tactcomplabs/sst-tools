@@ -73,6 +73,8 @@ public:
   NNSubComponentAPI() : SubComponent() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementVirtualSerializable(SST::NeuralNet::NNSubComponentAPI)
 };
 
 // -------------------------------------------------------
@@ -115,6 +117,8 @@ public:
   NNLossLayerAPI() : NNSubComponentAPI() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementVirtualSerializable(SST::NeuralNet::NNLossLayerAPI)
 };
 
 // -------------------------------------------------------
@@ -147,6 +151,8 @@ public:
   NNAccuracyAPI() : SubComponent() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementVirtualSerializable(SST::NeuralNet::NNAccuracyAPI)
 };
 
 // -------------------------------------------------------
@@ -187,8 +193,9 @@ public:
   NNOptimizerAPI() : SubComponent() {}
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
-
-};
+  // Serialization implementation
+  ImplementVirtualSerializable(SST::NeuralNet::NNOptimizerAPI)
+}; //class NNOptimizerAPI
 
 // -------------------------------------------------------
 // NNLayerBase ( not registered )
@@ -245,6 +252,8 @@ public:
   void serialize_order(SST::Core::Serialization::serializer& ser) override {
     Component::serialize_order(ser); 
   }
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNLayerBase)
 
 }; //class NNLayerBase
 

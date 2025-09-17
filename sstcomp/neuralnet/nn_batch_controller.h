@@ -170,7 +170,8 @@ public:
   NNBatchController() : NNLayerBase() {};
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
-
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNBatchController)
 };  //class NNBatchController
 }   //namespace SST::NeuralNet
 

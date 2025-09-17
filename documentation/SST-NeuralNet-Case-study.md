@@ -176,7 +176,6 @@ public:
   NNBatchController() : NNLayerBase() {};
   // Serialization function
   void serialize_order(SST::Core::Serialization::serializer& ser) override;
-  
 };  //class NNBatchController
 ```
 
@@ -202,6 +201,54 @@ SST-DL: Loading failed for /Users/kgriesser/work/sst-tools/sstcomp/neuralnet/lib
 ```
 
 If there are many classes and subclasses (as in this case), it may be better to do a few classes at a time and build and test with each change.
+
+## Add the Appropriate Serialization Macro
+
+`ImplementVirtualSerializable` for pure virtual classes.
+`ImplementSerializable` for all others.
+
+Our final code for the class definition of NNBatchController is now:
+```
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNBatchController() : NNLayerBase() {};
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementSerializable(SST::NeuralNet::NNBatchController)
+};  //class NNBatchController
+```
+
+There are several pure virtual classes in this implementation. I've left the `serialize_order` in the class. It does not appear to have any effect.
+Example: [nn_layer_base.h](../sstcomp/neuralnet/nn_layer_base.h)
+
+```
+public:
+  // -------------------------------------------------------
+  // Serialization support
+  // -------------------------------------------------------
+  // Default constructor required for serialization
+  NNOptimizerAPI() : SubComponent() {}
+  // Serialization function
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;
+  // Serialization implementation
+  ImplementVirtualSerializable(SST::NeuralNet::NNOptimizerAPI)
+}; //class NNOptimizerAPI
+```
+
+Note that there is no semicolon after the `ImplementSerializable` statement. 
+Again, a good idea to build and test the model periodially while adding these macros if there are many classes.
+
+At this point we have a partially checkpointable model (OK, just 1 variable but more are easy to add). In the next section, we'll detour into the realm of interactive debug.
+
+---
+<br><br><br>
+
+# Introduction to Interactive Debug
+
 
 
 
