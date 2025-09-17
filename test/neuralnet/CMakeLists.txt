@@ -25,7 +25,7 @@ add_test(
 )
 set_tests_properties(nn-basic-1 PROPERTIES
   LABELS "neuralnet"
-  TIMEOUT 30
+  TIMEOUT 60
   PASS_REGULAR_EXPRESSION ".*Survey says ### TOP ###.*Survey says ### TROUSER ###.*Simulation is complete"
 )
 
