@@ -222,7 +222,9 @@ public:
 };  //class NNBatchController
 ```
 
-There are several pure virtual classes in this implementation. I've left the `serialize_order` in the class. It does not appear to have any effect.
+Note that there is no semicolon after the `ImplementSerializable` statement.
+
+There are several pure virtual classes in this implementation.
 Example: [nn_layer_base.h](../sstcomp/neuralnet/nn_layer_base.h)
 
 ```
@@ -239,10 +241,9 @@ public:
 }; //class NNOptimizerAPI
 ```
 
-Note that there is no semicolon after the `ImplementSerializable` statement. 
-Again, a good idea to build and test the model periodially while adding these macros if there are many classes.
+At this point we have a partially checkpointable model (just 1 variable). The code should compile and run correctly and adding code for the rest of the variables amounts to employing the SST_SER macro judiciously.
 
-At this point we have a partially checkpointable model (OK, just 1 variable but more are easy to add). In the next section, we'll detour into the realm of interactive debug.
+In the next section, we'll implement more serializaiton and detour into the exciting realm of interactive debug.
 
 ---
 <br><br><br>
