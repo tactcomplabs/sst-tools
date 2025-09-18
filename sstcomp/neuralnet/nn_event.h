@@ -55,15 +55,18 @@ enum class OPTIMIZER_STATE: unsigned {
 struct optimizer_data_t {
   OPTIMIZER_STATE optimizerState = OPTIMIZER_STATE::INVALID;
   // shadow version of common optimizer members
-  double current_learning_rate = 0.;
+  double learning_rate = 0;
+  double current_learning_rate = 0;
   unsigned iterations = 0;
   optimizer_data_t() : 
     optimizerState(OPTIMIZER_STATE::INVALID),
+    learning_rate(0),
     current_learning_rate(0), 
     iterations(0) {}
-  optimizer_data_t(OPTIMIZER_STATE state, double lr, unsigned iter) :
+  optimizer_data_t(OPTIMIZER_STATE state, double lr, double current_lr, unsigned iter) :
     optimizerState(state),
-    current_learning_rate(lr), 
+    learning_rate(lr),
+    current_learning_rate(current_lr), 
     iterations(iter) {}
 };
 
