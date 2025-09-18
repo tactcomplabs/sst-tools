@@ -28,9 +28,11 @@ parser.add_argument("--trainingImages",       type=str,   help="path to training
 parser.add_argument("--verbose",              type=int,   help="verbosity", default=1)
 
 args = parser.parse_args()
-print("configuration:")
-for arg in vars(args):
-  print("\t", arg, " = ", getattr(args, arg))
+
+if args.verbose==10:
+  print("configuration:")
+  for arg in vars(args):
+    print("\t", arg, " = ", getattr(args, arg))
 
 if (args.hiddenLayers < 3):
   print("hiddenLayers requires minimum value of 3", file=sys.stderr)

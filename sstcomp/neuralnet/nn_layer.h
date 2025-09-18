@@ -53,8 +53,7 @@ public:
                               COMPONENT_CATEGORY_UNCATEGORIZED )
 
 private:
-  // SST handlers
-  SST::Output    sstout; 
+
   // event handling
   std::map<SST::NeuralNet::PortTypes,SST::Link*> linkHandlers = {};
   void forward_i_snd() { assert(false); }
@@ -68,8 +67,8 @@ private:
   void monitorEvent(SST::Event *ev) { assert(false); }
   void monitor_rcv(SST::Event *ev) {assert(false); };
   void monitor_snd();
-  // Internals
-  bool lastComponent = false;
+
+  // port transfer functions
   payload_t forwardData_i = {};
   payload_t forwardData_o = {};
   payload_t backwardData_i = {};
@@ -77,13 +76,15 @@ private:
   payload_t monitorData_o = {};
 
   // -- SST handlers
-  TimeConverter* timeConverter;
-  SST::Clock::HandlerBase* clockHandler;
+  SST::Output    sstout_; 
+  TimeConverter* timeConverter_;
+  SST::Clock::HandlerBase* clockHandler_;
 
   // internals
-  bool driveForwardPass = false;
-  bool driveBackwardPass = false;
-  bool driveMonitor = false;
+  bool lastComponent_ = false;
+  bool driveForwardPass_ = false;
+  bool driveBackwardPass_ = false;
+  bool driveMonitor_ = false;
 
 public:
   // -------------------------------------------------------
@@ -158,8 +159,8 @@ public:
   void enable_weight_cache();
 private:
   // Configuration
-  unsigned n_inputs = 4;
-  unsigned n_neurons = 128;
+  unsigned n_inputs_ = 4;
+  unsigned n_neurons_ = 128;
   // regularization (trainable layers only)
   double weight_regularizer_l1_ = 0;
   double weight_regularizer_l2_ = 0;
@@ -171,11 +172,11 @@ private:
   Eigen::RowVectorXd biases_ = {};
   Eigen::MatrixXd predictions_ = {};
   // optimizer support  
-  Eigen::MatrixXd weight_momentums = {};    // like weights
-  Eigen::MatrixXd weight_cache = {};        // like weights
-  Eigen::RowVectorXd bias_momentums = {};   // like biases
-  Eigen::RowVectorXd bias_cache = {};       // like biases
-  bool has_weight_cache = false;
+  Eigen::MatrixXd weight_momentums_ = {};    // like weights
+  Eigen::MatrixXd weight_cache_ = {};        // like weights
+  Eigen::RowVectorXd bias_momentums_ = {};   // like biases
+  Eigen::RowVectorXd bias_cache_ = {};       // like biases
+  bool has_weight_cache_ = false;
   // derivatives
   Eigen::MatrixXd dweights_ = {};
   Eigen::RowVectorXd dbiases_ = {};
