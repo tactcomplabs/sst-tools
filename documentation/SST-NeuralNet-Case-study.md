@@ -256,11 +256,11 @@ In the next section, we'll implement more serialserialization and briefly detour
 ---
 <br><br><br>
 
-# Introduction to Interactive Debug
+# Introduction to the Interactive Debug Console
 
 In the previous section, we built the scaffolding for serialization but did not attempt to make the model fully "checkpoint-able". That is, we cannot support restarting the simulation from a checkpoint yet. As it turns out, we're just not interested in supporting restart until we have a stable design and have scaled it up significantly.  However, serialization serves a second purpose: observability and controllabily of internal state.
 
-We will demonstrate this by first serializing the hyperparameter controlling the learning rate for training the network.
+We will demonstrate this by first serializing the hyperparameters used by the optimizer base class and the Adam based optimizer child class.
 
 From [nn_layer.h](../sstcomp/neuralnet/nn_layer.h)
 
@@ -273,12 +273,160 @@ void NNOptimizerAPI::serialize_order(SST::Core::Serialization::serializer &ser)
   SST_SER(current_learning_rate_);
   SST_SER(iterations_);
 }
+
+void NNAdamOptimizer::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNOptimizerAPI::serialize_order(ser);
+  SST_SER(decay_);
+  SST_SER(epsilon_);
+  SST_SER(beta_1_);
+  SST_SER(beta_2_);
+}
 ```
 
-A side benefit is that we have fully serialized the optimizer base class with a few lines of trivial code.
+A side benefit is that we have fully serialized these classes with a few lines of trivial code.
 
+Now we want to observe and control the learning rate given by the following code:
 
+```
+void NNAdamOptimizer::pre_update_params() {
+  if (decay_ != 0) {
+    current_learning_rate_ = learning_rate_ * ( 1. / (1. + decay_ * iterations_ ));
+  }
+}
+```
 
+Enter the debug console at time 0 using the following SST command line options:
+`--interactive-console=sst.interactive.simpledebug --interactive-start=0`
+
+For running the neural network training, the command line is conveniently embedded in the provided script below.
+
+```
+$ cd <sst-tools>/test/neuralnet
+$ ./nn-interactive
+```
+
+This results in:
+```
+1  Running small simulation
+2  sst ../test-image.py --interactive-console=sst.interactive.simpledebug --interactive-start=0 -- 
+       --batchSize=1 --classImageLimit=4 --epochs=4 --evalImages=/Users/kgriesser/work/sst-tools/image_data/eval 
+       --hiddenLayerSize=32 --initialWeightScaling=0.01 
+       --testImages=/Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test
+       --trainingImages=/Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train 
+       --verbose=0
+3  NNBatchController[batch_controller:init:0]: init phase 0
+4  NNBatchController[batch_controller:setup:0]: setup
+5  Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train
+6  Loaded 16 images
+7  Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test
+8  Loaded 16 images
+9  Reading /Users/kgriesser/work/sst-tools/image_data/eval
+10 Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png
+11 Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/pants.png
+12 Loaded 2 images
+13 NNBatchController[batch_controller:setup:0]: setup completed. Ready for first clock
+14 0 
+15 Entering interactive mode at time 0 
+16 Interactive start at 0
+17 > 
+```
+
+Observed lines 3 and which indicates the main controller is entering the SST INIT and SETUP phases.
+Line 13 shows when we exit the SETUP phase.
+Line 17 is the interactive console command prompt.
+
+This illustrates a current limitation of the SST interactive console:
+
+`The interactive console is only available during the RUN phase of SST`
+  
+TODO: Address this restriction in component debug probe
+
+At the command prompt, type `help` for a list of available commands.
+
+Next step, find the optimizer in the design hierarchy:
+```
+> ls
+      batch_controller/ (SST::NeuralNet::NNBatchController)
+      dense1/ (SST::NeuralNet::NNLayer)
+      dense2/ (SST::NeuralNet::NNLayer)
+      dense3/ (SST::NeuralNet::NNLayer)
+      input/ (SST::NeuralNet::NNLayer)
+      loss/ (SST::NeuralNet::NNLayer)
+      relu1/ (SST::NeuralNet::NNLayer)
+      relu2/ (SST::NeuralNet::NNLayer)
+      softmax/ (SST::NeuralNet::NNLayer)
+> cd dense3
+> ls
+      component/ (SST::NeuralNet::NNDenseLayer)
+      component/ (SST::NeuralNet::NNAdamOptimizer)
+      component_state_ = 0 (SST::BaseComponent::ComponentState)
+      link_map/ (SST::LinkMap*)
+      link_map/ (SST::LinkMap*)
+      my_info_/ ()
+      my_info_/ (SST::ComponentInfo*)
+      optimizer/ (SST::NeuralNet::NNAdamOptimizer)
+      transfer_function/ (SST::NeuralNet::NNDenseLayer)
+> cd optimizer
+> ls
+      #TODO!!! these variables are for the base class only. What happened to the rest?
+      component_state_ = 0 (SST::BaseComponent::ComponentState)
+      current_learning_rate_ = 0.001000 (double)
+      iterations_ = 0 (unsigned int)
+      learning_rate_ = 0.001000 (double)
+      my_info_/ ()
+      my_info_/ (SST::ComponentInfo)
+      sstout_/ (SST::Output)
+> pwd
+      dense3/optimizer (SST::NeuralNet::NNAdamOptimizer)
+```
+
+Now we can "watch" a variable and run the simulation. The simulation will break when the watched variable's value changes.
+```
+> watch current_learning_rate_
+> run
+      NNBatchController[batch_controller:initTraining:1000]: Starting training phase
+      epoch: 0, step: 0, acc: 0.000, loss: 2.303 (data_loss: 2.303, reg_loss: 0.000) ,lr: 0.0010000000
+      Entering interactive mode at time 26027000 
+> print current_learning_rate_
+      current_learning_rate_ = 0.000999 (double)
+> run
+      Entering interactive mode at time 38038000 
+> print current_learning_rate_
+      current_learning_rate_ = 0.000999 (double)   #TODO!!! we need control of precision / formatting in general
+```
+
+The default printing format does not show sufficient precision to detect a change. 
+Let's increase it so we can see it change.
+
+```
+> set learning_rate_ 1000.0
+> ls
+      component_state_ = 0 (SST::BaseComponent::ComponentState)
+      current_learning_rate_ = 0.000998 (double)
+      iterations_ = 2 (unsigned int)
+      learning_rate_ = 0.900000 (double)
+      my_info_/ ()
+      my_info_/ (SST::ComponentInfo)
+      sstout_/ (SST::Output)
+> run
+> ls 
+#TODO!!! this isn't having any affect ( actually because design distributes this )
+
+Also:
+> cd /
+> pwd
+      (SST::NeuralNet::NNAdamOptimizer)
+> cd ..
+      Already at top of object hierarchy
+
+### TODO quit doesn't clear watches
+### 
+```
+
+## Reference Code for the Section
+
+[sst-nn-2-dbg-intro](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-2-dbgintro)
 
 ## Reference Code for the Section
 

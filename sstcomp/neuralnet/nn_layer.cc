@@ -894,6 +894,10 @@ void NNAdamOptimizer::post_update_params() {
 void NNAdamOptimizer::serialize_order(SST::Core::Serialization::serializer &ser)
 {
   NNOptimizerAPI::serialize_order(ser);
+  SST_SER(decay_);
+  SST_SER(epsilon_);
+  SST_SER(beta_1_);
+  SST_SER(beta_2_);
 }
 
 } // namespace SST::NNLayer
