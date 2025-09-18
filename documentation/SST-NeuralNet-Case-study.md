@@ -92,7 +92,8 @@ If not using a package manager you may need to set these environment variables i
 
 ---
 <br><br><br>
-# Initial Model
+
+# Initial Model Block Diagram
 
 The initial model is provided in the `sst-nn-0-base` branch of the repository. This model has no special enhancements for SST debug features. It is also, essentially, and single-threaded model. Although the components can be instantiated on parallel threads their operation is serialized.
 
@@ -296,7 +297,9 @@ void NNAdamOptimizer::pre_update_params() {
 }
 ```
 
-Enter the debug console at time 0 using the following SST command line options:
+Refering back to the [top level block diagram](#initial-model-block-diagram), the loss layer feeds back loss information for back propogation. In this implementation each dense layer uses this information in it's calculations to adjust weights and biases. 
+
+With that in mind let's, enter the debug console at time 0 using the following SST command line options:
 `--interactive-console=sst.interactive.simpledebug --interactive-start=0`
 
 For running the neural network training, the command line is conveniently embedded in the provided script below.
@@ -340,11 +343,11 @@ This illustrates a current limitation of the SST interactive console:
 
 `The interactive console is only available during the RUN phase of SST`
   
-TODO: Address this restriction in component debug probe
+TODO: Can we address this restriction in component debug probe
 
 At the command prompt, type `help` for a list of available commands.
 
-Next step, find the optimizer in the design hierarchy:
+Next step, navigate the design heirarchy to find the loss layer and it's optimizer subcomponent.
 ```
 > ls
       batch_controller/ (SST::NeuralNet::NNBatchController)
@@ -356,81 +359,97 @@ Next step, find the optimizer in the design hierarchy:
       relu1/ (SST::NeuralNet::NNLayer)
       relu2/ (SST::NeuralNet::NNLayer)
       softmax/ (SST::NeuralNet::NNLayer)
-> cd dense3
+> cd loss
 > ls
-      component/ (SST::NeuralNet::NNDenseLayer)
+      accuracy_function/ (SST::NeuralNet::NNAccuracyCategorical)
+      component/ (SST::NeuralNet::NNInputLayer)
+      component/ (SST::NeuralNet::NNAccuracyCategorical)
+      component/ (SST::NeuralNet::NNLoss_CategoricalCrossEntropy)
       component/ (SST::NeuralNet::NNAdamOptimizer)
       component_state_ = 0 (SST::BaseComponent::ComponentState)
       link_map/ (SST::LinkMap*)
       link_map/ (SST::LinkMap*)
+      link_map/ (SST::LinkMap*)
+      link_map/ (SST::LinkMap*)
+      loss_function/ (SST::NeuralNet::NNLoss_CategoricalCrossEntropy)
       my_info_/ ()
       my_info_/ (SST::ComponentInfo*)
       optimizer/ (SST::NeuralNet::NNAdamOptimizer)
-      transfer_function/ (SST::NeuralNet::NNDenseLayer)
+      transfer_function/ (SST::NeuralNet::NNInputLayer)
 > cd optimizer
 > ls
-      #TODO!!! these variables are for the base class only. What happened to the rest?
+      beta_1_ = 0.900000 (double)
+      beta_2_ = 0.999000 (double)
       component_state_ = 0 (SST::BaseComponent::ComponentState)
       current_learning_rate_ = 0.001000 (double)
+      decay_ = 0.001000 (double)
+      epsilon_ = 0.000000 (double)
       iterations_ = 0 (unsigned int)
       learning_rate_ = 0.001000 (double)
       my_info_/ ()
       my_info_/ (SST::ComponentInfo)
       sstout_/ (SST::Output)
 > pwd
-      dense3/optimizer (SST::NeuralNet::NNAdamOptimizer)
+      loss/optimizer (SST::NeuralNet::NNAdamOptimizer)
 ```
-
-Now we can "watch" a variable and run the simulation. The simulation will break when the watched variable's value changes.
+Now we can "watch" the current learning rate and the simulation will break whenever its value changes.
 ```
 > watch current_learning_rate_
+> watch
+      Current watch points:
+      0 - loss/optimizer/current_learning_rate_
 > run
       NNBatchController[batch_controller:initTraining:1000]: Starting training phase
       epoch: 0, step: 0, acc: 0.000, loss: 2.303 (data_loss: 2.303, reg_loss: 0.000) ,lr: 0.0010000000
-      Entering interactive mode at time 26027000 
+      Entering interactive mode at time 24025000
+      Watch point loss/optimizer/current_learning_rate_ buffer  # TODO can this print value automatically?
 > print current_learning_rate_
       current_learning_rate_ = 0.000999 (double)
 > run
-      Entering interactive mode at time 38038000 
+      Entering interactive mode at time 40040000
+      Watch point loss/optimizer/current_learning_rate_ buffer
 > print current_learning_rate_
-      current_learning_rate_ = 0.000999 (double)   #TODO!!! we need control of precision / formatting in general
+      current_learning_rate_ = 0.000999 (double)      
+#TODO we need control of precision and formatting in general, or show scientific notation by default in short-term
+#TODO maintain command history buffer
+#TODO Can 'watch' with no params also print the values and indicate which one triggered breaking into interactive? 
 ```
-
-The default printing format does not show sufficient precision to detect a change. 
-Let's increase it so we can see it change.
+Now we can change the learning rate and see the effects.
 
 ```
-> set learning_rate_ 1000.0
+> set learning_rate_ -1.0
 > ls
+      beta_1_ = 0.900000 (double)
+      beta_2_ = 0.999000 (double)
       component_state_ = 0 (SST::BaseComponent::ComponentState)
-      current_learning_rate_ = 0.000998 (double)
+      current_learning_rate_ = 0.000999 (double)
+      decay_ = 0.001000 (double)
+      epsilon_ = 0.000000 (double)
       iterations_ = 2 (unsigned int)
-      learning_rate_ = 0.900000 (double)
+      learning_rate_ = -1.000000 (double)
       my_info_/ ()
       my_info_/ (SST::ComponentInfo)
       sstout_/ (SST::Output)
 > run
-> ls 
-#TODO!!! this isn't having any affect ( actually because design distributes this )
-
-Also:
-> cd /
-> pwd
-      (SST::NeuralNet::NNAdamOptimizer)
-> cd ..
-      Already at top of object hierarchy
-
-### TODO quit doesn't clear watches
-### 
+      Entering interactive mode at time 40041000
+      Watch point loss/optimizer/current_learning_rate_ buffer
+      Watch point loss/optimizer/current_learning_rate_ buffer
+> print current_learning_rate_
+      current_learning_rate_ = -0.998004 (double)
+> shutdown
+#TODO quit should clear any triggers that will break us into interactive mode
+#TODO "cd /" - bring back to top level
 ```
 
+So we've demonstrated how a few lines of code can enable some powerful debug capabilities.
+Of course, GDB and LLDB have very powerful source level debug capabilities that can do the
+same thing. In the upcoming sections, we'll demonstrate how the built-in SST features are
+differentiated from standard software debug tools.
+
 ## Reference Code for the Section
 
 [sst-nn-2-dbg-intro](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-2-dbgintro)
 
-## Reference Code for the Section
-
-[sst-nn-2-dbg-intro](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-2-dbgintro)
 
 
 
