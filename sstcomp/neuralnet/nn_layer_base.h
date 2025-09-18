@@ -147,6 +147,7 @@ public:
   // Call once after any parameter updates
   virtual void post_update_params() = 0;
   // Getters
+  double learning_rate() { return learning_rate_; }
   double current_learning_rate() { return current_learning_rate_; }
   unsigned iterations() { return iterations_; }
 protected:
