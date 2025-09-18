@@ -56,14 +56,14 @@ public:
 
 protected:
   // SST Handlers
-  SST::Output sstout;
+  SST::Output sstout_;
   // Flopped forward pass inputs
   Eigen::MatrixXd inputs_ = {};
   // Flopped backwas pass outputs (derivatives)
   Eigen::MatrixXd dinputs_ = {};
 
   //-- Helpers
-  Eutils util = {};
+  Eutils util_ = {};
 
 public:
   // -------------------------------------------------------
@@ -139,7 +139,7 @@ public:
   void new_pass();
 protected:
   // SST Handlers
-  SST::Output sstout;
+  SST::Output sstout_;
 private:
   double accumulated_sum_ = 0;
   double accumulated_count_ = 0;
@@ -181,7 +181,7 @@ public:
   double current_learning_rate() { return current_learning_rate_; }
   unsigned iterations() { return iterations_; }
 protected:
-  SST::Output sstout;
+  SST::Output sstout_;
   double learning_rate_ = 0.001;
   double current_learning_rate_ = 0.001;
   unsigned iterations_ = 0;
@@ -237,10 +237,10 @@ public:
 
   protected:
   // Subcomponent pointers
-  NNSubComponentAPI* transfer_function = nullptr;
-  NNLossLayerAPI* loss_function = nullptr;
-  NNAccuracyAPI* accuracy_function = nullptr;
-  NNOptimizerAPI* optimizer = nullptr;
+  NNSubComponentAPI* transfer_function_ = nullptr;
+  NNLossLayerAPI* loss_function_ = nullptr;
+  NNAccuracyAPI* accuracy_function_ = nullptr;
+  NNOptimizerAPI* optimizer_ = nullptr;
 
 public:
   // -------------------------------------------------------
