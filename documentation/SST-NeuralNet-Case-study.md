@@ -96,11 +96,11 @@ If not using a package manager you may need to set these environment variables i
 
 The initial model is provided in the `sst-nn-0-base` branch of the repository. This model has no special enhancements for SST debug features. It is also, essentially, and single-threaded model. Although the components can be instantiated on parallel threads their operation is serialized.
 
-<img src="./imgs/block-diagram.svg" alt="initial-model" width="800"/>
+<img src="./imgs/block-diagram.png" alt="initial-model" width="800"/>
 
 ## Class Hierarchy
 
-<img src="./imgs/nn-classhier.png" alt="class-hierarhcy" width="800"/>
+<img src="./imgs/nn-classhier.png" alt="class-hierarchy" width="800"/>
 
 ## Model Bring-up
 

@@ -149,11 +149,15 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
     if (optimizer_) {
         // optimizer
         if (backwardData_o.optimizer_data.optimizerState == OPTIMIZER_STATE::PRE_UPDATE) {
+          // update the current learning rate
           optimizer_->pre_update_params();
+          // pass the hyperparameters to previous layer
           backwardData_o.optimizer_data = { 
             OPTIMIZER_STATE::ACTIVE, 
+            optimizer_->learning_rate(),
             optimizer_->current_learning_rate(),
             optimizer_->iterations() };
+          // Keep track of iterations
           optimizer_->post_update_params();
         } else {
           assert(backwardData_o.optimizer_data.optimizerState == OPTIMIZER_STATE::ACTIVE);
@@ -785,6 +789,7 @@ NNAdamOptimizer::NNAdamOptimizer(ComponentId_t id, Params &params) : NNOptimizer
 void NNAdamOptimizer::pre_update_params() {
   if (decay_ != 0) {
     current_learning_rate_ = learning_rate_ * ( 1. / (1. + decay_ * iterations_ ));
+    sstout_.verbose(CALL_INFO, 2, 0, "Adam Optimizer: current_learning_rate=%f\n", current_learning_rate());
   }
 }
 
@@ -794,6 +799,7 @@ void NNAdamOptimizer::update_params(NNDenseLayer *layer, const optimizer_data_t&
 
   // Unlike the centralized optimizer in the functional model, 
   // the current learning rate and iterations must be passed in from the backward pass information
+  learning_rate_ = opt.learning_rate;
   current_learning_rate_ = opt.current_learning_rate;
   iterations_ = opt.iterations;
   assert(opt.optimizerState == OPTIMIZER_STATE::ACTIVE);

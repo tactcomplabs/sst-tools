@@ -1,16 +1,6 @@
 Running small simulation
-configuration:
-	 batchSize  =  1
-	 classImageLimit  =  4
-	 epochs  =  4
-	 evalImage  =  
-	 evalImages  =  /Users/kgriesser/work/sst-tools/image_data/eval
-	 hiddenLayers  =  3
-	 hiddenLayerSize  =  32
-	 initialWeightScaling  =  0.01
-	 testImages  =  /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test
-	 trainingImages  =  /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train
-	 verbose  =  0
+NNBatchController[batch_controller:init:0]: init phase 0
+NNBatchController[batch_controller:setup:0]: setup
 Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train
 Loaded 16 images
 Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test
@@ -19,6 +9,7 @@ Reading /Users/kgriesser/work/sst-tools/image_data/eval
 Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png
 Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/pants.png
 Loaded 2 images
+NNBatchController[batch_controller:setup:0]: setup completed. Ready for first clock
 NNBatchController[batch_controller:initTraining:1000]: Starting training phase
 epoch: 0, step: 0, acc: 0.000, loss: 2.303 (data_loss: 2.303, reg_loss: 0.000) ,lr: 0.0010000000
 epoch: 0, step: 15, acc: 0.000, loss: 2.287 (data_loss: 2.287, reg_loss: 0.000) ,lr: 0.0009852217
