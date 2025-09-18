@@ -3,6 +3,9 @@
 # Unregisters Rev from the SST infrastructure
 #
 
+#--remove files from cmake install manifest
+xargs rm < install_manifest.txt
+
 #-- unregister it
 sst-register -u CPTSubCompPairOfStructs
 sst-register -u CPTSubCompListPairOfStructs

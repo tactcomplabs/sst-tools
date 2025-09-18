@@ -153,7 +153,7 @@ add_subdirectory(sstcomp)
 #-- Custom Commands
 add_custom_target(uninstall 
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/uninstall.sh
-  COMMAND ${CMAKE_COMMAND} -E echo "Deleting ${SST_TOOLS_INSTALL_PATH}/bin"
+  COMMAND ${CMAKE_COMMAND} -E echo "Deleting ${SST_TOOLS_INSTALL_PATH}"
   COMMAND ${CMAKE_COMMAND} -E rm -rf "${SST_TOOLS_INSTALL_PATH}"
   VERBATIM
 )
