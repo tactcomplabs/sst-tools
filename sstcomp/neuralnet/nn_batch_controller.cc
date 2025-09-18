@@ -70,10 +70,14 @@ NNBatchController::~NNBatchController(){
 }
 
 void NNBatchController::init( unsigned int phase ){
-
+  // Currently only one controller. Indicated init phase to
+  // show that interactive debug does not address it.
+  output.verbose( CALL_INFO, 0,0, "init phase %" PRId32 "\n", phase);
 }
 
 void NNBatchController::setup(){
+  // Similar to init, let the user know  
+  output.verbose( CALL_INFO, 0,0, "setup\n");
 
   if (!enableTraining() && !enableValidation() && !enableEvaluation())
     output.fatal(CALL_INFO, -1, "Nothing to do. Please set --trainingImages, --testImages, and/or --evalImages");
@@ -104,6 +108,7 @@ void NNBatchController::setup(){
     if (fsmState==MODE::INVALID) fsmState = MODE::EVALUATION;
   }
  
+  output.verbose( CALL_INFO, 0,0, "setup completed. Ready for first clock\n");
 }
 
 void NNBatchController::complete( unsigned int phase ){}
