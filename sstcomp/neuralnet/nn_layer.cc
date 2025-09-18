@@ -881,6 +881,10 @@ void NNAdamOptimizer::update_params(NNDenseLayer *layer, const optimizer_data_t&
 void NNOptimizerAPI::serialize_order(SST::Core::Serialization::serializer &ser)
 {
   SubComponent::serialize_order(ser);
+  SST_SER(sstout_);
+  SST_SER(learning_rate_);
+  SST_SER(current_learning_rate_);
+  SST_SER(iterations_);
 }
 
 void NNAdamOptimizer::post_update_params() {

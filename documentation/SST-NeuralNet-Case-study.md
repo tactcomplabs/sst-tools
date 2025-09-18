@@ -92,7 +92,7 @@ If not using a package manager you may need to set these environment variables i
 
 ---
 <br><br><br>
-# Initial Model (sst-nn-0-base)
+# Initial Model
 
 The initial model is provided in the `sst-nn-0-base` branch of the repository. This model has no special enhancements for SST debug features. It is also, essentially, and single-threaded model. Although the components can be instantiated on parallel threads their operation is serialized.
 
@@ -118,10 +118,14 @@ This work was inspired by Neural Networks from Scratch in Python, Kinsley, Kukie
 
 <img src="./imgs/port.svg" alt="porting" width="800"/>
 
+## Reference Code for the Section
+
+[sst-nn-0-base](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-0-base)
+
 ---
 <br><br><br>
 
-# Priming the Model for SST Serialization and Debug support (sst-nn-1-ser)
+# Priming the Model for SST Serialization and Debug support
 
 At this point, we have a complete and functional model. This seems like a convenient time to add serialization support. Additing serialization not only provides checkpointing and restart capability, but also makes internal data available to SST debug features. In this section, we'll add the necessary serialization macros and provide additional tests to ensure serialization is behaving as expected.
 
@@ -243,14 +247,42 @@ public:
 
 At this point we have a partially checkpointable model (just 1 variable). The code should compile and run correctly and adding code for the rest of the variables amounts to employing the SST_SER macro judiciously.
 
-In the next section, we'll implement more serializaiton and detour into the exciting realm of interactive debug.
+In the next section, we'll implement more serialserialization and briefly detour into the emerging realm of interactive debug.
+
+## Reference Code for the Section
+
+[sst-nn-1-ser](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-1-ser)
 
 ---
 <br><br><br>
 
 # Introduction to Interactive Debug
 
+In the previous section, we built the scaffolding for serialization but did not attempt to make the model fully "checkpoint-able". That is, we cannot support restarting the simulation from a checkpoint yet. As it turns out, we're just not interested in supporting restart until we have a stable design and have scaled it up significantly.  However, serialization serves a second purpose: observability and controllabily of internal state.
 
+We will demonstrate this by first serializing the hyperparameter controlling the learning rate for training the network.
+
+From [nn_layer.h](../sstcomp/neuralnet/nn_layer.h)
+
+```
+void NNOptimizerAPI::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  SubComponent::serialize_order(ser);
+  SST_SER(sstout);
+  SST_SER(learning_rate_);
+  SST_SER(current_learning_rate_);
+  SST_SER(iterations_);
+}
+```
+
+A side benefit is that we have fully serialized the optimizer base class with a few lines of trivial code.
+
+
+
+
+## Reference Code for the Section
+
+[sst-nn-2-dbg-intro](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-2-dbgintro)
 
 
 
