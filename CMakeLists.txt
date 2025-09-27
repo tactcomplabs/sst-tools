@@ -19,7 +19,8 @@ cmake_minimum_required(VERSION 3.19)
 project(sst-tools CXX)
 
 # Make sure Git hooks are set properly
-execute_process(COMMAND_ERROR_IS_FATAL ANY COMMAND_ECHO STDERR COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_git_hooks.sh)
+# TODO get working with jenkins. Shouldn't need this unless committing changes ( not for testing )
+# execute_process(COMMAND_ERROR_IS_FATAL ANY COMMAND_ECHO STDERR COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_git_hooks.sh)
 
 # Local scripts
 set(SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
