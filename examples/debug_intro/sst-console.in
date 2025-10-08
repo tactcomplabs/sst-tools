@@ -1,0 +1,23 @@
+# navigate to optimizer
+cd loss
+cd optimizer
+pwd
+
+# demonstrate watching a variable
+watch current_learning_rate_ changed
+wl
+run
+print current_learning_rate_
+r
+print current_learning_rate_
+
+# modify the learning rate
+p learning_rate_
+set learning_rate_  .001
+p learning_rate_
+
+# do not prompt to confirm clearing watchpoints
+confirm false
+unwatch
+run
+
