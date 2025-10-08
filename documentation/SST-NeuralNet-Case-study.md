@@ -81,7 +81,7 @@ If not using a package manager you may need to set these environment variables i
 
 ### Manual Test Example
 
-      cd test/neuralnet
+      cd examples/debug_intro
       ./nn-basic.sh 1
    
    You should see the following predictions:
@@ -115,11 +115,11 @@ The SST model structure is described in Python which provides encapsulated layer
 
 ## Development Process
 
-This work was inspired by Neural Networks from Scratch in Python, Kinsley, Kukiela, 2020. The Python reference provides a modelling API similar to other popular AI front-ends. This was converted to a functional C++ model to establish the underlying linear algebra routines. Then, the C++ model was used as a reference to check a distributed, state machine-based implementation in SST.
+This work was inspired by _"Neural Networks from Scratch in Python", Kinsley, Kukiela, 2020_. The Python reference provides a modelling API similar to other popular AI front-ends. This was converted to a functional C++ model to establish the underlying linear algebra routines. Then, the C++ model was used as a reference to check a distributed, state machine-based implementation in SST.
 
 <img src="./imgs/port.svg" alt="porting" width="800"/>
 
-## Reference Code for the Section
+## Reference Code for this Section
 
 [sst-nn-0-base](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-0-base)
 
@@ -248,9 +248,9 @@ public:
 
 At this point we have a partially checkpointable model (just 1 variable). The code should compile and run correctly and adding code for the rest of the variables amounts to employing the SST_SER macro judiciously.
 
-In the next section, we'll implement more serialserialization and briefly detour into the emerging realm of interactive debug.
+In the next section, we'll provide more serialization and take a detour to introduce interactive debugging.
 
-## Reference Code for the Section
+## Reference Code for this Section
 
 [sst-nn-1-ser](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-1-ser)
 
@@ -299,55 +299,144 @@ void NNAdamOptimizer::pre_update_params() {
 
 Refering back to the [top level block diagram](#initial-model-block-diagram), the loss layer feeds back loss information for back propogation. In this implementation each dense layer uses this information in it's calculations to adjust weights and biases. 
 
-With that in mind let's, enter the debug console at time 0 using the following SST command line options:
-`--interactive-console=sst.interactive.simpledebug --interactive-start=0`
+With that in mind let's, enter the debug console at time 0 using the following SST command line option:
+`--interactive-start=0`
 
-For running the neural network training, the command line is conveniently embedded in the provided script below.
-
+The full command line
 ```
-$ cd <sst-tools>/test/neuralnet
-$ ./nn-interactive
+cd examples/debug_intro
+sst nn.py --interactive-start=0 -- \
+ --classImageLimit=2000 --batchSize=128 --epochs=10 \
+ --hiddenLayerSize=128 --initialWeightScaling=0.01 \
+ --trainingImages=../../image_data/fashion_mnist_images/train \
+ --testImages=../../image_data/fashion_mnist_images/test \
+ --evalImages=../../image_data/eval \
+ --verbose=2
 ```
 
 This results in:
 ```
-1  Running small simulation
-2  sst ../test-image.py --interactive-console=sst.interactive.simpledebug --interactive-start=0 -- 
-       --batchSize=1 --classImageLimit=4 --epochs=4 --evalImages=/Users/kgriesser/work/sst-tools/image_data/eval 
-       --hiddenLayerSize=32 --initialWeightScaling=0.01 
-       --testImages=/Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test
-       --trainingImages=/Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train 
-       --verbose=0
-3  NNBatchController[batch_controller:init:0]: init phase 0
-4  NNBatchController[batch_controller:setup:0]: setup
-5  Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train
-6  Loaded 16 images
-7  Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test
-8  Loaded 16 images
-9  Reading /Users/kgriesser/work/sst-tools/image_data/eval
-10 Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png
-11 Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/pants.png
-12 Loaded 2 images
-13 NNBatchController[batch_controller:setup:0]: setup completed. Ready for first clock
-14 0 
-15 Entering interactive mode at time 0 
-16 Interactive start at 0
-17 > 
+NNBatchController[batch_controller:init:0]: init phase 0
+NNBatchController[batch_controller:setup:0]: setup
+Reading ../../image_data/fashion_mnist_images/train
+Loaded 20000 images
+Reading ../../image_data/fashion_mnist_images/test
+Loaded 10000 images
+Reading ../../image_data/eval
+Loading image from ../../image_data/eval/tshirt.png
+Loading image from ../../image_data/eval/pants.png
+Loaded 2 images
+NNBatchController[batch_controller:setup:0]: setup completed. Ready for first clock
+Entering interactive mode at time 0 
+Interactive start at 0
+> 
 ```
 
-Observed lines 3 and which indicates the main controller is entering the SST INIT and SETUP phases.
-Line 13 shows when we exit the SETUP phase.
-Line 17 is the interactive console command prompt.
+Observe that the lines preceding the entry into interactive mode are sequencing through the SST `init` and `setup` phases. This illustrates a current limitation of the current SST interactive console:
 
-This illustrates a current limitation of the SST interactive console:
-
-`The interactive console is only available during the RUN phase of SST`
+*The interactive console is only available during the RUN phase of SST*
   
-TODO: Can we address this restriction in component debug probe
-
 At the command prompt, type `help` for a list of available commands.
+```
+> help
 
-Next step, navigate the design heirarchy to find the loss layer and it's optimizer subcomponent.
+--- General ---
+help (?) [CMD]: show this help or detailed command help
+confirm (cfm) <true/false>: set confirmation requests on (default) or off
+--- Navigation ---
+pwd (pwd) print the current working directory in the object map
+chdir (cd) change 1 directory level in the object map
+list (ls) list the objects in the current level of the object map
+--- State ---
+time (tm) print current simulation time in cycles
+print (p) [-rN] [<obj>]: print objects at the current level
+set (s) var value: set value for a variable at the current level
+--- Watch/Trace ---
+watch (w) <trig>: adds watchpoint to the watchlist
+trace (t) <trig> : <bufSize> <postDelay> : <v1> ... <vN> : <action>
+watchlist (wl) prints the current list of watchpoints
+addTraceVar (add) <watchpointIndex> <var1> ... <varN>
+printWatchPoint (prw) <watchpointIndex>: prints a watchpoint
+printTrace (prt) <watchpointIndex>: prints trace buffer for a watchpoint
+resetTrace (rst) <watchpointIndex>: reset trace buffer for a watchpoint
+setHandler (shn) <idx> <t1> ... <t2>: trigger check/sampling handler
+unwatch (uw) <watchpointIndex>: remove 1 or all watchpoints
+--- Simulation ---
+run (r) [TIME]: continues the simulation
+continue (c) alias for run
+exit (e) exit debugger and continue simulation
+quit (q) alias for exit
+shutdown (shutd) exit the debugger and cleanly shutdown simulator
+--- Logging ---
+logging (log) <filepath>: log command line entires to file
+replay (rep) <filepath>: run commands from a file. See also: sst --replay
+history (h) [N]: display all or last N unique commands
+
+More detailed help also available for:
+        addtracevar editing history print 
+        printtrace printwatchpoint resettrace 
+        run set sethandler trace unwatch watch 
+        watchlist watchpoints 
+```
+
+See the detailed help for `history` and `editing` for information on the console "bash-like" command line interface.
+
+```
+> help history
+      history [N]: list previous N instructions. If N is not set list all
+            Supports bash-style commands:
+            !!   execute previous command
+            !n   execute command at index n
+            !-n  execute commad n lines back in history
+            !string  execute the most recent command starting with `string`
+            ?string execute the most recent command containing `string`
+            !...:p  print the instruction but not execute it.
+
+> help editing
+      editing : bash style command line editing using arrow and control keys:
+            Up/Down keys: navigate command history
+            Left/Right keys: navigate command string
+            backspace: delete characters to the left
+            tab: auto-completion
+            ctrl-a: move cursor to beginning of line
+            ctrl-b: move cursor to the left
+            ctrl-d: delete character at cursor
+            ctrl-e: move cursor to end of line
+            ctrl-f: move cursor to the right
+```
+
+Now, let's just run the complete simulation to see the initial training result. Then we will re-enter the debug console to change values to affect the training behavior.
+```
+run
+```
+
+This results in the following (including an incorrect predication):
+```
+epoch 9 training:       acc: 0.773 loss: 0.600 (data_loss: 0.600 reg_loss: 0.000) lr: 0.0000389257
+epoch 9 validation:     acc: 0.769 loss: 0.614
+### Evaluating images
+Prediction for ../../image_data/eval/tshirt.png ...     Survey says ### TOP
+Prediction for ../../image_data/eval/pants.png ...      Survey says ### DRESS
+```
+
+Now, let's rerun this simulation and navigate the design:
+
+```
+sst nn.py --interactive-start=0 -- \
+ --classImageLimit=2000 --batchSize=128 --epochs=10 \
+ --hiddenLayerSize=128 --initialWeightScaling=0.01 \
+ --trainingImages=../../image_data/fashion_mnist_images/train \
+ --testImages=../../image_data/fashion_mnist_images/test \
+ --evalImages=../../image_data/eval \
+ --verbose=2
+```
+
+Before getting in too deep, set up logging the commands to a file so we can replay them.
+```
+> logging
+      sst console commands will be logged to sst-console.out
+```
+Find the loss layer and it's optimizer subcomponent.  Use the arrow and tab keys to speed up command entry. Also use '!' commands to retrieve commands from history.
 ```
 > ls
       batch_controller/ (SST::NeuralNet::NNBatchController)
@@ -378,73 +467,221 @@ Next step, navigate the design heirarchy to find the loss layer and it's optimiz
       transfer_function/ (SST::NeuralNet::NNInputLayer)
 > cd optimizer
 > ls
-      beta_1_ = 0.900000 (double)
-      beta_2_ = 0.999000 (double)
+      beta_1_ = 9.00000000000000022e-01 (double)
+      beta_2_ = 9.98999999999999999e-01 (double)
       component_state_ = 0 (SST::BaseComponent::ComponentState)
-      current_learning_rate_ = 0.001000 (double)
-      decay_ = 0.001000 (double)
-      epsilon_ = 0.000000 (double)
+      current_learning_rate_ = 1.00000000000000002e-03 (double)
+      decay_ = 1.00000000000000002e-03 (double)
+      epsilon_ = 9.99999999999999955e-08 (double)
       iterations_ = 0 (unsigned int)
-      learning_rate_ = 0.001000 (double)
+      learning_rate_ = 1.00000000000000002e-03 (double)
       my_info_/ ()
       my_info_/ (SST::ComponentInfo)
       sstout_/ (SST::Output)
 > pwd
       loss/optimizer (SST::NeuralNet::NNAdamOptimizer)
 ```
-Now we can "watch" the current learning rate and the simulation will break whenever its value changes.
+
+We can "watch" the current learning rate and the simulation will break whenever its value changes.
 ```
-> watch current_learning_rate_
-> watch
+> watch current_learning_rate_ changed
+      Added watchpoint #0
+> wl
       Current watch points:
-      0 - loss/optimizer/current_learning_rate_
+      0: ALL : loss/optimizer/current_learning_rate_ CHANGED  : interactive
 > run
       NNBatchController[batch_controller:initTraining:1000]: Starting training phase
-      epoch: 0, step: 0, acc: 0.000, loss: 2.303 (data_loss: 2.303, reg_loss: 0.000) ,lr: 0.0010000000
-      Entering interactive mode at time 24025000
-      Watch point loss/optimizer/current_learning_rate_ buffer  # TODO can this print value automatically?
+      NNBatchController[batch_controller:initTraining:1000]: ### Training setup
+      NNBatchController[batch_controller:initTraining:1000]: epochs=10
+      NNBatchController[batch_controller:initTraining:1000]: X.rows()=20000
+      NNBatchController[batch_controller:initTraining:1000]: batch_size=128
+      NNBatchController[batch_controller:initTraining:1000]: train_steps=157
+      Entering interactive mode at time 24025000 
+        WP0: AC : loss/optimizer/current_learning_rate_ ... 
 > print current_learning_rate_
-      current_learning_rate_ = 0.000999 (double)
-> run
-      Entering interactive mode at time 40040000
-      Watch point loss/optimizer/current_learning_rate_ buffer
-> print current_learning_rate_
-      current_learning_rate_ = 0.000999 (double)      
-#TODO we need control of precision and formatting in general, or show scientific notation by default in short-term
-#TODO maintain command history buffer
-#TODO Can 'watch' with no params also print the values and indicate which one triggered breaking into interactive? 
+      current_learning_rate_ = 9.99000999000999217e-04 (double)
+> r
+      Entering interactive mode at time 40041000 
+        WP0: AC: loss/optimizer/current_learning_rate_ ..
+> !p
+      current_learning_rate_ = 9.98003992015967980e-04 (double)      
 ```
 Now we can change the learning rate and see the effects.
+```
+> p learning_rate_
+      learning_rate_ = 1.00000000000000005e-04 (double)
+> set learning_rate_  .001
+> p learning_rate_
+      learning_rate_ = 0.00100000000000000 (double)
+
+> unwatch
+      Do you want to delete all watchpoints? [yes, no]
+> yes
+Watchlist cleared
+> r
+...  training log omitted
+epoch 9 training:       acc: 0.878 loss: 0.327 (data_loss: 0.327 reg_loss: 0.000) lr: 0.0003892565
+epoch 9 validation:     acc: 0.852 loss: 0.416
+### Evaluating images
+Prediction for ../../image_data/eval/tshirt.png ...     Survey says ### TOP
+Prediction for ../../image_data/eval/pants.png ...      Survey says ### TROUSER
+Simulation is complete, simulated time: 32.2803 ms
+```
+
+We were suprisingly lucky and found a learning rate that resulted in the trained model giving an accurate prediction!
+The training accuracy improved from 0.773 to 0.852 and training loss improved from 0.600 to 0.416. Similar improvements were also seen in the validation results.
+
+If we want to repeat this, we logged all the console inputs into the file `sst-console.out`. We can copy this to `sst-console.in`, edit it, and even add comments to create a simple and repeatable script like the following:
+```
+$ cat sst-console.in
+      # navigate to optimizer
+      cd loss
+      cd optimizer
+      pwd
+
+      # demonstrate watching a variable
+      watch current_learning_rate_ changed
+      wl
+      run
+      print current_learning_rate_
+      r
+      print current_learning_rate_
+
+      # modify the learning rate
+      p learning_rate_
+      set learning_rate_  .001
+      p learning_rate_
+
+      # do not prompt to confirm clearing watchpoints
+      confirm false
+      unwatch
+      run
+```
+
+Now to run it with `--replay=sst-console.in` to the command line. Here is the complete transcript.
 
 ```
-> set learning_rate_ -1.0
-> ls
-      beta_1_ = 0.900000 (double)
-      beta_2_ = 0.999000 (double)
-      component_state_ = 0 (SST::BaseComponent::ComponentState)
-      current_learning_rate_ = 0.000999 (double)
-      decay_ = 0.001000 (double)
-      epsilon_ = 0.000000 (double)
-      iterations_ = 2 (unsigned int)
-      learning_rate_ = -1.000000 (double)
-      my_info_/ ()
-      my_info_/ (SST::ComponentInfo)
-      sstout_/ (SST::Output)
+$ sst nn.py --interactive-start=0 --replay=sst-console.in -- \
+ --classImageLimit=2000 --batchSize=128 --epochs=10 \
+ --hiddenLayerSize=128 --initialWeightScaling=0.01 \
+ --trainingImages=../../image_data/fashion_mnist_images/train \
+ --testImages=../../image_data/fashion_mnist_images/test \
+ --evalImages=../../image_data/eval \
+ --verbose=2
+
+NNBatchController[batch_controller:init:0]: init phase 0
+NNBatchController[batch_controller:setup:0]: setup
+Reading ../../image_data/fashion_mnist_images/train
+Loaded 20000 images
+Reading ../../image_data/fashion_mnist_images/test
+Loaded 10000 images
+Reading ../../image_data/eval
+Loading image from ../../image_data/eval/tshirt.png
+Loading image from ../../image_data/eval/pants.png
+Loaded 2 images
+NNBatchController[batch_controller:setup:0]: setup completed. Ready for first clock
+0 
+Entering interactive mode at time 0 
+Interactive start at 0
+> replay sst-console.in
+
+> # navigate to optimizer
+> cd loss
+> cd optimizer
+> pwd
+loss/optimizer (SST::NeuralNet::NNAdamOptimizer)
+> 
+> # demonstrate watching a variable
+> watch current_learning_rate_ changed
+Added watchpoint #0
+> wl
+Current watch points:
+0: ALL : loss/optimizer/current_learning_rate_ CHANGED  : interactive
 > run
-      Entering interactive mode at time 40041000
-      Watch point loss/optimizer/current_learning_rate_ buffer
-      Watch point loss/optimizer/current_learning_rate_ buffer
+NNBatchController[batch_controller:initTraining:1000]: Starting training phase
+NNBatchController[batch_controller:initTraining:1000]: ### Training setup
+NNBatchController[batch_controller:initTraining:1000]: epochs=10
+NNBatchController[batch_controller:initTraining:1000]: X.rows()=20000
+NNBatchController[batch_controller:initTraining:1000]: batch_size=128
+NNBatchController[batch_controller:initTraining:1000]: train_steps=157
+
+Entering interactive mode at time 24025000 
+  WP0: AC : loss/optimizer/current_learning_rate_ ...
 > print current_learning_rate_
-      current_learning_rate_ = -0.998004 (double)
-> shutdown
-#TODO quit should clear any triggers that will break us into interactive mode
-#TODO "cd /" - bring back to top level
+current_learning_rate_ = 9.99000999000999136e-05 (double)
+> r
+ 
+Entering interactive mode at time 40041000 
+  WP0: AC : loss/optimizer/current_learning_rate_ ...
+> print current_learning_rate_
+current_learning_rate_ = 9.98003992015968007e-05 (double)
+> 
+> # modify the learning rate
+> p learning_rate_
+learning_rate_ = 1.00000000000000005e-04 (double)
+> set learning_rate_  .001
+> p learning_rate_
+learning_rate_ = 0.00100000000000000 (double)
+> 
+> # do not prompt to confirm clearing watchpoints
+> confirm false
+> unwatch
+Watchlist cleared
+> run
+epoch 0 training:	acc: 0.653 loss: 0.935 (data_loss: 0.935 reg_loss: 0.000) lr: 0.0008650519
+epoch 0 validation:	acc: 0.765 loss: 0.633
+epoch 1 training:	acc: 0.799 loss: 0.539 (data_loss: 0.539 reg_loss: 0.000) lr: 0.0007616146
+epoch 1 validation:	acc: 0.794 loss: 0.546
+epoch 2 training:	acc: 0.828 loss: 0.468 (data_loss: 0.468 reg_loss: 0.000) lr: 0.0006802721
+epoch 2 validation:	acc: 0.814 loss: 0.507
+epoch 3 training:	acc: 0.845 loss: 0.427 (data_loss: 0.427 reg_loss: 0.000) lr: 0.0006146281
+epoch 3 validation:	acc: 0.828 loss: 0.480
+epoch 4 training:	acc: 0.854 loss: 0.400 (data_loss: 0.400 reg_loss: 0.000) lr: 0.0005605381
+epoch 4 validation:	acc: 0.833 loss: 0.461
+epoch 5 training:	acc: 0.862 loss: 0.380 (data_loss: 0.380 reg_loss: 0.000) lr: 0.0005151984
+epoch 5 validation:	acc: 0.839 loss: 0.446
+epoch 6 training:	acc: 0.867 loss: 0.364 (data_loss: 0.364 reg_loss: 0.000) lr: 0.0004766444
+epoch 6 validation:	acc: 0.843 loss: 0.434
+epoch 7 training:	acc: 0.871 loss: 0.350 (data_loss: 0.350 reg_loss: 0.000) lr: 0.0004434590
+epoch 7 validation:	acc: 0.846 loss: 0.427
+epoch 8 training:	acc: 0.875 loss: 0.338 (data_loss: 0.338 reg_loss: 0.000) lr: 0.0004145937
+epoch 8 validation:	acc: 0.850 loss: 0.420
+epoch 9 training:	acc: 0.878 loss: 0.327 (data_loss: 0.327 reg_loss: 0.000) lr: 0.0003892565
+epoch 9 validation:	acc: 0.852 loss: 0.416
+### Evaluating images
+Prediction for ../../image_data/eval/tshirt.png ... 	Survey says ### TOP
+Prediction for ../../image_data/eval/pants.png ... 	Survey says ### TROUSER
+Simulation is complete, simulated time: 32.2803 ms
 ```
 
-So we've demonstrated how a few lines of code can enable some powerful debug capabilities.
-Of course, GDB and LLDB have very powerful source level debug capabilities that can do the
-same thing. In the upcoming sections, we'll demonstrate how the built-in SST features are
-differentiated from standard software debug tools.
+Finally, by scripting the debug session, we can perform parameter sweeps. A sample script, `sweep.sh`,
+is provided to demonstrate sweeping the learning rate in order to find an optimal setting. The replay file
+is generated on-the-fly with a sweep parameter, LR, calculated in the surrounding loop.
+```
+cat > $REPLAYFILE <<EOF
+# navigate to optimizer
+cd loss
+cd optimizer
+# modify the learning rate
+set learning_rate_ $LR
+p learning_rate_
+# do not prompt to confirm clearing watchpoints
+confirm false
+unwatch
+run
+EOF
+```
+Transcript:
+```
+$ ./sweep.sh|& tee log
+### LR=0.0001 mispredict
+### LR=0.0004 ACC=0.831
+### LR=0.0008 ACC=0.844
+### LR=0.0010 ACC=0.845
+### LR=0.0015 mispredict
+### LR=0.0020 mispredict
+### LR=0.0025 mispredict
+```
 
 ## Reference Code for the Section
 
