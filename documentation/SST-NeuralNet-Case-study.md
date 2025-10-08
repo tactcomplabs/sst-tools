@@ -115,11 +115,11 @@ The SST model structure is described in Python which provides encapsulated layer
 
 ## Development Process
 
-This work was inspired by Neural Networks from Scratch in Python, Kinsley, Kukiela, 2020. The Python reference provides a modelling API similar to other popular AI front-ends. This was converted to a functional C++ model to establish the underlying linear algebra routines. Then, the C++ model was used as a reference to check a distributed, state machine-based implementation in SST.
+This work was inspired by _"Neural Networks from Scratch in Python", Kinsley, Kukiela, 2020_. The Python reference provides a modelling API similar to other popular AI front-ends. This was converted to a functional C++ model to establish the underlying linear algebra routines. Then, the C++ model was used as a reference to check a distributed, state machine-based implementation in SST.
 
 <img src="./imgs/port.svg" alt="porting" width="800"/>
 
-## Reference Code for the Section
+## Reference Code for this Section
 
 [sst-nn-0-base](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-0-base)
 
@@ -248,9 +248,9 @@ public:
 
 At this point we have a partially checkpointable model (just 1 variable). The code should compile and run correctly and adding code for the rest of the variables amounts to employing the SST_SER macro judiciously.
 
-In the next section, we'll implement more serialserialization and briefly detour into the emerging realm of interactive debug.
+In the next section, we'll provide more serialization and take a detour to introduce interactive debugging.
 
-## Reference Code for the Section
+## Reference Code for this Section
 
 [sst-nn-1-ser](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-1-ser)
 
@@ -299,14 +299,27 @@ void NNAdamOptimizer::pre_update_params() {
 
 Refering back to the [top level block diagram](#initial-model-block-diagram), the loss layer feeds back loss information for back propogation. In this implementation each dense layer uses this information in it's calculations to adjust weights and biases. 
 
-With that in mind let's, enter the debug console at time 0 using the following SST command line options:
-`--interactive-console=sst.interactive.simpledebug --interactive-start=0`
+With that in mind let's, enter the debug console at time 0 using the following SST command line option:
+`--interactive-start=0`
 
-For running the neural network training, the command line is conveniently embedded in the provided script below.
+The full command line
+```
+cd test/neuralnet
+sst test-image.py --interactive-start=0 \
+  -- --batchSize=1 --classImageLimit=4 --epochs=4 \
+  --evalImages=../../image_data/eval \
+  --hiddenLayerSize=32 --initialWeightScaling=0.01 \
+  --testImages=../../image_data/fashion_mnist_images/train \
+  --trainingImages=../../image_data/fashion_mnist_images/train \
+  --verbose=0
+```
+--testImages=/Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test --trainingImages=/Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train --verbose=0
+
+However, this is conveniently embedded in a provided script:
 
 ```
-$ cd <sst-tools>/test/neuralnet
-$ ./nn-interactive
+$ cd test/neuralnet
+$ ./nn-interactive.sh
 ```
 
 This results in:
@@ -339,15 +352,79 @@ Observed lines 3 and which indicates the main controller is entering the SST INI
 Line 13 shows when we exit the SETUP phase.
 Line 17 is the interactive console command prompt.
 
-This illustrates a current limitation of the SST interactive console:
+This illustrates a current limitation of the current SST interactive console:
 
 `The interactive console is only available during the RUN phase of SST`
   
-TODO: Can we address this restriction in component debug probe
-
 At the command prompt, type `help` for a list of available commands.
+```
+> help
 
-Next step, navigate the design heirarchy to find the loss layer and it's optimizer subcomponent.
+--- General ---
+help (?) [CMD]: show this help or detailed command help
+confirm (cfm) <true/false>: set confirmation requests on (default) or off
+--- Navigation ---
+pwd (pwd) print the current working directory in the object map
+chdir (cd) change 1 directory level in the object map
+list (ls) list the objects in the current level of the object map
+--- State ---
+time (tm) print current simulation time in cycles
+print (p) [-rN] [<obj>]: print objects at the current level
+set (s) var value: set value for a variable at the current level
+--- Watch/Trace ---
+watch (w) <trig>: adds watchpoint to the watchlist
+trace (t) <trig> : <bufSize> <postDelay> : <v1> ... <vN> : <action>
+watchlist (wl) prints the current list of watchpoints
+addTraceVar (add) <watchpointIndex> <var1> ... <varN>
+printWatchPoint (prw) <watchpointIndex>: prints a watchpoint
+printTrace (prt) <watchpointIndex>: prints trace buffer for a watchpoint
+resetTrace (rst) <watchpointIndex>: reset trace buffer for a watchpoint
+setHandler (shn) <idx> <t1> ... <t2>: trigger check/sampling handler
+unwatch (uw) <watchpointIndex>: remove 1 or all watchpoints
+--- Simulation ---
+run (r) [TIME]: continues the simulation
+continue (c) alias for run
+exit (e) exit debugger and continue simulation
+quit (q) alias for exit
+shutdown (shutd) exit the debugger and cleanly shutdown simulator
+--- Logging ---
+logging (log) <filepath>: log command line entires to file
+replay (rep) <filepath>: run commands from a file. See also: sst --replay
+history (h) [N]: display all or last N unique commands
+
+--- Misc ---
+spinThread (spin) enter spin loop. See SimpleDebugger::cmd_spinThread
+
+More detailed help also available for:
+        addtracevar editing history print 
+        printtrace printwatchpoint resettrace 
+        run set sethandler trace unwatch watch 
+        watchlist watchpoints 
+```
+
+See the detailed help for `history` and `editing` for information on the console "bash-like" command line interface.
+
+```
+help history
+help editing
+```
+
+Run this short simulation to completion to see the initial training result. Then we'll re-enter the debug console to change values to affect the training.
+
+```
+run
+
+
+
+Before getting in too deep, set up logging the commands to a file so we can replay them.
+
+```
+> logging
+sst console commands will be logged to sst-console.out
+```
+
+Next step, navigate the design heirarchy to find the loss layer and it's optimizer subcomponent. 
+Use the arrow and tab keys to speed up command entry. Also use '!' commands to retrieve commands from history.
 ```
 > ls
       batch_controller/ (SST::NeuralNet::NNBatchController)
@@ -378,73 +455,79 @@ Next step, navigate the design heirarchy to find the loss layer and it's optimiz
       transfer_function/ (SST::NeuralNet::NNInputLayer)
 > cd optimizer
 > ls
-      beta_1_ = 0.900000 (double)
-      beta_2_ = 0.999000 (double)
+      beta_1_ = 9.00000000000000022e-01 (double)
+      beta_2_ = 9.98999999999999999e-01 (double)
       component_state_ = 0 (SST::BaseComponent::ComponentState)
-      current_learning_rate_ = 0.001000 (double)
-      decay_ = 0.001000 (double)
-      epsilon_ = 0.000000 (double)
+      current_learning_rate_ = 1.00000000000000002e-03 (double)
+      decay_ = 1.00000000000000002e-03 (double)
+      epsilon_ = 9.99999999999999955e-08 (double)
       iterations_ = 0 (unsigned int)
-      learning_rate_ = 0.001000 (double)
+      learning_rate_ = 1.00000000000000002e-03 (double)
       my_info_/ ()
       my_info_/ (SST::ComponentInfo)
       sstout_/ (SST::Output)
 > pwd
       loss/optimizer (SST::NeuralNet::NNAdamOptimizer)
 ```
+
 Now we can "watch" the current learning rate and the simulation will break whenever its value changes.
 ```
-> watch current_learning_rate_
-> watch
+> watch current_learning_rate_ changed
+> wl
       Current watch points:
-      0 - loss/optimizer/current_learning_rate_
+      0: ALL : loss/optimizer/current_learning_rate_ CHANGED  : interactive
 > run
       NNBatchController[batch_controller:initTraining:1000]: Starting training phase
       epoch: 0, step: 0, acc: 0.000, loss: 2.303 (data_loss: 2.303, reg_loss: 0.000) ,lr: 0.0010000000
       Entering interactive mode at time 24025000
-      Watch point loss/optimizer/current_learning_rate_ buffer  # TODO can this print value automatically?
+        WP0: loss/optimizer/current_learning_rate_ .. 
 > print current_learning_rate_
-      current_learning_rate_ = 0.000999 (double)
-> run
-      Entering interactive mode at time 40040000
-      Watch point loss/optimizer/current_learning_rate_ buffer
-> print current_learning_rate_
-      current_learning_rate_ = 0.000999 (double)      
-#TODO we need control of precision and formatting in general, or show scientific notation by default in short-term
-#TODO maintain command history buffer
-#TODO Can 'watch' with no params also print the values and indicate which one triggered breaking into interactive? 
+      current_learning_rate_ = 9.99000999000999217e-04 (double)
+> r
+      Entering interactive mode at time 40041000 
+        WP0: loss/optimizer/current_learning_rate_ ..
+> !p
+      current_learning_rate_ = 9.98003992015967980e-04 (double)      
 ```
 Now we can change the learning rate and see the effects.
 
 ```
-> set learning_rate_ -1.0
+> set learning_rate_  .005
 > ls
-      beta_1_ = 0.900000 (double)
-      beta_2_ = 0.999000 (double)
+      beta_1_ = 9.00000000000000022e-01 (double)
+      beta_2_ = 9.98999999999999999e-01 (double)
       component_state_ = 0 (SST::BaseComponent::ComponentState)
-      current_learning_rate_ = 0.000999 (double)
-      decay_ = 0.001000 (double)
-      epsilon_ = 0.000000 (double)
-      iterations_ = 2 (unsigned int)
-      learning_rate_ = -1.000000 (double)
+      current_learning_rate_ = 9.98003992015967980e-04 (double)
+      decay_ = 1.00000000000000002e-03 (double)
+      epsilon_ = 9.99999999999999955e-08 (double)
+      iterations_ = 3 (unsigned int)
+      learning_rate_ = -1.00000000000000000e+00 (double)
       my_info_/ ()
       my_info_/ (SST::ComponentInfo)
       sstout_/ (SST::Output)
-> run
-      Entering interactive mode at time 40041000
-      Watch point loss/optimizer/current_learning_rate_ buffer
-      Watch point loss/optimizer/current_learning_rate_ buffer
-> print current_learning_rate_
-      current_learning_rate_ = -0.998004 (double)
-> shutdown
-#TODO quit should clear any triggers that will break us into interactive mode
-#TODO "cd /" - bring back to top level
+> r
+      Entering interactive mode at time 56057000 
+        WP0: loss/optimizer/current_learning_rate_ ...
+> !p
+      current_learning_rate_ = -9.97008973080757865e-01 (double)
+> unwatch
+      Do you want to delete all watchpoints? [yes, no]
+yes
+Watchlist cleared
+> r
+...  training log omitted
+### Validating model
+validation, acc: 0.000 loss: 16.118
+### Evaluating images
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png ... Survey says ### PULLOVER ###
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/pants.png ... Survey says ### PULLOVER ###
 ```
 
-So we've demonstrated how a few lines of code can enable some powerful debug capabilities.
-Of course, GDB and LLDB have very powerful source level debug capabilities that can do the
-same thing. In the upcoming sections, we'll demonstrate how the built-in SST features are
-differentiated from standard software debug tools.
+So we've successfully injected a state change to demonstrate how to break the neural net training resulting in zero accuracy!
+
+
+
+
 
 ## Reference Code for the Section
 

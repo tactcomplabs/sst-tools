@@ -6,7 +6,8 @@ if [ $# -ne 0 ]; then
  largesim=$1
 fi
 
-SSTOPTS="--interactive-console=sst.interactive.simpledebug --interactive-start=0"
+# SSTOPTS="--interactive-console=sst.interactive.simpledebug --interactive-start=0"
+SSTOPTS="--interactive-start=0"
 
 mkdir -p run
 cd run
