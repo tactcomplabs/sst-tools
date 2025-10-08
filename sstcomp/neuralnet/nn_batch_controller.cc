@@ -84,7 +84,7 @@ void NNBatchController::setup(){
 
   if (enableTraining()) {
     trainingImages.load(trainingImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);
-    if (output.getVerboseLevel() >= 2 ) {
+    if (output.getVerboseLevel() > 2 ) {
       std::cout << "X" << util.shapestr(trainingImages.data) << "=\n" << HEAD(trainingImages.data) << std::endl;
       std::cout << "y" << util.shapestr(trainingImages.classes) << "=\n" << HEAD(trainingImages.classes.transpose()) << std::endl;
     }
@@ -93,7 +93,7 @@ void NNBatchController::setup(){
 
   if (enableValidation()) {
     testImages.load(testImagesStr, Dataset::DTYPE::IMAGE, classImageLimit, true);
-    if (output.getVerboseLevel() >= 2 ) {
+    if (output.getVerboseLevel() > 2 ) {
       std::cout << "X_test"   << util.shapestr(testImages.data) << "=\n" << HEAD(testImages.data) << std::endl;
       std::cout << "y_test.T" << util.shapestr(testImages.classes) << ".T=\n" << HEAD(testImages.classes.transpose()) << std::endl;
     }
@@ -102,7 +102,7 @@ void NNBatchController::setup(){
 
   if (enableEvaluation()) {
     evalImages.load_eval_images(evalImagesStr.c_str(), EigenImage::TRANSFORM::INVERT, EigenImage::TRANSFORM::LINEARIZE, true);
-    if (output.getVerboseLevel() >= 2 ) {
+    if (output.getVerboseLevel() > 2 ) {
       std::cout << "X_eval"   << util.shapestr(evalImages.data) << "=\n" << HEAD(evalImages.data) << std::endl;
     }
     if (fsmState==MODE::INVALID) fsmState = MODE::EVALUATION;
@@ -121,7 +121,7 @@ void NNBatchController::printStatus( Output& out ){}
 
 void NNBatchController::forward_o_snd(MODE mode)
 {
-    output.verbose(CALL_INFO, 2, 0,
+    output.verbose(CALL_INFO, 5, 0,
                    "%s sending %s forward pass data\n",
                    getName().c_str(), mode2str.at(mode).c_str());
     NNEvent *nnev = new NNEvent({mode, batch_X, batch_y});
@@ -137,17 +137,19 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
   optimizer_data_t opt = payload.optimizer_data;
   
   // Print a summary
-  if ( (step % print_every) == 0 || step == (train_steps-1) ) {
-    std::cout  << "epoch: " << epoch << ", step: " << step 
-      << std::fixed << std::setprecision(3)
-      << ", acc: "   << payload.accuracy
-      << ", loss: "  << payload.losses.total_loss()
-      << " (data_loss: "  << payload.losses.data_loss
-      << ", reg_loss: "  << payload.losses.regularization_loss
-      << std::setprecision(10)
-      << ") ,lr: "    << opt.current_learning_rate
-      << std::endl;
-  }
+  if (output.getVerboseLevel()>2) {
+    if ( (step % print_every) == 0 || step == (train_steps-1) ) {
+      std::cout  << "epoch: " << epoch << ", step: " << step 
+        << std::fixed << std::setprecision(3)
+        << ", acc: "   << payload.accuracy
+        << ", loss: "  << payload.losses.total_loss()
+        << " (data_loss: "  << payload.losses.data_loss
+        << ", reg_loss: "  << payload.losses.regularization_loss
+        << std::setprecision(10)
+        << ") ,lr: "    << opt.current_learning_rate
+        << std::endl;
+    }
+}
 
   // Get and print epoch loss and accuracy
   accumulatedSums.count++;
@@ -165,7 +167,7 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
 void NNBatchController::monitor_rcv(SST::Event *ev) {
   NNEvent* nnev = static_cast<NNEvent*>(ev);
   monitor_payload = nnev->payload();
-  output.verbose(CALL_INFO,2,0, "Monitor Data Received: %s\n", monitor_payload.str().c_str());
+  output.verbose(CALL_INFO, 5, 0, "Monitor Data Received: %s\n", monitor_payload.str().c_str());
 
   // Signal to send the next batch
   MODE mode = monitor_payload.mode;
@@ -226,7 +228,7 @@ bool NNBatchController::stepTraining() {
   assert(step < train_steps);
   if (++step == train_steps) {
     // Finished all steps for epoch
-    output.verbose(CALL_INFO, 2,0, "Finished epoch\n");
+    output.verbose(CALL_INFO, 5,0, "Finished epoch\n");
     assert(epoch < epochs);
     if (++epoch == epochs) {
       trainingComplete = true;
@@ -239,19 +241,21 @@ bool NNBatchController::stepTraining() {
     double epoch_loss = epoch_losses.total_loss();
     double epoch_accuracy = accumulatedSums.accuracy / accumulatedSums.count;
 
-    std::cout  << "training"
-        << std::fixed << std::setprecision(3)
-        << ", acc: "   << epoch_accuracy
-        << ", loss: "  << epoch_loss
-        << " (data_loss: "  << epoch_losses.data_loss
-        << ", reg_loss: "  << epoch_losses.regularization_loss
-        << std::setprecision(10)
-        << ") ,lr: "    << accumulatedSums.current_learning_rate
-        << std::endl;
+    if (output.getVerboseLevel()>1) {
+      std::cout  << "epoch " << epoch-1 << " training:\t"
+          << std::fixed << std::setprecision(3)
+          << "acc: "   << epoch_accuracy
+          << " loss: "  << epoch_loss
+          << " (data_loss: "  << epoch_losses.data_loss
+          << " reg_loss: "  << epoch_losses.regularization_loss
+          << std::setprecision(10)
+          << ") lr: "    << accumulatedSums.current_learning_rate
+          << std::endl;
+  }
 
     // Switch to validation mode if enabled before next training epoch.
     if (enableValidation()) {
-      std::cout << "### Validating model" << std::endl;
+      // std::cout << "### Validating model" << std::endl;
       fsmState = MODE::VALIDATION;
       step=0;     // reset counter
       busy=false; // release controller
@@ -278,7 +282,7 @@ bool NNBatchController::continueTraining()
 {
     fsmState = MODE::TRAINING;
     // Next epoch
-    std::cout << "epoch: " << epoch << std::endl;
+    output.verbose(CALL_INFO, 5, 0, "starting epoch %d", epoch);
     // Reset accumulated values in loss and accuracy objects
     accumulatedSums = {};
     // Reset step counter
@@ -303,11 +307,11 @@ bool NNBatchController::launchTrainingStep() {
 
   // std::cout << "batch_X" << util.shapestr(batch_X) << "=\n" << HEAD(batch_X) << std::endl;
   // std::cout << "batch_y" << util.shapestr(batch_y) << "=\n" << HEAD(batch_y) << std::endl;
-  output.verbose(CALL_INFO, 2, 0, "batch_X %s\n", util.shapestr(batch_X).c_str());
-  output.verbose(CALL_INFO, 2, 0, "batch_y %s\n", util.shapestr(batch_y).c_str());
+  output.verbose(CALL_INFO, 5, 0, "batch_X %s\n", util.shapestr(batch_X).c_str());
+  output.verbose(CALL_INFO, 5, 0, "batch_y %s\n", util.shapestr(batch_y).c_str());
 
   // Initiate the forward pass (backward pass included)
-  output.verbose(CALL_INFO, 2, 0, "epoch:%" PRId32 " step:%" PRId32 "\n", epoch, step);
+  output.verbose(CALL_INFO, 5, 0, "epoch:%" PRId32 " step:%" PRId32 "\n", epoch, step);
   forward_o_snd(MODE::TRAINING);
   busy = true;  // lock controller
   return true;  // disable controller clock
@@ -330,18 +334,18 @@ bool NNBatchController::launchValidationStep() {
 
   // std::cout << "batch_X" << util.shapestr(batch_X) << "=\n" << HEAD(batch_X) << std::endl;
   // std::cout << "batch_y" << util.shapestr(batch_y) << "=\n" << HEAD(batch_y) << std::endl;
-  output.verbose(CALL_INFO, 2, 0, "batch_X %s\n", util.shapestr(batch_X).c_str());
-  output.verbose(CALL_INFO, 2, 0, "batch_y %s\n", util.shapestr(batch_y).c_str());
+  output.verbose(CALL_INFO, 5, 0, "batch_X %s\n", util.shapestr(batch_X).c_str());
+  output.verbose(CALL_INFO, 5, 0, "batch_y %s\n", util.shapestr(batch_y).c_str());
 
   // Initiate the forward pass (completed on monitor_rcv)
-  output.verbose(CALL_INFO, 2, 0, "step:%" PRId32 "\n", step);
+  output.verbose(CALL_INFO, 5, 0, "step:%" PRId32 "\n", step);
   forward_o_snd(MODE::VALIDATION);
   busy = true;  // lock controller
   return true;  // disable controller clock
 }
 
 bool NNBatchController::initValidation() {
-  output.verbose(CALL_INFO, 2, 0, "Starting validation phase\n");
+  output.verbose(CALL_INFO, 5, 0, "Starting validation phase\n");
   fsmState = MODE::VALIDATION;
   accumulatedSums = {};
   step=0;
@@ -358,10 +362,10 @@ bool NNBatchController::initValidation() {
       validation_steps += 1;
   }
 
-  output.verbose(CALL_INFO, 1, 0, "### Validation setup\n");
-  output.verbose(CALL_INFO, 1, 0, "X_val.rows()=%" PRId32 "\n", rows);
-  output.verbose(CALL_INFO, 1, 0, "batch_size=%" PRId32 "\n", batch_size);
-  output.verbose(CALL_INFO, 1, 0, "validation_steps=%" PRId32 "\n", validation_steps);
+  output.verbose(CALL_INFO, 5, 0, "### Validation setup\n");
+  output.verbose(CALL_INFO, 5, 0, "X_val.rows()=%" PRId32 "\n", rows);
+  output.verbose(CALL_INFO, 5, 0, "batch_size=%" PRId32 "\n", batch_size);
+  output.verbose(CALL_INFO, 5, 0, "validation_steps=%" PRId32 "\n", validation_steps);
   
   // First validation step
   return launchValidationStep();
@@ -372,7 +376,7 @@ bool NNBatchController::stepValidation() {
   if (++step == validation_steps) {
     // Finished all validation steps.
     validationComplete = true;
-    output.verbose(CALL_INFO, 2, 0, "Completed validation\n");
+    output.verbose(CALL_INFO, 5, 0, "Completed validation\n");
 
     // Get and print validation loss and accuracy
     Losses validation_losses;
@@ -380,10 +384,13 @@ bool NNBatchController::stepValidation() {
     validation_losses.regularization_loss = accumulatedSums.loss.regularization_loss / accumulatedSums.count;
     double validation_accuracy = accumulatedSums.accuracy / accumulatedSums.count;
 
-    std::cout << std::fixed << std::setprecision(3)
-        << "validation, acc: "  << validation_accuracy 
-        << " loss: " << validation_losses.total_loss() 
-        << std::endl;
+    if (output.getVerboseLevel()>1) {
+      std::cout << "epoch " << epoch-1 << " validation:\t" 
+          << std::fixed << std::setprecision(3)
+          << "acc: "  << validation_accuracy 
+          << " loss: " << validation_losses.total_loss() 
+          << std::endl;
+    }
 
     // Release controller
     busy=false;   // release controller
@@ -416,10 +423,10 @@ bool NNBatchController::initEvaluation() {
     assert(false); //TODO
   }
 
-  output.verbose(CALL_INFO, 1, 0, "### Evaluation setup\n");
-  output.verbose(CALL_INFO, 1, 0, "X.rows()=%" PRId32 "\n", rows);
-  output.verbose(CALL_INFO, 1, 0, "eval_batch_size=%" PRId32 "\n", eval_batch_size);
-  output.verbose(CALL_INFO, 1, 0, "prediction_steps=%" PRId32 "\n", prediction_steps);
+  output.verbose(CALL_INFO, 5, 0, "### Evaluation setup\n");
+  output.verbose(CALL_INFO, 5, 0, "X.rows()=%" PRId32 "\n", rows);
+  output.verbose(CALL_INFO, 5, 0, "eval_batch_size=%" PRId32 "\n", eval_batch_size);
+  output.verbose(CALL_INFO, 5, 0, "prediction_steps=%" PRId32 "\n", prediction_steps);
   
   // First validation step
   return launchEvaluationStep();
@@ -439,10 +446,10 @@ bool NNBatchController::launchEvaluationStep() {
   }
 
   // std::cout << "batch_X" << util.shapestr(batch_X) << "=\n" << HEAD(batch_X) << std::endl;
-  output.verbose(CALL_INFO, 2, 0, "batch_X %s\n", util.shapestr(batch_X).c_str());
+  output.verbose(CALL_INFO, 5, 0, "batch_X %s\n", util.shapestr(batch_X).c_str());
 
   // Initiate the forward pass (completed on monitor_rcv)
-  output.verbose(CALL_INFO, 2, 0, "step: %" PRId32 "\n", step);
+  output.verbose(CALL_INFO, 5, 0, "step: %" PRId32 "\n", step);
   forward_o_snd(MODE::EVALUATION);
   busy = true;  // lock controller
   return true;  // disable controller clock
@@ -453,13 +460,13 @@ bool NNBatchController::stepEvaluation() {
 
   // Show prediction ( each step is 1 image )
   MNISTinfo info;
-  std::cout << "Prediction for " << evalImages.imagePath(step) << " ... ";
-  std::cout << "Survey says ### " << info.toString((int) monitor_payload.predictions(0)) << " ###" << std::endl;
+  std::cout << "Prediction for " << evalImages.imagePath(step) << " ... \t";
+  std::cout << "Survey says ### " << info.toString((int) monitor_payload.predictions(0)) << std::endl;
 
   if (++step == prediction_steps) {
     // Finished all evaluation steps.
     evaluationComplete = true;
-    output.verbose(CALL_INFO, 2, 0, "Evaluations completed\n");
+    output.verbose(CALL_INFO, 5, 0, "Evaluations completed\n");
     // Release controller
     busy=false;   // release controller
     return false; // keep clocking
@@ -472,7 +479,7 @@ bool NNBatchController::stepEvaluation() {
 bool NNBatchController::complete()
 {
   fsmState = MODE::COMPLETE;
-  output.verbose(CALL_INFO, 2, 0,
+  output.verbose(CALL_INFO, 5, 0,
                 "%s has completed. Ending simulation.\n",
                 getName().c_str());
   primaryComponentOKToEndSim();

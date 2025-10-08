@@ -80,8 +80,6 @@ public:
     {"trainingImages",  "Directory containing training images in class subdirs", NULL}
   )
 
-public:
-  
 private:
   // -- SST handlers
   SST::Output    output;                          ///< SST output handler

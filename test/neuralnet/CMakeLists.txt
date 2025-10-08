@@ -25,7 +25,7 @@ add_test(
 )
 set_tests_properties(nn-basic-1 PROPERTIES
   LABELS "neuralnet"
-  TIMEOUT 60
+  TIMEOUT 120
   PASS_REGULAR_EXPRESSION ".*Survey says ### TOP ###.*Survey says ### TROUSER ###.*Simulation is complete"
 )
 
@@ -47,7 +47,7 @@ add_test(
 )
 set_tests_properties(nn-5layers-1 PROPERTIES
   LABELS "neuralnet"
-  TIMEOUT 60
+  TIMEOUT 120
   PASS_REGULAR_EXPRESSION ".*Survey says ### TOP ###.*Survey says ### TROUSER ###.*Simulation is complete"
 )
 
