@@ -112,7 +112,7 @@ bool NNLayer::clockTick( SST::Cycle_t currentCycle ) {
       Eigen::MatrixXd predictions = loss_function_->predictions(forwardData_i.data);
       double accuracy = accuracy_function_->calculate(predictions, forwardData_i.classes);
 
-      if (sstout_.getVerboseLevel() >= 2 ) {
+      if (sstout_.getVerboseLevel() > 2 ) {
         std::cout << "### Forward pass result ###" << std::endl;
         std::cout << std::fixed << std::setprecision(3) 
           << "acc: " << accuracy
@@ -196,19 +196,19 @@ void NNLayer::backward_i_rcv(SST::Event *ev){
 }
 
 void NNLayer::backward_o_snd() {
-  sstout_.verbose(CALL_INFO,2,0, "%s sending backward pass data\n", getName().c_str());
+  sstout_.verbose(CALL_INFO, 5, 0, "%s sending backward pass data\n", getName().c_str());
   NNEvent* nnev = new NNEvent(backwardData_o);
   linkHandlers.at(PortTypes::backward_o)->send(nnev);
 }
 
 void NNLayer::forward_o_snd(){
-  sstout_.verbose(CALL_INFO,2,0, "%s sending forward pass data\n", getName().c_str());
+  sstout_.verbose(CALL_INFO, 5, 0, "%s sending forward pass data\n", getName().c_str());
   NNEvent* nnev = new NNEvent(forwardData_o);
   linkHandlers.at(PortTypes::forward_o)->send(nnev);
 }
 
 void NNLayer::monitor_snd() {
-  sstout_.verbose(CALL_INFO,2,0, "%s sending monitor data\n", getName().c_str());
+  sstout_.verbose(CALL_INFO, 5, 0, "%s sending monitor data\n", getName().c_str());
   NNEvent* nnev = new NNEvent(monitorData_o);
   linkHandlers.at(PortTypes::monitor)->send(nnev);
 }
@@ -224,13 +224,13 @@ void NNLayer::serialize_order(SST::Core::Serialization::serializer &ser)
 void NNInputLayer::forward(const payload_t& in, payload_t& o)
 {
   o = in;
-  sstout_.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
+  sstout_.verbose(CALL_INFO, 5, 0, "%s %s\n", getName().c_str(), o.str().c_str());
 }
 
 void NNInputLayer::backward(const payload_t& in, payload_t& o)
 {
   o = in;
-  sstout_.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
+  sstout_.verbose(CALL_INFO, 5, 0, "%s %s\n", getName().c_str(), o.str().c_str());
 }
 
 void NNInputLayer::serialize_order(SST::Core::Serialization::serializer &ser)
@@ -266,7 +266,7 @@ NNDenseLayer::NNDenseLayer(ComponentId_t id, Params &params) : NNSubComponentAPI
   n_neurons_ = params.find<unsigned>("nNeurons", "128");
   initial_weight_scaling = params.find<double>("initialWeightScaling", 0.1);
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "### DenseLayer ###" << std::endl;
     std::cout << "n_inputs=" << n_inputs_ << std::endl;
     std::cout << "n_neurons=" << n_neurons_ << std::endl;
@@ -299,7 +299,7 @@ void NNDenseLayer::forward(const payload_t& in, payload_t& o)
   o.data = inputs_ * weights_;
   o.data = o.data.rowwise() + biases_;
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "### Layer_Dense.forward ###"  << std::endl;
     std::cout << std::fixed << std::setprecision(7);
     std::cout << "inputs"  << util_.shapestr(inputs_)  << "=\n" << HEAD(inputs_)  << std::endl;
@@ -310,14 +310,14 @@ void NNDenseLayer::forward(const payload_t& in, payload_t& o)
 
   // Complete payload
   o.copyWithNoData(in);
-  sstout_.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
+  sstout_.verbose(CALL_INFO, 5, 0, "%s %s\n", getName().c_str(), o.str().c_str());
 }
 
 void NNDenseLayer::backward(const payload_t& in, payload_t& o)
 {
   Eigen::MatrixXd dvalues = in.data; // TODO remove deep copy
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "### Layer_Dense.backward ###" << std::endl;
     std::cout << std::fixed << std::setprecision(7);
     std::cout << "dvalues.shape=" <<  util_.shapestr(dvalues) << std::endl;
@@ -331,7 +331,7 @@ void NNDenseLayer::backward(const payload_t& in, payload_t& o)
   // # self.dbiases = np.sum(dvalues, axis=0, keepdims=True)
   dbiases_ = dvalues.colwise().sum(); // .reshaped(1, dvalues.cols());
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << std::scientific << std::setprecision(7)
               << "dweights(0)=\n" << HEAD(dweights_.array()) 
               << "\ndbiases(0)=\n" << HEAD(dbiases_.array()) << std::endl;
@@ -347,7 +347,7 @@ void NNDenseLayer::backward(const payload_t& in, payload_t& o)
     //# self.dweights += self.weight_regularizer_l1 * dL1
     dweights_ = dweights_.array() + weight_regularizer_l1_ * dL1.array();
 
-    if (sstout_.getVerboseLevel() >= 2) {
+    if (sstout_.getVerboseLevel() > 2) {
       std::cout << "dL1=\n" << HEAD(dL1.array()) << std::endl;
       std::cout << "dweights(l1)=\n" << HEAD(dweights_.array()) << std::endl;
     }
@@ -376,7 +376,7 @@ void NNDenseLayer::backward(const payload_t& in, payload_t& o)
   //# self.dinputs = dvalues @ self.weights.T
   dinputs_ = dvalues * weights_.transpose();
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "weights=\n"  << HEAD(weights_.array())  << std::endl;
     std::cout << "biases=\n"   << HEAD(biases_.array())   << std::endl;
     std::cout << "dweights=\n" << HEAD(dweights_.array()) << std::endl;
@@ -417,7 +417,7 @@ void NNActivationReLULayer::forward(const payload_t& in, payload_t& o)
   //# self.output = np.maximum(0,inputs)
   o.data = in.data.cwiseMax(0.0);
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "### ReLU.forward ###" << std::endl;
     std::cout << "inputs=\n" << HEAD(in.data) << std::endl;
     std::cout << "output=\n" << HEAD(o.data) << std::endl;
@@ -426,7 +426,7 @@ void NNActivationReLULayer::forward(const payload_t& in, payload_t& o)
 
   // complete payload
   o.copyWithNoData(in);
-  sstout_.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
+  sstout_.verbose(CALL_INFO, 5, 0, "%s %s\n", getName().c_str(), o.str().c_str());
 }
 
 void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
@@ -440,7 +440,7 @@ void NNActivationReLULayer::backward(const payload_t& in, payload_t& o)
   zeros.setZero();
   dinputs_ = mask.select(zeros.array(), dinputs_);
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "### ReLU.backward ###" << std::endl;
     std::cout << std::scientific << std::setprecision(7)
       << "inputs=\n"  << HEAD(inputs_)
@@ -493,7 +493,7 @@ void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
   // Save result
   o.data = probabilities;
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "### Softmax.forward ###" << std::endl;
     std::cout << std::fixed << std::setprecision(7);
     std::cout << "inputs=\n" << HEAD(inputs_) << std::endl;
@@ -506,7 +506,7 @@ void NNActivationSoftmaxLayer::forward(const payload_t& in, payload_t& o)
 
   // Complete payload
   o.copyWithNoData(in);
-  sstout_.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
+  sstout_.verbose(CALL_INFO, 5, 0, "%s %s\n", getName().c_str(), o.str().c_str());
 }
 
 void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
@@ -575,7 +575,7 @@ const Losses& NNLossLayerAPI::calculate(Eigen::MatrixXd& sample_losses, REGULARI
   accumulated_sum_ += sample_losses.sum();
   accumulated_count_ += (int) sample_losses.rows();
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "### Loss.calculate ###" << std::endl;
     // std::cout << "output=\n" << HEAD(output) << std::endl;
     // std::cout << "y=\n" << HEAD(y) << std::endl;
@@ -661,7 +661,7 @@ void NNLoss_CategoricalCrossEntropy::forward(const payload_t& in, payload_t& o)
   //# negative_log_likelihoods = -np.log(correct_confidences)
   negative_log_likelihoods_ = -correct_confidences.array().log();
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "### Loss_CategoricalCrossentropy.forward ###" << std::endl;
     std::cout << "samples=" << samples << std::endl;
     std::cout << "y_pred=\n" << HEAD(y_pred) << std::endl;
@@ -676,7 +676,7 @@ void NNLoss_CategoricalCrossEntropy::forward(const payload_t& in, payload_t& o)
   // output payload
   o.data = negative_log_likelihoods_;  // sample_losses
   o.copyWithNoData(in);
-  sstout_.verbose(CALL_INFO, 2, 0, "%s %s", getName().c_str(), o.str().c_str());
+  sstout_.verbose(CALL_INFO, 5, 0, "%s %s\n", getName().c_str(), o.str().c_str());
 }
 
 void NNLoss_CategoricalCrossEntropy::backward(const payload_t& in, payload_t& o)
@@ -703,7 +703,7 @@ double NNAccuracyAPI::calculate(const Eigen::MatrixXd& predictions, const Eigen:
   accumulated_sum_ += comparisons.cast<double>().sum();
   accumulated_count_ += (double) comparisons.rows(); //TODO change accumulated_count_ to long
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "### Accuracy.calculate" << std::endl;
     std::cout << "predictions=\n" << HEAD(predictions) << std::endl;
     std::cout << "comparisons=\n" << HEAD(comparisons) << std::endl;
@@ -789,7 +789,7 @@ NNAdamOptimizer::NNAdamOptimizer(ComponentId_t id, Params &params) : NNOptimizer
 void NNAdamOptimizer::pre_update_params() {
   if (decay_ != 0) {
     current_learning_rate_ = learning_rate_ * ( 1. / (1. + decay_ * iterations_ ));
-    sstout_.verbose(CALL_INFO, 2, 0, "Adam Optimizer: current_learning_rate=%f\n", current_learning_rate());
+    sstout_.verbose(CALL_INFO, 5, 0, "Adam Optimizer: current_learning_rate=%f\n", current_learning_rate());
   }
 }
 
@@ -808,7 +808,7 @@ void NNAdamOptimizer::update_params(NNDenseLayer *layer, const optimizer_data_t&
   if (! layer->has_weight_cache_)
       layer->enable_weight_cache();
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "### Optimizer_Adam.update_params ###" << std::endl;
     std::cout << "beta_1=" << beta_1_ << std::endl;
     std::cout << "weight_momentums(i)=\n" << HEAD(layer->weight_momentums_) << std::endl;
@@ -821,7 +821,7 @@ void NNAdamOptimizer::update_params(NNDenseLayer *layer, const optimizer_data_t&
   layer->bias_momentums_ = beta_1_ * layer->bias_momentums_.array()
                   + ( 1. - beta_1_) * layer->dbiases_.array();
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "weight_momentums(f)=\n" << HEAD(layer->weight_momentums_) << std::endl;
     std::cout << "bias_momentums(f)=\n" << HEAD(layer->bias_momentums_) << std::endl;
   }
@@ -833,7 +833,7 @@ void NNAdamOptimizer::update_params(NNDenseLayer *layer, const optimizer_data_t&
   Eigen::MatrixXd bias_momentums_corrected = 
       layer->bias_momentums_.array() / ( 1. - pow(beta_1_ ,(iterations_ + 1.)) );
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "iterations=" << iterations_ << std::endl;
     std::cout << "weight_momentums_corrected=\n" << HEAD(weight_momentums_corrected) << std::endl;
     std::cout << "bias_momentums_corrected=\n" << HEAD(bias_momentums_corrected) << std::endl;
@@ -848,7 +848,7 @@ void NNAdamOptimizer::update_params(NNDenseLayer *layer, const optimizer_data_t&
   layer->bias_cache_ = beta_2_ * layer->bias_cache_.array() + 
       (1 - beta_2_) * layer->dbiases_.array().pow(2);
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "weight_cache(f)=\n" << HEAD(layer->weight_cache_) << std::endl;
     std::cout << "bias_cache(f)=\n" << HEAD(layer->bias_cache_) << std::endl; 
   }  
@@ -859,7 +859,7 @@ void NNAdamOptimizer::update_params(NNDenseLayer *layer, const optimizer_data_t&
   Eigen::MatrixXd bias_cache_corrected = layer->bias_cache_ /
           (1 - pow(beta_2_, (iterations_ + 1)));
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "weight_cache_corrected=\n" << HEAD(weight_cache_corrected) << std::endl;
     std::cout << "bias_cache_corrected=\n" << HEAD(bias_cache_corrected) << std::endl;   
     std::cout << "current_learning_rate" << current_learning_rate_ << std::endl;
@@ -877,7 +877,7 @@ void NNAdamOptimizer::update_params(NNDenseLayer *layer, const optimizer_data_t&
                       (bias_cache_corrected.array().sqrt()+
                       epsilon_);
 
-  if (sstout_.getVerboseLevel() >= 2) {
+  if (sstout_.getVerboseLevel() > 2) {
     std::cout << "weights_(f)=\n" << HEAD(layer->weights_) << std::endl;
     std::cout << "biases(f)=\n" << HEAD(layer->biases_) << std::endl;
   }
