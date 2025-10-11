@@ -16,6 +16,34 @@
 #include "SST.h"
 // clang-format on
 
+/*
+    #include <cereal/cereal.hpp>
+    #include <cereal/archives/binary.hpp>
+    #include <Eigen/Dense>
+    #include <fstream>
+
+    namespace cereal {
+        template <class Archive, typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+        void serialize(Archive& ar, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& m) {
+            // Serialize dimensions if dynamic
+            if constexpr (_Rows == Eigen::Dynamic) {
+                ar(m.rows());
+            }
+            if constexpr (_Cols == Eigen::Dynamic) {
+                ar(m.cols());
+            }
+            // Serialize the data
+            ar(cereal::binary_data(m.data(), m.size() * sizeof(_Scalar)));
+        }
+    } // namespace cereal
+
+    // Example usage:
+    // Eigen::MatrixXd myMatrix = Eigen::MatrixXd::Random(3, 3);
+    // std::ofstream os("matrix.bin", std::ios::binary);
+    // cereal::BinaryOutputArchive archive(os);
+    // archive(myMatrix);
+    */
+
 namespace SST::NeuralNet {
 
 // -------------------------------------------------------
