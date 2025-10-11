@@ -101,10 +101,7 @@ void NNBatchController::setup(){
   }
 
   if (enableEvaluation()) {
-    evalImages.load_eval_images(evalImagesStr.c_str(), EigenImage::TRANSFORM::INVERT, EigenImage::TRANSFORM::LINEARIZE, true);
-    if (output.getVerboseLevel() > 2 ) {
-      std::cout << "X_eval"   << util.shapestr(evalImages.data) << "=\n" << HEAD(evalImages.data) << std::endl;
-    }
+    loadEvaluationImages();
     if (fsmState==MODE::INVALID) fsmState = MODE::EVALUATION;
   }
  
@@ -118,6 +115,14 @@ void NNBatchController::finish(){}
 void NNBatchController::emergencyShutdown(){}
 
 void NNBatchController::printStatus( Output& out ){}
+
+void NNBatchController::loadEvaluationImages()
+{
+    evalImages.load_eval_images(evalImagesStr.c_str(), EigenImage::TRANSFORM::INVERT, EigenImage::TRANSFORM::LINEARIZE, true);
+    if (output.getVerboseLevel() > 2 ) {
+      std::cout << "X_eval"   << util.shapestr(evalImages.data) << "=\n" << HEAD(evalImages.data) << std::endl;
+    }
+}
 
 void NNBatchController::forward_o_snd(MODE mode)
 {
@@ -403,6 +408,12 @@ bool NNBatchController::stepValidation() {
 
 bool NNBatchController::initEvaluation() {
 
+  if (reloadEvaluationImages) {
+    std::cout << "### Reloading evaluation images" << std::endl;
+    evalImages = {};
+    loadEvaluationImages();
+  }
+
   std::cout << "### Evaluating images" << std::endl;
   fsmState = MODE::EVALUATION;
   accumulatedSums = {};
@@ -459,6 +470,37 @@ void NNBatchController::serialize_order(SST::Core::Serialization::serializer &se
 {
   NNLayerBase::serialize_order(ser);
   SST_SER(output);
+  SST_SER(timeConverter);
+  SST_SER(clockHandler);
+  SST_SER(batch_size);
+  SST_SER(epochs);
+  SST_SER(print_every);
+  SST_SER(evalImagesStr);
+  SST_SER(testImagesStr);
+  SST_SER(trainingImagesStr);
+  SST_SER(reloadEvaluationImages);
+  SST_SER(fsmState);
+  SST_SER(trainingComplete);
+  SST_SER(validationComplete);
+  SST_SER(evaluationComplete);
+  SST_SER(epoch);
+  SST_SER(step);
+  SST_SER(train_steps);
+  SST_SER(validation_steps);
+  SST_SER(prediction_steps);
+  SST_SER(linkHandlers);
+  SST_SER(readyToSend);
+  SST_SER(busy);
+  #ifdef NN_SERIALIZE_ALL
+  // Controller object containing large matrices
+  // not required to save after training
+  SST_SER(monitor_payload);
+  SST_SER(batch_X);
+  SST_SER(batch_Y);
+  SST_SER(trainingImages);
+  SST_SER(testImages);
+  SST_SER(evalImages);
+  #endif
 }
 
 bool NNBatchController::stepEvaluation() { 

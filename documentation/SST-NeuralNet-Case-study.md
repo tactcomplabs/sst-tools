@@ -119,7 +119,7 @@ This work was inspired by _"Neural Networks from Scratch in Python", Kinsley, Ku
 
 <img src="./imgs/port.svg" alt="porting" width="800"/>
 
-## Reference Code for this Section
+## Reference code
 
 [sst-nn-0-base](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-0-base)
 
@@ -250,7 +250,7 @@ At this point we have a partially checkpointable model (just 1 variable). The co
 
 In the next section, we'll provide more serialization and take a detour to introduce interactive debugging.
 
-## Reference Code for this Section
+## Reference code
 
 [sst-nn-1-ser](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-1-ser)
 
@@ -698,10 +698,96 @@ $ ./sweep.sh|& tee log
 ### LR=0.0025 mispredict
 ```
 
-## Reference Code for the Section
+## Reference code
 
 [sst-nn-2-dbg-intro](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-2-dbgintro)
 
 
+# Checkpointing A Trained Model
 
+In this section, we want to leverage SST's checkpointing capabilities
+to save a trained network and run predictions on it. The major benefit of this approach is that we do not have to write custom code to save and restore the neuron weights and biases. The tradeoff is that we need some code that works with the debug interface.
+
+Again, we are not going to fully checkpoint the model and serialize every internal state. If we did that would end up saving the training image data which is unnecessary and would lead to enormous checkpoint files.
+
+## Generating a Synchronized Checkpoint
+
+1. Serialize the controller state machine
+2. Serialize the neural net weights/biases
+3. Run a simulation with `--interactive-start=0s --checkpoint-enable`
+4. Enable a watchpoint on a state variable that results in a checkpoint action.
+
+### Serialization the Controller State Machine
+
+Since we are going to generate the checkpoint after training is completed,
+we conveniently avoid having to serialize large matrices. This is very
+good news since our matrices are using the external Eigen library which has
+no built-in support for serialization.
+
+```
+void NNBatchController::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNLayerBase::serialize_order(ser);
+  SST_SER(output);
+  SST_SER(timeConverter);
+  SST_SER(clockHandler);
+  SST_SER(batch_size);
+  SST_SER(epochs);
+  SST_SER(print_every);
+  SST_SER(evalImagesStr);
+  SST_SER(testImagesStr);
+  SST_SER(trainingImagesStr);
+  SST_SER(reloadEvaluationImages);
+  SST_SER(fsmState);
+  SST_SER(trainingComplete);
+  SST_SER(validationComplete);
+  SST_SER(evaluationComplete);
+  SST_SER(epoch);
+  SST_SER(step);
+  SST_SER(train_steps);
+  SST_SER(validation_steps);
+  SST_SER(prediction_steps);
+  SST_SER(linkHandlers);
+  SST_SER(readyToSend);
+  SST_SER(busy);
+  #ifdef NN_SERIALIZE_ALL
+  // Controller object containing large matrices
+  // not required to save after training
+  SST_SER(monitor_payload);
+  SST_SER(batch_X);
+  SST_SER(batch_Y);
+  SST_SER(trainingImages);
+  SST_SER(testImages);
+  SST_SER(evalImages);
+  #endif
+}
+```
+
+
+*concern*
+
+Serialization of functions in a base class not showing up in debugger when chdir into child class.
+```
+void NNLayerBase::serialize_order(SST::Core::Serialization::serializer& ser) {
+  Component::serialize_order(ser);
+  SST_SER(transfer_function_);
+  SST_SER(loss_function_);
+  SST_SER(accuracy_function_);
+  SST_SER(optimizer_);
+}
+
+class NNBatchController : public NNLayerBase {...}
+
+> pwd
+batch_controller (SST::NeuralNet::NNBatchController)
+> ls
+component_state_ = 3 (SST::BaseComponent::ComponentState)
+my_info_/ ()
+my_info_/ (SST::ComponentInfo*)
+output/ (SST::Output)
+> 
+```
+
+
+## Restarting from a Checkpoint and Loading an Image
 

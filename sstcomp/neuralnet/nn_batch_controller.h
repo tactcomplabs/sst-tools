@@ -96,6 +96,10 @@ private:
   std::string testImagesStr = {};                 ///< path to directory containing test images in class subdirs
   std::string trainingImagesStr = {};             ///< path to directory containing training images in class subdirs
   
+  // -- Support for prediction only mode using checkpointed model
+  bool reloadEvaluationImages = false;
+  void loadEvaluationImages();
+
   // -- Internal State
   bool enableTraining()   { return (trainingImagesStr.size()>0 && !trainingComplete); }
   bool enableValidation() { return (testImagesStr.size()>0 && !validationComplete); }
@@ -126,7 +130,7 @@ private:
   void monitor_rcv(SST::Event *ev);
   void monitor_snd() { assert(false); }
 
-  //-- Payload
+  //-- Payload - Do not serialize
   Eigen::MatrixXd batch_X = {};
   Eigen::MatrixXi batch_y = {};
 
@@ -134,7 +138,7 @@ private:
   bool readyToSend=false;
   bool busy=false;
 
-  //-- Image Management
+  //-- Image Management - Do not serialize
   //-- training and validation load everything by class directory
   Dataset trainingImages = {};
   Dataset testImages = {};
