@@ -21,4 +21,9 @@ endif()
 message(STATUS "[SST-TOOLS] Enabling CPTAPI testing")
 add_subdirectory(cptapi)
 
+if (${SST_TOOLS_NEURALNET})
+  message(STATUS "[SST-TOOLS] Enabling NEURALNET testing")
+  add_subdirectory(neuralnet)
+endif()
+
 # EOF

@@ -33,6 +33,7 @@ CMake configuration options include:
     SST_TOOLS_CLEAN_TESTS    - delete saved checkpoint directories (ON)
     SST_TOOLS_ENABLE_TESTING - enable all tests (OFF)
     SST_TOOLS_WERROR         - enabled -Werror compile flag (ON)
+    SST_TOOLS_NEURALNET      - enable neural network model (requires Eigen and OpenCV) (OFF)
 
 ## Experimental Code
 
@@ -41,6 +42,9 @@ For information on instrumenting code using the component debug probe methodolog
 
 ### Checkpoint API Prototype
 For information on generating json schema files for checkpoints and interacting with them using a Python API see the [cptapi documentation](test/cptapi/README.md).
+
+### SST Neural Network
+See [neural network in SST case study](documentation/SST-NeuralNet-Case-study.md) for a working example of bringing up checkpoint and debug features for a complex model.
 
 ## Contributing
 

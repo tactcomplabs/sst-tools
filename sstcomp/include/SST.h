@@ -48,6 +48,7 @@
 #include <sst/core/rng/rng.h>
 #include <sst/core/rng/mersenne.h>
 #include <sst/core/serialization/serialize.h>
+#include <sst/core/subcomponent.h>
 
 // clang-format on
 

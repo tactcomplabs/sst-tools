@@ -22,6 +22,9 @@ project(sst-tools CXX)
 # TODO get working with jenkins. Shouldn't need this unless committing changes ( not for testing )
 # execute_process(COMMAND_ERROR_IS_FATAL ANY COMMAND_ECHO STDERR COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_git_hooks.sh)
 
+#-- rpath
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
 # Local scripts
 set(SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 
@@ -81,6 +84,11 @@ if (SST_TOOLS_WERROR)
   set(WERROR_FLAG "-Werror")
 endif()
 
+option(SST_TOOLS_ASAN "Compile using address sanitizer" OFF)
+if (SST_TOOLS_ASAN)
+  set (SANITIZE_FLAG "-fsanitize=address")
+endif()
+
 # Compiler Options
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
   set(FP_MODE_FLAG "-ffp-model=strict -frounding-math -ftrapping-math")
@@ -90,8 +98,7 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-format-attribute -Wsuggest-final-methods -Wsuggest-final-types -Wvolatile")
 endif()
 
-#set(CMAKE_CXX_FLAGS "-std=c++17 ${FP_MODE_FLAG} -O2 -Wall -Wextra -Wsuggest-override -Wmissing-noreturn -Wvla -Wuninitialized -Wdouble-promotion -Wsign-conversion -Wconversion -Wno-unused-parameter -Wno-deprecated-declarations -Wno-macro-redefined ${WERROR_FLAG} ${CMAKE_CXX_FLAGS} -I./ ${LDFLAGS}")
-set(CMAKE_CXX_FLAGS "-std=c++17 ${FP_MODE_FLAG} -O2 -Wall -Wextra -Wsuggest-override -Wvla -Wuninitialized -Wdouble-promotion -Wsign-conversion -Wconversion -Wno-unused-parameter -Wno-deprecated-declarations -Wno-macro-redefined ${WERROR_FLAG} ${CMAKE_CXX_FLAGS} -I./ ${LDFLAGS}")
+set(CMAKE_CXX_FLAGS "-std=c++17 ${FP_MODE_FLAG} -O2 -Wall -Wextra -Wsuggest-override -Wvla -Wuninitialized -Wdouble-promotion -Wsign-conversion -Wconversion -Wno-unused-parameter -Wno-deprecated-declarations -Wno-macro-redefined ${WERROR_FLAG} ${SANITIZE_FLAG} ${CMAKE_CXX_FLAGS} -I./ ${LDFLAGS}")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall")
@@ -126,6 +133,11 @@ option(SST_TOOLS_CLEAN_TESTS "Clean test directories after running" ON)
 option(SST_TOOLS_ENABLE_TESTING "Enable testing" OFF)
 option(SST_TOOLS_SOCKETS "Enable tests using sockets" ON)
 
+#-- Neural Net build (requires Eigen OpenCV
+option(SST_TOOLS_NEURALNET "Enable neural net (requires Eigen and OpenCV)" OFF)
+message(STATUS "[SST-TOOLS] SST_TOOLS_NEURALNET is ${SST_TOOLS_NEURALNET}")
+#--
+
 #-- Checkpoint Serialization build flags (temporary)
 if ( ${SST_MAJOR_VERSION} EQUAL "90" )
   set(TCL_SCHEMA ON)
@@ -146,7 +158,7 @@ add_subdirectory(sstcomp)
 #-- Custom Commands
 add_custom_target(uninstall 
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/uninstall.sh
-  COMMAND ${CMAKE_COMMAND} -E echo "Deleting ${SST_TOOLS_INSTALL_PATH}/bin"
+  COMMAND ${CMAKE_COMMAND} -E echo "Deleting ${SST_TOOLS_INSTALL_PATH}"
   COMMAND ${CMAKE_COMMAND} -E rm -rf "${SST_TOOLS_INSTALL_PATH}"
   VERBATIM
 )

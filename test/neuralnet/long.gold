@@ -1,0 +1,116 @@
+Running large simulation
+NNBatchController[batch_controller:init:0]: init phase 0
+NNBatchController[batch_controller:setup:0]: setup
+Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train
+Loaded 60000 images
+Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test
+Loaded 10000 images
+Reading /Users/kgriesser/work/sst-tools/image_data/eval
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/pants.png
+Loaded 2 images
+NNBatchController[batch_controller:setup:0]: setup completed. Ready for first clock
+NNBatchController[batch_controller:initTraining:1000]: Starting training phase
+epoch: 0, step: 0, acc: 0.148, loss: 2.303 (data_loss: 2.303, reg_loss: 0.000) ,lr: 0.0010000000
+epoch: 0, step: 100, acc: 0.719, loss: 0.638 (data_loss: 0.638, reg_loss: 0.000) ,lr: 0.0009090909
+epoch: 0, step: 200, acc: 0.766, loss: 0.741 (data_loss: 0.741, reg_loss: 0.000) ,lr: 0.0008333333
+epoch: 0, step: 300, acc: 0.797, loss: 0.504 (data_loss: 0.504, reg_loss: 0.000) ,lr: 0.0007692308
+epoch: 0, step: 400, acc: 0.742, loss: 0.545 (data_loss: 0.545, reg_loss: 0.000) ,lr: 0.0007142857
+epoch: 0, step: 468, acc: 0.812, loss: 0.493 (data_loss: 0.493, reg_loss: 0.000) ,lr: 0.0006811989
+training, acc: 0.767, loss: 0.642 (data_loss: 0.642, reg_loss: 0.000) ,lr: 0.0006811989
+### Validating model
+validation, acc: 0.817 loss: 0.497
+epoch: 1
+epoch: 1, step: 0, acc: 0.844, loss: 0.439 (data_loss: 0.439, reg_loss: 0.000) ,lr: 0.0006807352
+epoch: 1, step: 100, acc: 0.852, loss: 0.467 (data_loss: 0.467, reg_loss: 0.000) ,lr: 0.0006373486
+epoch: 1, step: 200, acc: 0.797, loss: 0.548 (data_loss: 0.548, reg_loss: 0.000) ,lr: 0.0005991612
+epoch: 1, step: 300, acc: 0.852, loss: 0.414 (data_loss: 0.414, reg_loss: 0.000) ,lr: 0.0005652911
+epoch: 1, step: 400, acc: 0.797, loss: 0.473 (data_loss: 0.473, reg_loss: 0.000) ,lr: 0.0005350455
+epoch: 1, step: 468, acc: 0.823, loss: 0.451 (data_loss: 0.451, reg_loss: 0.000) ,lr: 0.0005162623
+training, acc: 0.846, loss: 0.424 (data_loss: 0.424, reg_loss: 0.000) ,lr: 0.0005162623
+### Validating model
+validation, acc: 0.842 loss: 0.435
+epoch: 2
+epoch: 2, step: 0, acc: 0.867, loss: 0.357 (data_loss: 0.357, reg_loss: 0.000) ,lr: 0.0005159959
+epoch: 2, step: 100, acc: 0.859, loss: 0.433 (data_loss: 0.433, reg_loss: 0.000) ,lr: 0.0004906771
+epoch: 2, step: 200, acc: 0.805, loss: 0.464 (data_loss: 0.464, reg_loss: 0.000) ,lr: 0.0004677268
+epoch: 2, step: 300, acc: 0.867, loss: 0.375 (data_loss: 0.375, reg_loss: 0.000) ,lr: 0.0004468275
+epoch: 2, step: 400, acc: 0.789, loss: 0.443 (data_loss: 0.443, reg_loss: 0.000) ,lr: 0.0004277160
+epoch: 2, step: 468, acc: 0.833, loss: 0.417 (data_loss: 0.417, reg_loss: 0.000) ,lr: 0.0004156276
+training, acc: 0.861, loss: 0.380 (data_loss: 0.380, reg_loss: 0.000) ,lr: 0.0004156276
+### Validating model
+validation, acc: 0.854 loss: 0.403
+epoch: 3
+epoch: 3, step: 0, acc: 0.891, loss: 0.321 (data_loss: 0.321, reg_loss: 0.000) ,lr: 0.0004154549
+epoch: 3, step: 100, acc: 0.852, loss: 0.402 (data_loss: 0.402, reg_loss: 0.000) ,lr: 0.0003988831
+epoch: 3, step: 200, acc: 0.805, loss: 0.430 (data_loss: 0.430, reg_loss: 0.000) ,lr: 0.0003835827
+epoch: 3, step: 300, acc: 0.875, loss: 0.351 (data_loss: 0.351, reg_loss: 0.000) ,lr: 0.0003694126
+epoch: 3, step: 400, acc: 0.828, loss: 0.430 (data_loss: 0.430, reg_loss: 0.000) ,lr: 0.0003562522
+epoch: 3, step: 468, acc: 0.844, loss: 0.387 (data_loss: 0.387, reg_loss: 0.000) ,lr: 0.0003478261
+training, acc: 0.869, loss: 0.355 (data_loss: 0.355, reg_loss: 0.000) ,lr: 0.0003478261
+### Validating model
+validation, acc: 0.861 loss: 0.386
+epoch: 4
+epoch: 4, step: 0, acc: 0.898, loss: 0.306 (data_loss: 0.306, reg_loss: 0.000) ,lr: 0.0003477051
+epoch: 4, step: 100, acc: 0.859, loss: 0.389 (data_loss: 0.389, reg_loss: 0.000) ,lr: 0.0003360215
+epoch: 4, step: 200, acc: 0.836, loss: 0.410 (data_loss: 0.410, reg_loss: 0.000) ,lr: 0.0003250975
+epoch: 4, step: 300, acc: 0.875, loss: 0.331 (data_loss: 0.331, reg_loss: 0.000) ,lr: 0.0003148615
+epoch: 4, step: 400, acc: 0.820, loss: 0.422 (data_loss: 0.422, reg_loss: 0.000) ,lr: 0.0003052503
+epoch: 4, step: 468, acc: 0.854, loss: 0.363 (data_loss: 0.363, reg_loss: 0.000) ,lr: 0.0002990431
+training, acc: 0.876, loss: 0.337 (data_loss: 0.337, reg_loss: 0.000) ,lr: 0.0002990431
+### Validating model
+validation, acc: 0.865 loss: 0.375
+epoch: 5
+epoch: 5, step: 0, acc: 0.906, loss: 0.300 (data_loss: 0.300, reg_loss: 0.000) ,lr: 0.0002989537
+epoch: 5, step: 100, acc: 0.875, loss: 0.380 (data_loss: 0.380, reg_loss: 0.000) ,lr: 0.0002902758
+epoch: 5, step: 200, acc: 0.859, loss: 0.394 (data_loss: 0.394, reg_loss: 0.000) ,lr: 0.0002820874
+epoch: 5, step: 300, acc: 0.875, loss: 0.318 (data_loss: 0.318, reg_loss: 0.000) ,lr: 0.0002743484
+epoch: 5, step: 400, acc: 0.844, loss: 0.414 (data_loss: 0.414, reg_loss: 0.000) ,lr: 0.0002670227
+epoch: 5, step: 468, acc: 0.865, loss: 0.345 (data_loss: 0.345, reg_loss: 0.000) ,lr: 0.0002622607
+training, acc: 0.882, loss: 0.323 (data_loss: 0.323, reg_loss: 0.000) ,lr: 0.0002622607
+### Validating model
+validation, acc: 0.870 loss: 0.367
+epoch: 6
+epoch: 6, step: 0, acc: 0.906, loss: 0.290 (data_loss: 0.290, reg_loss: 0.000) ,lr: 0.0002621919
+epoch: 6, step: 100, acc: 0.875, loss: 0.368 (data_loss: 0.368, reg_loss: 0.000) ,lr: 0.0002554931
+epoch: 6, step: 200, acc: 0.859, loss: 0.380 (data_loss: 0.380, reg_loss: 0.000) ,lr: 0.0002491281
+epoch: 6, step: 300, acc: 0.883, loss: 0.308 (data_loss: 0.308, reg_loss: 0.000) ,lr: 0.0002430724
+epoch: 6, step: 400, acc: 0.844, loss: 0.404 (data_loss: 0.404, reg_loss: 0.000) ,lr: 0.0002373042
+epoch: 6, step: 468, acc: 0.875, loss: 0.332 (data_loss: 0.332, reg_loss: 0.000) ,lr: 0.0002335357
+training, acc: 0.886, loss: 0.312 (data_loss: 0.312, reg_loss: 0.000) ,lr: 0.0002335357
+### Validating model
+validation, acc: 0.873 loss: 0.360
+epoch: 7
+epoch: 7, step: 0, acc: 0.898, loss: 0.282 (data_loss: 0.282, reg_loss: 0.000) ,lr: 0.0002334812
+epoch: 7, step: 100, acc: 0.875, loss: 0.359 (data_loss: 0.359, reg_loss: 0.000) ,lr: 0.0002281542
+epoch: 7, step: 200, acc: 0.867, loss: 0.368 (data_loss: 0.368, reg_loss: 0.000) ,lr: 0.0002230649
+epoch: 7, step: 300, acc: 0.891, loss: 0.300 (data_loss: 0.300, reg_loss: 0.000) ,lr: 0.0002181977
+epoch: 7, step: 400, acc: 0.844, loss: 0.398 (data_loss: 0.398, reg_loss: 0.000) ,lr: 0.0002135383
+epoch: 7, step: 468, acc: 0.875, loss: 0.324 (data_loss: 0.324, reg_loss: 0.000) ,lr: 0.0002104820
+training, acc: 0.889, loss: 0.303 (data_loss: 0.303, reg_loss: 0.000) ,lr: 0.0002104820
+### Validating model
+validation, acc: 0.875 loss: 0.356
+epoch: 8
+epoch: 8, step: 0, acc: 0.898, loss: 0.275 (data_loss: 0.275, reg_loss: 0.000) ,lr: 0.0002104377
+epoch: 8, step: 100, acc: 0.875, loss: 0.351 (data_loss: 0.351, reg_loss: 0.000) ,lr: 0.0002061006
+epoch: 8, step: 200, acc: 0.875, loss: 0.359 (data_loss: 0.359, reg_loss: 0.000) ,lr: 0.0002019386
+epoch: 8, step: 300, acc: 0.898, loss: 0.293 (data_loss: 0.293, reg_loss: 0.000) ,lr: 0.0001979414
+epoch: 8, step: 400, acc: 0.836, loss: 0.392 (data_loss: 0.392, reg_loss: 0.000) ,lr: 0.0001940994
+epoch: 8, step: 468, acc: 0.885, loss: 0.316 (data_loss: 0.316, reg_loss: 0.000) ,lr: 0.0001915709
+training, acc: 0.893, loss: 0.295 (data_loss: 0.295, reg_loss: 0.000) ,lr: 0.0001915709
+### Validating model
+validation, acc: 0.876 loss: 0.352
+epoch: 9
+epoch: 9, step: 0, acc: 0.898, loss: 0.269 (data_loss: 0.269, reg_loss: 0.000) ,lr: 0.0001915342
+epoch: 9, step: 100, acc: 0.875, loss: 0.342 (data_loss: 0.342, reg_loss: 0.000) ,lr: 0.0001879346
+epoch: 9, step: 200, acc: 0.875, loss: 0.350 (data_loss: 0.350, reg_loss: 0.000) ,lr: 0.0001844678
+epoch: 9, step: 300, acc: 0.898, loss: 0.287 (data_loss: 0.287, reg_loss: 0.000) ,lr: 0.0001811266
+epoch: 9, step: 400, acc: 0.836, loss: 0.387 (data_loss: 0.387, reg_loss: 0.000) ,lr: 0.0001779043
+epoch: 9, step: 468, acc: 0.885, loss: 0.307 (data_loss: 0.307, reg_loss: 0.000) ,lr: 0.0001757778
+training, acc: 0.895, loss: 0.289 (data_loss: 0.289, reg_loss: 0.000) ,lr: 0.0001757778
+### Validating model
+validation, acc: 0.876 loss: 0.349
+### Evaluating images
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png ... Survey says ### TOP ###
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/pants.png ... Survey says ### TROUSER ###
+Simulation is complete, simulated time: 82.2502 ms
