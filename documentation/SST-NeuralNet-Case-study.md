@@ -654,6 +654,21 @@ Prediction for ../../image_data/eval/pants.png ... 	Survey says ### TROUSER
 Simulation is complete, simulated time: 32.2803 ms
 ```
 
+We can also replay files when we are in the interactive console and get identical functionality.
+
+```
+sst nn.py --interactive-start=0 -- \
+ --classImageLimit=2000 --batchSize=128 --epochs=10 \
+ --hiddenLayerSize=128 --initialWeightScaling=0.01 \
+ --trainingImages=../../image_data/fashion_mnist_images/train \
+ --testImages=../../image_data/fashion_mnist_images/test \
+ --evalImages=../../image_data/eval \
+ --verbose=2
+
+> replay sst-console.in
+
+```
+
 Finally, by scripting the debug session, we can perform parameter sweeps. A sample script, `sweep.sh`,
 is provided to demonstrate sweeping the learning rate in order to find an optimal setting. The replay file
 is generated on-the-fly with a sweep parameter, LR, calculated in the surrounding loop.
