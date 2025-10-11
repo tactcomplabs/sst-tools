@@ -88,7 +88,7 @@ void NNBatchController::setup(){
       std::cout << "X" << util.shapestr(trainingImages.data) << "=\n" << HEAD(trainingImages.data) << std::endl;
       std::cout << "y" << util.shapestr(trainingImages.classes) << "=\n" << HEAD(trainingImages.classes.transpose()) << std::endl;
     }
-    fsmState = MODE::TRAINING;
+    fsmState_ = MODE::TRAINING;
   }
 
   if (enableValidation()) {
@@ -97,12 +97,12 @@ void NNBatchController::setup(){
       std::cout << "X_test"   << util.shapestr(testImages.data) << "=\n" << HEAD(testImages.data) << std::endl;
       std::cout << "y_test.T" << util.shapestr(testImages.classes) << ".T=\n" << HEAD(testImages.classes.transpose()) << std::endl;
     }
-    if (fsmState==MODE::INVALID) fsmState = MODE::VALIDATION;
+    if (fsmState_==MODE::INVALID) fsmState_ = MODE::VALIDATION;
   }
 
   if (enableEvaluation()) {
     loadEvaluationImages();
-    if (fsmState==MODE::INVALID) fsmState = MODE::EVALUATION;
+    if (fsmState_==MODE::INVALID) fsmState_ = MODE::EVALUATION;
   }
  
   output.verbose( CALL_INFO, 0,0, "setup completed. Ready for first clock\n");
@@ -261,7 +261,7 @@ bool NNBatchController::stepTraining() {
     // Switch to validation mode if enabled before next training epoch.
     if (enableValidation()) {
       // std::cout << "### Validating model" << std::endl;
-      fsmState = MODE::VALIDATION;
+      fsmState_ = MODE::VALIDATION;
       step=0;     // reset counter
       busy=false; // release controller
       return false;
@@ -285,7 +285,7 @@ bool NNBatchController::stepTraining() {
 
 bool NNBatchController::continueTraining()
 {
-    fsmState = MODE::TRAINING;
+    fsmState_ = MODE::TRAINING;
     // Next epoch
     output.verbose(CALL_INFO, 5, 0, "starting epoch %d", epoch);
     // Reset accumulated values in loss and accuracy objects
@@ -351,7 +351,7 @@ bool NNBatchController::launchValidationStep() {
 
 bool NNBatchController::initValidation() {
   output.verbose(CALL_INFO, 5, 0, "Starting validation phase\n");
-  fsmState = MODE::VALIDATION;
+  fsmState_ = MODE::VALIDATION;
   accumulatedSums = {};
   step=0;
 
@@ -406,6 +406,12 @@ bool NNBatchController::stepValidation() {
   return launchValidationStep();
 }
 
+bool NNBatchController::preCheckEvaluation()
+{
+  paused=false;
+  return initEvaluation();
+}
+
 bool NNBatchController::initEvaluation() {
 
   if (reloadEvaluationImages) {
@@ -415,7 +421,7 @@ bool NNBatchController::initEvaluation() {
   }
 
   std::cout << "### Evaluating images" << std::endl;
-  fsmState = MODE::EVALUATION;
+  fsmState_ = MODE::EVALUATION;
   accumulatedSums = {};
   step=0;
 
@@ -479,7 +485,7 @@ void NNBatchController::serialize_order(SST::Core::Serialization::serializer &se
   SST_SER(testImagesStr);
   SST_SER(trainingImagesStr);
   SST_SER(reloadEvaluationImages);
-  SST_SER(fsmState);
+  SST_SER(fsmState_);
   SST_SER(trainingComplete);
   SST_SER(validationComplete);
   SST_SER(evaluationComplete);
@@ -526,7 +532,7 @@ bool NNBatchController::stepEvaluation() {
 
 bool NNBatchController::complete()
 {
-  fsmState = MODE::COMPLETE;
+  fsmState_ = MODE::COMPLETE;
   output.verbose(CALL_INFO, 5, 0,
                 "%s has completed. Ending simulation.\n",
                 getName().c_str());
@@ -538,16 +544,20 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
   // Clocking control should ensure we have something to do.
   assert( !busy || readyToSend);
 
+  // Simple pause provides helps with interactive console sync
+  if (paused)
+    return false;
+
   if (!busy) {
     assert(readyToSend==false); 
     // not busy so what's next
-    switch (fsmState) {
+    switch (fsmState_) {
       
       case MODE::TRAINING:
         if (enableTraining())
           return initTraining();
         else if (enableEvaluation())
-          return initEvaluation();
+          return preCheckEvaluation();
         else
           return complete(); 
 
@@ -558,13 +568,13 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
           validationComplete = false; // validate after each training epoch
           return continueTraining();
         } else if (enableEvaluation())
-          return initEvaluation();
+          return preCheckEvaluation();
         else
           return complete();
 
       case MODE::EVALUATION:
         if (enableEvaluation())
-          return initEvaluation();
+          return preCheckEvaluation();
         else
           return complete();
 
@@ -579,7 +589,7 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
   assert(readyToSend==true);
   readyToSend = false;
 
-  switch (fsmState) {
+  switch (fsmState_) {
     case MODE::TRAINING:
       return stepTraining();
     case MODE::VALIDATION:
@@ -588,7 +598,7 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
       return stepEvaluation();
     // Never should see other states.
     default:
-      output.fatal(CALL_INFO, -1, "FSM should not have entered %s state\n", mode2str.at(fsmState).c_str());
+      output.fatal(CALL_INFO, -1, "FSM should not have entered %s state\n", mode2str.at(fsmState_).c_str());
       break;
   }
 

@@ -104,7 +104,7 @@ private:
   bool enableTraining()   { return (trainingImagesStr.size()>0 && !trainingComplete); }
   bool enableValidation() { return (testImagesStr.size()>0 && !validationComplete); }
   bool enableEvaluation() { return (evalImagesStr.size()>0 && !evaluationComplete); }
-  MODE fsmState = MODE::INVALID;
+  MODE fsmState_ = MODE::INVALID;
   bool trainingComplete = false;
   bool validationComplete = false;
   bool evaluationComplete = false;
@@ -137,6 +137,7 @@ private:
   //-- Flow Control
   bool readyToSend=false;
   bool busy=false;
+  bool paused = false;
 
   //-- Image Management - Do not serialize
   //-- training and validation load everything by class directory
@@ -151,6 +152,7 @@ private:
   bool continueTraining(); // resume after validation step
   bool initValidation();
   bool stepValidation();
+  bool preCheckEvaluation();
   bool initEvaluation();
   bool stepEvaluation();
   bool complete();

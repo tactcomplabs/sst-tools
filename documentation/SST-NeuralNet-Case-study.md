@@ -710,12 +710,12 @@ to save a trained network and run predictions on it. The major benefit of this a
 
 Again, we are not going to fully checkpoint the model and serialize every internal state. If we did that would end up saving the training image data which is unnecessary and would lead to enormous checkpoint files.
 
-## Generating a Synchronized Checkpoint
+## Checkpoint/Restart Strategy
 
-1. Serialize the controller state machine
-2. Serialize the neural net weights/biases
-3. Run a simulation with `--interactive-start=0s --checkpoint-enable`
-4. Enable a watchpoint on a state variable that results in a checkpoint action.
+We need to devise a scheme where a checkpoint is generated when the 
+training phase is complete. Upon restart we should be able to load the checkpoint and enter the interactive console at a "safe" state in the simulation.  Here we can update the location of the evaluation images and resume the simulation which will load the new images and run them in prediction mode.
+
+Finally, all of this can be scripted so we can do it all in a single command line.
 
 ### Serialization the Controller State Machine
 
@@ -763,7 +763,6 @@ void NNBatchController::serialize_order(SST::Core::Serialization::serializer &se
 }
 ```
 
-
 *concern*
 
 Serialization of functions in a base class not showing up in debugger when chdir into child class.
@@ -788,6 +787,15 @@ output/ (SST::Output)
 > 
 ```
 
+## Generating a Synchronous Checkpoint
 
-## Restarting from a Checkpoint and Loading an Image
+It is important to be mindful of the fact that checkpoints in parallel
+simulations will only be generated at simulation 'synchronization points' 
+where all threads and ranks are stopped and can exchange data.
+
+The implication is that if we set a `watch` on a variable that indicates 
+training is complete, the `action` will occur at the next simulation 
+synchronization point. 
+
+
 
