@@ -77,7 +77,7 @@ public:
     {"evalImages",      "Path to directory containing evaluation images", NULL},
     {"printEvery",      "Epochs between printed summary information", "100"},
     {"testImages",      "Directory containing test images in class subdirs", NULL},
-    {"trainingImages",  "Directory containing training images in class subdirs", NULL}
+    {"trainingImages",  "Directory containing training images in class subdirs", NULL},
   )
 
 private:
@@ -96,8 +96,9 @@ private:
   std::string testImagesStr = {};                 ///< path to directory containing test images in class subdirs
   std::string trainingImagesStr = {};             ///< path to directory containing training images in class subdirs
   
-  // -- Support for prediction only mode using checkpointed model
-  bool reloadEvaluationImages = false;
+  // -- Interactive debug console helpers for synchronized checkpoint
+  bool dbgPauseBeforeEvaluation = false;
+  bool dbgReloadEvaluationImages = false;
   void loadEvaluationImages();
 
   // -- Internal State
@@ -137,7 +138,6 @@ private:
   //-- Flow Control
   bool readyToSend=false;
   bool busy=false;
-  bool paused = false;
 
   //-- Image Management - Do not serialize
   //-- training and validation load everything by class directory

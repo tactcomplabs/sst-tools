@@ -1,0 +1,277 @@
+# Enter the controller object
+cd batch_controller/
+
+# Doing this repeatedly from the command line seems to corrupt the object map.
+# If the command line auto-fill is causing the corrupt this will never fail
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation false
+s dbgPauseBeforeEvaluation 1
+s dbgPauseBeforeEvaluation 0
+s dbgPauseBeforeEvaluation true
+s dbgPauseBeforeEvaluation false
+
+shutd
+
+

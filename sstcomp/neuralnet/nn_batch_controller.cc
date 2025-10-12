@@ -408,13 +408,19 @@ bool NNBatchController::stepValidation() {
 
 bool NNBatchController::preCheckEvaluation()
 {
-  paused=false;
+  fsmState_ = MODE::PRECHECK_EVALUATION;
+  // Simple pause provides helps with creating a checkpoint
+  // we can use for starting prediction
+  if (dbgPauseBeforeEvaluation) {
+    return false;
+  }
+
   return initEvaluation();
 }
 
 bool NNBatchController::initEvaluation() {
 
-  if (reloadEvaluationImages) {
+  if (dbgReloadEvaluationImages) {
     std::cout << "### Reloading evaluation images" << std::endl;
     evalImages = {};
     loadEvaluationImages();
@@ -484,7 +490,8 @@ void NNBatchController::serialize_order(SST::Core::Serialization::serializer &se
   SST_SER(evalImagesStr);
   SST_SER(testImagesStr);
   SST_SER(trainingImagesStr);
-  SST_SER(reloadEvaluationImages);
+  SST_SER(dbgPauseBeforeEvaluation);
+  SST_SER(dbgReloadEvaluationImages);
   SST_SER(fsmState_);
   SST_SER(trainingComplete);
   SST_SER(validationComplete);
@@ -544,10 +551,6 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
   // Clocking control should ensure we have something to do.
   assert( !busy || readyToSend);
 
-  // Simple pause provides helps with interactive console sync
-  if (paused)
-    return false;
-
   if (!busy) {
     assert(readyToSend==false); 
     // not busy so what's next
@@ -567,15 +570,20 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
         else if (enableTraining()) {
           validationComplete = false; // validate after each training epoch
           return continueTraining();
-        } else if (enableEvaluation())
+        } else if (enableEvaluation()) {
+          std::cout << "preCheckEvaluation()" << std::endl;
           return preCheckEvaluation();
-        else
+        } else
           return complete();
 
+      case MODE::PRECHECK_EVALUATION:
+        return preCheckEvaluation();
+
       case MODE::EVALUATION:
-        if (enableEvaluation())
+        if (enableEvaluation()) {
+          std::cout << "preCheckEvaluation()" << std::endl;
           return preCheckEvaluation();
-        else
+        } else
           return complete();
 
       default:

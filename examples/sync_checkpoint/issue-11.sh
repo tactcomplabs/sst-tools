@@ -10,7 +10,7 @@ rm -rf checkpoint*
 SSTOPTS="--interactive-start=0"
 IMAGE_DATA=$(realpath "../../image_data")
 
-cmd="sst nn.py ${SSTOPTS} --checkpoint-enable -- \
+cmd="sst nn.py ${SSTOPTS} --checkpoint-enable --replay=issue-11.in -- \
     --classImageLimit=2000 \
     --batchSize=128 \
     --epochs=10 \

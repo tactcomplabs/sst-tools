@@ -7,10 +7,10 @@ rm -rf checkpoint*
 # Enter interactive mode and wait for user input
 #
 
-SSTOPTS="--interactive-start=0"
+SSTOPTS="--interactive-start=0 --checkpoint-enable --replay=gen-checkpoint.in"
 IMAGE_DATA=$(realpath "../../image_data")
 
-cmd="sst nn.py ${SSTOPTS} --checkpoint-enable -- \
+cmd="sst nn.py ${SSTOPTS}  -- \
     --classImageLimit=2000 \
     --batchSize=128 \
     --epochs=10 \

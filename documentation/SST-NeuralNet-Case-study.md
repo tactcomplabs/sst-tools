@@ -737,7 +737,8 @@ void NNBatchController::serialize_order(SST::Core::Serialization::serializer &se
   SST_SER(evalImagesStr);
   SST_SER(testImagesStr);
   SST_SER(trainingImagesStr);
-  SST_SER(reloadEvaluationImages);
+  SST_SER(dbgPauseBeforeEvaluation);
+  SST_SER(dbgReloadEvaluationImages);
   SST_SER(fsmState);
   SST_SER(trainingComplete);
   SST_SER(validationComplete);
@@ -791,11 +792,147 @@ output/ (SST::Output)
 
 It is important to be mindful of the fact that checkpoints in parallel
 simulations will only be generated at simulation 'synchronization points' 
-where all threads and ranks are stopped and can exchange data.
-
-The implication is that if we set a `watch` on a variable that indicates 
+where all threads and ranks are stopped and can exchange data. The 
+implication is that if we set a `watch` on a variable that indicates 
 training is complete, the `action` will occur at the next simulation 
-synchronization point. 
+synchronization point. If we are not careful, the simulation could
+advance to an undesirable state before the checkpoint is created.
+
+Some data members have been added to the controller class to assist
+with this synchronization. These conveniently have the prefix 'dbg'. The sequence will be:
+
+From the SST command-line:
+
+1. checkpointing and the debug console at time 0.
+   
+Once in  the interactive console:
+
+1. Navigate into the batch_controller
+2. Set `dbgPauseBeforeEvaluation` to 1
+3. Set `dbgReloadEvaluationImages` to 1
+4. Set up a trace to create a checkpoint when `fsmState_` changes to MODE::PRECHECK_EVALUATION
+5. Create another trace with the same trigger that sets `dbgPauseBeforeEvaluation` to 0.
+6. Run the simulation to completion and verify the checkpoint was generated.
 
 
+```
+$ cd sst-tools/examples/sync_checkpoint
+$ sst nn.py --interactive-start=0 --checkpoint-enable -- --classImageLimit=2000 --batchSize=128 --epochs=10 --evalImages=/Users/kgriesser/work/sst-tools/image_data/eval --hiddenLayerSize=128 --initialWeightScaling=0.01 --testImages=/Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test --trainingImages=/Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train --verbose=2
+
+      NNBatchController[batch_controller:init:0]: init phase 0
+      NNBatchController[batch_controller:setup:0]: setup
+      Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train
+      Loaded 20000 images
+      Reading /Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test
+      Loaded 10000 images
+      Reading /Users/kgriesser/work/sst-tools/image_data/eval
+      Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png
+      Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/pants.png
+      Loaded 2 images
+      NNBatchController[batch_controller:setup:0]: setup completed. Ready for first clock
+      0 
+      Entering interactive mode at time 0 
+      Interactive start at 0
+
+      > # Enter the controller object
+      > cd batch_controller/
+
+      > # Enable pausing the simulation
+      > s dbgPauseBeforeEvaluation 1
+
+      > # Enable image reloading
+      > s dbgReloadEvaluationImages 1
+
+      > # Set up action to generate checkpoint when we enter PRECHECK_EVALUATION state
+      > # enum class MODE {INVALID, TRAINING, VALIDATION, PRECHECK_EVALUATION, EVALUATION, COMPLETE};
+      > trace fsmState_ changed && fsmState_ == 3 : 10 0 : fsmState_ : checkpoint
+      Added watchpoint #0
+
+      > # Also break into interactive mode in PRECHECK_EVALUATION state
+      > trace fsmState_ == 3 : 10 0 : fsmState_ : interactive
+      Added watchpoint #1
+
+      > wl
+      Current watch points:
+      0: ALL : batch_controller/fsmState_ CHANGED batch_controller/fsmState_ == 3  : bufsize = 10 postDelay = 0 : batch_controller/fsmState_  : checkpoint
+      1: ALL : batch_controller/fsmState_ == 3  : bufsize = 10 postDelay = 0 : batch_controller/fsmState_  : interactive
+
+      > # run the simulation until we break into interactive mode
+      > run
+      NNBatchController[batch_controller:initTraining:1000]: Starting training phase
+      NNBatchController[batch_controller:initTraining:1000]: ### Training setup
+      ...
+      epoch 0 training:	acc: 0.665 loss: 0.905 (data_loss: 0.905 reg_loss: 0.000) lr: 0.0008650519
+      epoch 0 validation:	acc: 0.765 loss: 0.639
+      ...
+      epoch 9 training:	acc: 0.874 loss: 0.346 (data_loss: 0.346 reg_loss: 0.000) lr: 0.0003892565
+      epoch 9 validation:	acc: 0.845 loss: 0.432
+      preCheckEvaluation()
+      Invoke Action
+      Set Buffer Reset
+      # Simulation Checkpoint: Simulated Time 32.2623 ms (Real CPU time since last checkpoint 14.40489 seconds)
+      Reset Trace Buffer
+      Invoke Action
+      Set Buffer Reset
+      Entering interactive mode at time 32262251000 
+      WP1: AC : batch_controller/fsmState_ ...
+      >  
+```
+
+At this point we should be able to confirm that a checkpoint has been generated.
+From another window:
+```
+      $ ls -d checkpoint
+      checkpoint_1_32262251000/
+```   
+
+We can see the checkpoint time matches the time we entered interactive debug. 
+
+Now we can continue the simulation from the interactive console. But first we need to clear some states.
+
+```
+      > # clear the pause setting and watchlist
+      > s dbgPauseBeforeEvaluation 0
+      > confirm 0
+      > unwatch
+      Watchlist cleared
+      > 
+      > # finish the sim
+      > run
+      ### Reloading evaluation images
+      Reading /Users/kgriesser/work/sst-tools/image_data/eval
+      Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png
+      Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/pants.png
+      Loaded 2 images
+      ### Evaluating images
+      Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png ... 	Survey says ### TOP
+      Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/pants.png ... 	Survey says ### TROUSER
+      Simulation is complete, simulated time: 32.2803 ms
+```
+
+An alternative way to achieve the same result would be to use the `set var` action to clear the pause state. In this case the sequence would be:
+
+```
+cd batch_controller/
+s dbgPauseBeforeEvaluation 1
+s dbgReloadEvaluationImages 1
+
+trace fsmState_ changed && fsmState_ == 3 : 10 0 : fsmState_ : checkpoint
+
+# Clear the pause state when in PRECHECK_EVALUATION state
+trace fsmState_ == 3 : 10 0 : fsmState_ : set dbgPauseBeforeEvaluation 0
+wl
+
+# finish the simulation
+run
+```
+
+## Reference code
+
+[sst-nn-2-dbg-intro](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-2-dbgintro)
+
+
+# Restart and Perform Predictions
+
+At this point you can load the checkpoint, clear the pause state, and run. Unfortunately, you will segfault quickly as we've not done a sufficient job serializing the model. The time has come to finish this.
 

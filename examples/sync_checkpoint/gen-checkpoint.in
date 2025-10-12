@@ -1,0 +1,27 @@
+# Enter the controller object
+cd batch_controller/
+
+# Enable pausing the simulation
+s dbgPauseBeforeEvaluation 1
+
+# Enable image reloading
+s dbgReloadEvaluationImages 1
+
+# Set up action to generate checkpoint when we enter PRECHECK_EVALUATION state
+# enum class MODE {INVALID, TRAINING, VALIDATION, PRECHECK_EVALUATION, EVALUATION, COMPLETE};
+trace fsmState_ changed && fsmState_ == 3 : 10 0 : fsmState_ : checkpoint
+
+# Also break into interactive mode in PRECHECK_EVALUATION state
+trace fsmState_ == 3 : 10 0 : fsmState_ : interactive
+wl
+
+# run the simulation until we break into interactive mode
+run
+
+# clear the pause setting and watchlist
+s dbgPauseBeforeEvaluation 0
+confirm 0
+unwatch
+
+# finish the sim
+run
