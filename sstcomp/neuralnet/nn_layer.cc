@@ -16,6 +16,17 @@
 namespace SST::NeuralNet{
 
 //------------------------------------------
+// NNLayerBase
+//------------------------------------------
+void NNLayerBase::serialize_order(SST::Core::Serialization::serializer& ser) {
+  Component::serialize_order(ser);
+  SST_SER(transfer_function_);
+  SST_SER(loss_function_);
+  SST_SER(accuracy_function_);
+  SST_SER(optimizer_);
+}
+
+//------------------------------------------
 // NNLayer
 //------------------------------------------
 NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :

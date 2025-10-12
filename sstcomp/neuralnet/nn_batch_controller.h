@@ -77,7 +77,7 @@ public:
     {"evalImages",      "Path to directory containing evaluation images", NULL},
     {"printEvery",      "Epochs between printed summary information", "100"},
     {"testImages",      "Directory containing test images in class subdirs", NULL},
-    {"trainingImages",  "Directory containing training images in class subdirs", NULL}
+    {"trainingImages",  "Directory containing training images in class subdirs", NULL},
   )
 
 private:
@@ -96,11 +96,16 @@ private:
   std::string testImagesStr = {};                 ///< path to directory containing test images in class subdirs
   std::string trainingImagesStr = {};             ///< path to directory containing training images in class subdirs
   
+  // -- Interactive debug console helpers for synchronized checkpoint
+  bool dbgPauseBeforeEvaluation = false;
+  bool dbgReloadEvaluationImages = false;
+  void loadEvaluationImages();
+
   // -- Internal State
   bool enableTraining()   { return (trainingImagesStr.size()>0 && !trainingComplete); }
   bool enableValidation() { return (testImagesStr.size()>0 && !validationComplete); }
   bool enableEvaluation() { return (evalImagesStr.size()>0 && !evaluationComplete); }
-  MODE fsmState = MODE::INVALID;
+  MODE fsmState_ = MODE::INVALID;
   bool trainingComplete = false;
   bool validationComplete = false;
   bool evaluationComplete = false;
@@ -126,7 +131,7 @@ private:
   void monitor_rcv(SST::Event *ev);
   void monitor_snd() { assert(false); }
 
-  //-- Payload
+  //-- Payload - Do not serialize
   Eigen::MatrixXd batch_X = {};
   Eigen::MatrixXi batch_y = {};
 
@@ -134,7 +139,7 @@ private:
   bool readyToSend=false;
   bool busy=false;
 
-  //-- Image Management
+  //-- Image Management - Do not serialize
   //-- training and validation load everything by class directory
   Dataset trainingImages = {};
   Dataset testImages = {};
@@ -147,6 +152,7 @@ private:
   bool continueTraining(); // resume after validation step
   bool initValidation();
   bool stepValidation();
+  bool preCheckEvaluation();
   bool initEvaluation();
   bool stepEvaluation();
   bool complete();
