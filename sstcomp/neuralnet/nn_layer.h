@@ -161,25 +161,25 @@ private:
   // Configuration
   unsigned n_inputs_ = 4;
   unsigned n_neurons_ = 128;
+  double initial_weight_scaling = 0.1;
   // regularization (trainable layers only)
   double weight_regularizer_l1_ = 0;
   double weight_regularizer_l2_ = 0;
   double bias_regularizer_l1_ = 0;
   double bias_regularizer_l2_ = 0;
-  // Weights and Biases
-  double initial_weight_scaling = 0.1;
-  Eigen::MatrixXd weights_ = {};
-  Eigen::RowVectorXd biases_ = {};
-  Eigen::MatrixXd predictions_ = {};
   // optimizer support  
   Eigen::MatrixXd weight_momentums_ = {};    // like weights
   Eigen::MatrixXd weight_cache_ = {};        // like weights
   Eigen::RowVectorXd bias_momentums_ = {};   // like biases
   Eigen::RowVectorXd bias_cache_ = {};       // like biases
+  Eigen::MatrixXd predictions_ = {};
   bool has_weight_cache_ = false;
   // derivatives
   Eigen::MatrixXd dweights_ = {};
   Eigen::RowVectorXd dbiases_ = {};
+  // Weights and Biases
+  Eigen::MatrixXd weights_ = {};    // n_inputs x n_neurons
+  Eigen::RowVectorXd biases_ = {};  // n_neurons
 
 public:
   // -------------------------------------------------------

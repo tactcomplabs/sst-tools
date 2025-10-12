@@ -227,6 +227,19 @@ void NNLayer::monitor_snd() {
 void NNLayer::serialize_order(SST::Core::Serialization::serializer &ser)
 {
   NNLayerBase::serialize_order(ser);
+  SST_SER(linkHandlers);
+  // SST_SER(forwardData_i);
+  // SST_SER(forwardData_o);
+  // SST_SER(backwardData_i);
+  // SST_SER(backwardData_o);
+  // SST_SER(monitorData_o);
+  SST_SER(sstout_);
+  SST_SER(timeConverter_);
+  SST_SER(clockHandler_);
+  SST_SER(lastComponent_);
+  SST_SER(driveForwardPass_);
+  SST_SER(driveBackwardPass_);
+  SST_SER(driveMonitor_);
 }
 
 //
@@ -256,6 +269,11 @@ void NNInputLayer::serialize_order(SST::Core::Serialization::serializer &ser)
 void NNSubComponentAPI::serialize_order(SST::Core::Serialization::serializer &ser)
 {
   SubComponent::serialize_order(ser);
+  SST_SER(sstout_);
+  // SST_SER(inputs_);
+  // SST_SER(dinputs_);
+  // SST_SER(util_);
+
 }
 
 NNSubComponentAPI::NNSubComponentAPI(ComponentId_t id, Params &params) : SubComponent(id)
@@ -415,6 +433,72 @@ void NNDenseLayer::enable_weight_cache() {
 void NNDenseLayer::serialize_order(SST::Core::Serialization::serializer &ser)
 {
   NNSubComponentAPI::serialize_order(ser);
+  SST_SER(n_inputs_);
+  SST_SER(n_neurons_);
+  // SST_SER(initial_weight_scaling);
+  // SST_SER(weight_regularizer_l1_);
+  // SST_SER(weight_regularizer_l2_);
+  // SST_SER(bias_regularizer_l1_);
+  // SST_SER(bias_regularizer_l2_);
+  // SST_SER(weight_momentums_);
+  // SST_SER(weight_cache_);
+  // SST_SER(bias_momentums_);
+  // SST_SER(bias_cache_);
+  // SST_SER(predictions_);
+  // SST_SER(has_weight_cache_);
+  // SST_SER(dweights_ = {};
+  // SST_SER(dbiases_ = {};
+
+  // Weights and Biases need special handling
+
+  double w, b;
+
+  switch (ser.mode() ) {
+  case SST::Core::Serialization::serializer::SIZER:
+  case SST::Core::Serialization::serializer::PACK:
+  {
+    assert(weights_.rows() == n_inputs_);
+    assert(weights_.cols() == n_neurons_);
+    assert(biases_.cols() == n_neurons_);
+
+    // get the object size during SIZER, serialize during PACK
+    for (unsigned r=0; r<n_inputs_; r++) {
+      for (unsigned c=0; c<n_neurons_; c++) {
+        w = weights_(r,c);
+        SST_SER(w);
+      }
+    }
+    for (unsigned c=0; c<n_neurons_; c++) {
+      b = biases_(c);
+      SST_SER(b);
+    }
+    break;
+  }
+  case SST::Core::Serialization::serializer::UNPACK:
+  {   
+    // Extract from the stream and reinitialize values
+    weights_.resize(n_inputs_, n_neurons_);
+    for (unsigned r=0; r<n_inputs_; r++) {
+      for (unsigned c=0; c<n_neurons_; c++) {
+        SST_SER(w);
+        weights_(r,c) = w;
+      }
+    }
+    biases_.resize(n_neurons_);
+    for (unsigned c=0; c<n_neurons_; c++) {
+      SST_SER(b);
+      biases_(c) = b;
+    }
+    break;
+  }
+  case SST::Core::Serialization::serializer::MAP:
+  {
+      // Not currently debugging weights
+      break;
+  }
+  } //switch (ser.mode())
+
+
 }
 
 // 
@@ -559,6 +643,7 @@ void NNActivationSoftmaxLayer::backward(const payload_t& in, payload_t& o)
 void NNActivationSoftmaxLayer::serialize_order(SST::Core::Serialization::serializer &ser)
 {
   NNSubComponentAPI::serialize_order(ser);
+  SST_SER(loss_type_);
 }
 
 //
@@ -615,14 +700,19 @@ const Losses& NNLossLayerAPI::calculated_accumulated(REGULARIZATION include_regu
 
 const Eigen::MatrixXd &NNLossLayerAPI::predictions(const Eigen::MatrixXd &outputs)
 {
-    assert(prediction_type_ == ACTIVATION_TYPE::SOFTMAX);
-    util_.argmax(predictions_, outputs);
-    return predictions_;
+  assert(prediction_type_ == ACTIVATION_TYPE::SOFTMAX);
+  util_.argmax(predictions_, outputs);
+  return predictions_;
 }
 
 void NNLossLayerAPI::serialize_order(SST::Core::Serialization::serializer &ser)
 {
   NNSubComponentAPI::serialize_order(ser);
+  SST_SER(prediction_type_);
+  // SST_SER(accumulated_losses_);
+  // SST_SER(predictions);
+  // SST_SER(accumulated_sum_);
+  // SST_SER(accumulated_count_);
 }
 
 // 
@@ -698,6 +788,7 @@ void NNLoss_CategoricalCrossEntropy::backward(const payload_t& in, payload_t& o)
 void NNLoss_CategoricalCrossEntropy::serialize_order(SST::Core::Serialization::serializer &ser)
 {
   NNLossLayerAPI::serialize_order(ser);
+  // SST_SER(negative_log_likelihoods_);
 }
 
 // 
@@ -739,6 +830,9 @@ void NNAccuracyAPI::new_pass() {
 void NNAccuracyAPI::serialize_order(SST::Core::Serialization::serializer &ser)
 {
   SubComponent::serialize_order(ser);
+  SST_SER(sstout_);
+  SST_SER(accumulated_sum_);
+  SST_SER(accumulated_count_);
 }
 
 // 
@@ -767,6 +861,7 @@ Eigen::MatrixX<bool> &NNAccuracyCategorical::compare(const Eigen::MatrixXd &pred
 void NNAccuracyCategorical::serialize_order(SST::Core::Serialization::serializer &ser)
 {
   NNAccuracyAPI::serialize_order(ser);
+  // SST_SER(result_);
 }
 
 //
