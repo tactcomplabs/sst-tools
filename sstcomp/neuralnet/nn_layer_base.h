@@ -250,9 +250,7 @@ public:
   // Default constructor required for serialization
   NNLayerBase() : SST::Component() {}
   // Serialization function 
-  void serialize_order(SST::Core::Serialization::serializer& ser) override {
-    Component::serialize_order(ser); 
-  }
+  void serialize_order(SST::Core::Serialization::serializer& ser) override;  
   // Serialization implementation
   ImplementSerializable(SST::NeuralNet::NNLayerBase)
 

@@ -88,7 +88,7 @@ void NNBatchController::setup(){
       std::cout << "X" << util.shapestr(trainingImages.data) << "=\n" << HEAD(trainingImages.data) << std::endl;
       std::cout << "y" << util.shapestr(trainingImages.classes) << "=\n" << HEAD(trainingImages.classes.transpose()) << std::endl;
     }
-    fsmState = MODE::TRAINING;
+    fsmState_ = MODE::TRAINING;
   }
 
   if (enableValidation()) {
@@ -97,15 +97,12 @@ void NNBatchController::setup(){
       std::cout << "X_test"   << util.shapestr(testImages.data) << "=\n" << HEAD(testImages.data) << std::endl;
       std::cout << "y_test.T" << util.shapestr(testImages.classes) << ".T=\n" << HEAD(testImages.classes.transpose()) << std::endl;
     }
-    if (fsmState==MODE::INVALID) fsmState = MODE::VALIDATION;
+    if (fsmState_==MODE::INVALID) fsmState_ = MODE::VALIDATION;
   }
 
   if (enableEvaluation()) {
-    evalImages.load_eval_images(evalImagesStr.c_str(), EigenImage::TRANSFORM::INVERT, EigenImage::TRANSFORM::LINEARIZE, true);
-    if (output.getVerboseLevel() > 2 ) {
-      std::cout << "X_eval"   << util.shapestr(evalImages.data) << "=\n" << HEAD(evalImages.data) << std::endl;
-    }
-    if (fsmState==MODE::INVALID) fsmState = MODE::EVALUATION;
+    loadEvaluationImages();
+    if (fsmState_==MODE::INVALID) fsmState_ = MODE::EVALUATION;
   }
  
   output.verbose( CALL_INFO, 0,0, "setup completed. Ready for first clock\n");
@@ -118,6 +115,14 @@ void NNBatchController::finish(){}
 void NNBatchController::emergencyShutdown(){}
 
 void NNBatchController::printStatus( Output& out ){}
+
+void NNBatchController::loadEvaluationImages()
+{
+    evalImages.load_eval_images(evalImagesStr.c_str(), EigenImage::TRANSFORM::INVERT, EigenImage::TRANSFORM::LINEARIZE, true);
+    if (output.getVerboseLevel() > 2 ) {
+      std::cout << "X_eval"   << util.shapestr(evalImages.data) << "=\n" << HEAD(evalImages.data) << std::endl;
+    }
+}
 
 void NNBatchController::forward_o_snd(MODE mode)
 {
@@ -256,7 +261,7 @@ bool NNBatchController::stepTraining() {
     // Switch to validation mode if enabled before next training epoch.
     if (enableValidation()) {
       // std::cout << "### Validating model" << std::endl;
-      fsmState = MODE::VALIDATION;
+      fsmState_ = MODE::VALIDATION;
       step=0;     // reset counter
       busy=false; // release controller
       return false;
@@ -280,7 +285,7 @@ bool NNBatchController::stepTraining() {
 
 bool NNBatchController::continueTraining()
 {
-    fsmState = MODE::TRAINING;
+    fsmState_ = MODE::TRAINING;
     // Next epoch
     output.verbose(CALL_INFO, 5, 0, "starting epoch %d", epoch);
     // Reset accumulated values in loss and accuracy objects
@@ -346,7 +351,7 @@ bool NNBatchController::launchValidationStep() {
 
 bool NNBatchController::initValidation() {
   output.verbose(CALL_INFO, 5, 0, "Starting validation phase\n");
-  fsmState = MODE::VALIDATION;
+  fsmState_ = MODE::VALIDATION;
   accumulatedSums = {};
   step=0;
 
@@ -401,10 +406,28 @@ bool NNBatchController::stepValidation() {
   return launchValidationStep();
 }
 
+bool NNBatchController::preCheckEvaluation()
+{
+  fsmState_ = MODE::PRECHECK_EVALUATION;
+  // Simple pause provides helps with creating a checkpoint
+  // we can use for starting prediction
+  if (dbgPauseBeforeEvaluation) {
+    return false;
+  }
+
+  return initEvaluation();
+}
+
 bool NNBatchController::initEvaluation() {
 
+  if (dbgReloadEvaluationImages) {
+    std::cout << "### Reloading evaluation images" << std::endl;
+    evalImages = {};
+    loadEvaluationImages();
+  }
+
   std::cout << "### Evaluating images" << std::endl;
-  fsmState = MODE::EVALUATION;
+  fsmState_ = MODE::EVALUATION;
   accumulatedSums = {};
   step=0;
 
@@ -459,6 +482,38 @@ void NNBatchController::serialize_order(SST::Core::Serialization::serializer &se
 {
   NNLayerBase::serialize_order(ser);
   SST_SER(output);
+  SST_SER(timeConverter);
+  SST_SER(clockHandler);
+  SST_SER(batch_size);
+  SST_SER(epochs);
+  SST_SER(print_every);
+  SST_SER(evalImagesStr);
+  SST_SER(testImagesStr);
+  SST_SER(trainingImagesStr);
+  SST_SER(dbgPauseBeforeEvaluation);
+  SST_SER(dbgReloadEvaluationImages);
+  SST_SER(fsmState_);
+  SST_SER(trainingComplete);
+  SST_SER(validationComplete);
+  SST_SER(evaluationComplete);
+  SST_SER(epoch);
+  SST_SER(step);
+  SST_SER(train_steps);
+  SST_SER(validation_steps);
+  SST_SER(prediction_steps);
+  SST_SER(linkHandlers);
+  SST_SER(readyToSend);
+  SST_SER(busy);
+  #ifdef NN_SERIALIZE_ALL
+  // Controller object containing large matrices
+  // not required to save after training
+  SST_SER(monitor_payload);
+  SST_SER(batch_X);
+  SST_SER(batch_Y);
+  SST_SER(trainingImages);
+  SST_SER(testImages);
+  SST_SER(evalImages);
+  #endif
 }
 
 bool NNBatchController::stepEvaluation() { 
@@ -484,7 +539,7 @@ bool NNBatchController::stepEvaluation() {
 
 bool NNBatchController::complete()
 {
-  fsmState = MODE::COMPLETE;
+  fsmState_ = MODE::COMPLETE;
   output.verbose(CALL_INFO, 5, 0,
                 "%s has completed. Ending simulation.\n",
                 getName().c_str());
@@ -499,13 +554,13 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
   if (!busy) {
     assert(readyToSend==false); 
     // not busy so what's next
-    switch (fsmState) {
+    switch (fsmState_) {
       
       case MODE::TRAINING:
         if (enableTraining())
           return initTraining();
         else if (enableEvaluation())
-          return initEvaluation();
+          return preCheckEvaluation();
         else
           return complete(); 
 
@@ -515,15 +570,20 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
         else if (enableTraining()) {
           validationComplete = false; // validate after each training epoch
           return continueTraining();
-        } else if (enableEvaluation())
-          return initEvaluation();
-        else
+        } else if (enableEvaluation()) {
+          std::cout << "preCheckEvaluation()" << std::endl;
+          return preCheckEvaluation();
+        } else
           return complete();
 
+      case MODE::PRECHECK_EVALUATION:
+        return preCheckEvaluation();
+
       case MODE::EVALUATION:
-        if (enableEvaluation())
-          return initEvaluation();
-        else
+        if (enableEvaluation()) {
+          std::cout << "preCheckEvaluation()" << std::endl;
+          return preCheckEvaluation();
+        } else
           return complete();
 
       default:
@@ -537,7 +597,7 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
   assert(readyToSend==true);
   readyToSend = false;
 
-  switch (fsmState) {
+  switch (fsmState_) {
     case MODE::TRAINING:
       return stepTraining();
     case MODE::VALIDATION:
@@ -546,7 +606,7 @@ bool NNBatchController::clockTick( SST::Cycle_t currentCycle ) {
       return stepEvaluation();
     // Never should see other states.
     default:
-      output.fatal(CALL_INFO, -1, "FSM should not have entered %s state\n", mode2str.at(fsmState).c_str());
+      output.fatal(CALL_INFO, -1, "FSM should not have entered %s state\n", mode2str.at(fsmState_).c_str());
       break;
   }
 
