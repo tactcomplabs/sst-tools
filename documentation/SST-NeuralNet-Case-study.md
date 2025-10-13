@@ -929,10 +929,233 @@ run
 
 ## Reference code
 
-[sst-nn-2-dbg-intro](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-2-dbgintro)
+[sst-nn-3-cpt](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-3-cpt)
 
 
-# Restart and Perform Predictions
+# Running Predictions Using a Checkpointed model
 
-At this point you can load the checkpoint, clear the pause state, and run. Unfortunately, you will segfault quickly as we've not done a sufficient job serializing the model. The time has come to finish this.
+## Checkpointing for a Prediction-only Model
+
+At this point you can load the checkpoint, clear the pause state, and run. Unfortunately, it will fail quickly as we've not done a sufficient job serializing the model. Surprisingly very little code is needed to complete the serialization. 
+
+Some representative code is shown below. The commented out serialization macros are related to training and not required to support a prediction-only network.
+
+nn_layer.cc:
+```
+void NNLayer::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNLayerBase::serialize_order(ser);
+  SST_SER(linkHandlers);
+  // SST_SER(forwardData_i);
+  // SST_SER(forwardData_o);
+  // SST_SER(backwardData_i);
+  // SST_SER(backwardData_o);
+  // SST_SER(monitorData_o);
+  SST_SER(sstout_);
+  SST_SER(timeConverter_);
+  SST_SER(clockHandler_);
+  SST_SER(lastComponent_);
+  SST_SER(driveForwardPass_);
+  SST_SER(driveBackwardPass_);
+  SST_SER(driveMonitor_);
+}
+
+void NNSubComponentAPI::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  SubComponent::serialize_order(ser);
+  SST_SER(sstout_);
+  // SST_SER(inputs_);
+  // SST_SER(dinputs_);
+  // SST_SER(util_);
+}
+
+// The Dense Layer has the weights. Since these are modeled using an external
+// library they need some custom serialization code.
+void NNDenseLayer::serialize_order(SST::Core::Serialization::serializer &ser)
+{
+  NNSubComponentAPI::serialize_order(ser);
+  SST_SER(n_inputs_);
+  SST_SER(n_neurons_);
+  // SST_SER(initial_weight_scaling);
+  // SST_SER(weight_regularizer_l1_);
+  // SST_SER(weight_regularizer_l2_);
+  // SST_SER(bias_regularizer_l1_);
+  // SST_SER(bias_regularizer_l2_);
+  // SST_SER(weight_momentums_);
+  // SST_SER(weight_cache_);
+  // SST_SER(bias_momentums_);
+  // SST_SER(bias_cache_);
+  // SST_SER(predictions_);
+  // SST_SER(has_weight_cache_);
+  // SST_SER(dweights_ = {};
+  // SST_SER(dbiases_ = {};
+
+  // Weights and Biases need special handling
+
+  double w, b;
+
+  switch (ser.mode() ) {
+  case SST::Core::Serialization::serializer::SIZER:
+  case SST::Core::Serialization::serializer::PACK:
+  {
+    assert(weights_.rows() == n_inputs_);
+    assert(weights_.cols() == n_neurons_);
+    assert(biases_.cols() == n_neurons_);
+
+    // get the object size during SIZER, serialize during PACK
+    for (unsigned r=0; r<n_inputs_; r++) {
+      for (unsigned c=0; c<n_neurons_; c++) {
+        w = weights_(r,c);
+        SST_SER(w);
+      }
+    }
+    for (unsigned c=0; c<n_neurons_; c++) {
+      b = biases_(c);
+      SST_SER(b);
+    }
+    break;
+  }
+  case SST::Core::Serialization::serializer::UNPACK:
+  {   
+    // Extract from the stream and reinitialize values
+    weights_.resize(n_inputs_, n_neurons_);
+    for (unsigned r=0; r<n_inputs_; r++) {
+      for (unsigned c=0; c<n_neurons_; c++) {
+        SST_SER(w);
+        weights_(r,c) = w;
+      }
+    }
+    biases_.resize(n_neurons_);
+    for (unsigned c=0; c<n_neurons_; c++) {
+      SST_SER(b);
+      biases_(c) = b;
+    }
+    break;
+  }
+  case SST::Core::Serialization::serializer::MAP:
+  {
+      // Not currently debugging weights
+      break;
+  }
+  } //switch (ser.mode())
+}
+
+```
+
+## Verifing Checkpoint Restart
+
+Before starting new predictions, check that we get the same result with and without restarting from the checkpoint.
+
+Generate the checkpoint as before. The provided script will replay the interactive console sequence for generating a checkpoint.
+
+```
+$ cd sst-tools/examples/restart
+$ ./gen-checkpoint.sh
+```
+
+Resulting in 
+```
+### Reloading evaluation images
+Reading /Users/kgriesser/work/sst-tools/image_data/eval
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/pants.png
+Loaded 2 images
+### Evaluating images
+    Reset Trace Buffer
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png ...   Survey says ### TOP
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/pants.png ...    Survey says ### TROUSER
+Simulation is complete, simulated time: 32.2803 ms
+```
+
+Now load the checkpoint and break into the interactive console:
+```
+$ sst nn.py --interactive-start=0 --load-checkpoint checkpoint/checkpoint_1_32262251000/checkpoint_1_32262251000.sstcpt
+```
+
+In the console:
+```
+> time
+current time = 32262251000
+
+> cd batch_controller/ 
+
+> p dbgPauseBeforeEvaluation 
+dbgPauseBeforeEvaluation = 1 (bool)
+
+> p dbgReloadEvaluationImages
+dbgReloadEvaluationImages = 1 (bool)
+
+> p evalImagesStr 
+evalImagesStr = /Users/kgriesser/work/sst-tools/image_data/eval (std::string)
+ 
+> # Clear the pause state
+> set dbgPauseBeforeEvaluation 0
+ 
+> run
+### Reloading evaluation images
+Reading /Users/kgriesser/work/sst-tools/image_data/eval
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval/pants.png
+Loaded 2 images
+### Evaluating images
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/tshirt.png ...   Survey says ### TOP
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval/pants.png ...    Survey says ### TROUSER
+Simulation is complete, simulated time: 32.2803 ms
+```
+
+We get the same result! 
+
+## Running New Predictions Using a Checkpointed Model
+
+We are now ready to use our inference engine to run new predictions. All we need to do is change the path string variable to point to a different location. 
+
+```
+$ sst nn.py --interactive-start=0 --load-checkpoint checkpoint/checkpoint_1_32262251000/checkpoint_1_32262251000.sstcpt
+Entering interactive mode at time 32262251000 
+Interactive start at 0
+```
+
+```
+> cd batch_controller/ 
+
+> # Point to a directory with images
+> set evalImagesStr /Users/kgriesser/work/sst-tools/image_data/eval2
+
+> # Clear the pause state
+> set dbgPauseBeforeEvaluation 0
+
+> run
+### Reloading evaluation images
+Reading /Users/kgriesser/work/sst-tools/image_data/eval2
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval2/trouser.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval2/sandal.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval2/shirt.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval2/pullover.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval2/top.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval2/coat.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval2/sneaker.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval2/dress.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval2/ankle_boot.png
+Loading image from /Users/kgriesser/work/sst-tools/image_data/eval2/bag.png
+Loaded 10 images
+### Evaluating images
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval2/trouser.png ...         Survey says ### SANDAL
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval2/sandal.png ...  Survey says ### TROUSER
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval2/shirt.png ...   Survey says ### SNEAKER
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval2/pullover.png ...        Survey says ### SNEAKER
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval2/top.png ...     Survey says ### SANDAL
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval2/coat.png ...    Survey says ### BAG
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval2/sneaker.png ...         Survey says ### TOP
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval2/dress.png ...   Survey says ### SANDAL
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval2/ankle_boot.png ...      Survey says ### TOP
+Prediction for /Users/kgriesser/work/sst-tools/image_data/eval2/bag.png ...     Survey says ### TROUSER
+Simulation is complete, simulated time: 32.3523 ms
+```
+
+Sadly, our network does not appear to be very well trained. However, we have now shown how checkpointing 
+and the interactive debug console can be used as part of the design process.
+
+## Reference code
+
+[sst-nn-4-rst](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-4-rst)
 
