@@ -1,0 +1,13 @@
+time
+cd batch_controller/ 
+p dbgPauseBeforeEvaluation 
+p dbgReloadEvaluationImages
+p evalImagesStr 
+
+# Clear the pause state
+set dbgPauseBeforeEvaluation 0
+
+# Review values
+ls
+
+run

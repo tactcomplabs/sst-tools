@@ -1,0 +1,16 @@
+time
+cd batch_controller/ 
+p dbgPauseBeforeEvaluation 
+p dbgReloadEvaluationImages
+p evalImagesStr 
+
+# Point to a directory with images
+set evalImagesStr /Users/kgriesser/work/sst-tools/image_data/eval2
+
+# Clear the pause state
+set dbgPauseBeforeEvaluation 0
+
+# review values
+ls
+
+run
