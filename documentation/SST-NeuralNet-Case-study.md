@@ -95,7 +95,7 @@ If not using a package manager you may need to set these environment variables i
 
 # Initial Model Block Diagram
 
-The initial model is provided in the `sst-nn-0-base` branch of the repository. This model has no special enhancements for SST debug features. It is also, essentially, and single-threaded model. Although the components can be instantiated on parallel threads their operation is serialized.
+The initial model is provided in the `sst-nn-0-base` branch of the repository. This model has no special enhancements for SST debug features. It is also, essentially, a single-threaded model. Although the components can be instantiated on parallel threads their operation is serialized.
 
 <img src="./imgs/block-diagram.png" alt="initial-model" width="800"/>
 
@@ -132,7 +132,7 @@ At this point, we have a complete and functional model. This seems like a conven
 
 The official guidelines for serialization in SST are located at https://sst-simulator.org/sst-docs/docs/guides/features/checkpoint.
 
-We will deviate slightly from the guidelines by only serializing a few variables for each class. The builds the complete infrastructure and allows some use of the debug features without having to ensure the integrity of the checkpointed simulation.
+We will deviate slightly from the guidelines by only serializing a few variables for each class. This builds the complete infrastructure and allows some use of the debug features without having to ensure the integrity of the checkpointed simulation.
 
 ## Inherit from the Serializable Class
 
@@ -162,12 +162,12 @@ public:
 
 Similar code was added to all the classes.
 
-Notice that the serialization support is put at the end of the class. This avoids potential compiler errors due to serializiation macros changing the access specifier. See the (sst checkpointing guidelines) [https://sst-simulator.org/sst-docs/docs/guides/features/checkpoint] for more information.
+Notice that the serialization support is put at the end of the class. This avoids potential compiler errors due to serialization macros changing the access specifier. See the (sst checkpointing guidelines) [https://sst-simulator.org/sst-docs/docs/guides/features/checkpoint] for more information.
 
 
 ## Add a Serialization Function
 
-Add the the business end of the serialization and deserialization feature to all serializable classes. 
+Add the business end of the serialization and deserialization feature to all serializable classes. 
 
 
 The serialization support section in [nn_batch_controller.h](../sstcomp/neuralnet/nn_batch_controller.h) is now:
@@ -259,7 +259,7 @@ In the next section, we'll provide more serialization and take a detour to intro
 
 # Introduction to the Interactive Debug Console
 
-In the previous section, we built the scaffolding for serialization but did not attempt to make the model fully "checkpoint-able". That is, we cannot support restarting the simulation from a checkpoint yet. As it turns out, we're just not interested in supporting restart until we have a stable design and have scaled it up significantly.  However, serialization serves a second purpose: observability and controllabily of internal state.
+In the previous section, we built the scaffolding for serialization but did not attempt to make the model fully "checkpoint-able". That is, we cannot support restarting the simulation from a checkpoint yet. As it turns out, we're just not interested in supporting restart until we have a stable design and have scaled it up significantly.  However, serialization serves a second purpose: observability and controllability of internal state.
 
 We will demonstrate this by first serializing the hyperparameters used by the optimizer base class and the Adam based optimizer child class.
 
@@ -297,7 +297,7 @@ void NNAdamOptimizer::pre_update_params() {
 }
 ```
 
-Refering back to the [top level block diagram](#initial-model-block-diagram), the loss layer feeds back loss information for back propogation. In this implementation each dense layer uses this information in it's calculations to adjust weights and biases. 
+Referring back to the [top level block diagram](#initial-model-block-diagram), the loss layer feeds back loss information for back propogation. In this implementation each dense layer uses this information in its calculations to adjust weights and biases. 
 
 With that in mind let's, enter the debug console at time 0 using the following SST command line option:
 `--interactive-start=0`
@@ -436,7 +436,7 @@ Before getting in too deep, set up logging the commands to a file so we can repl
 > logging
       sst console commands will be logged to sst-console.out
 ```
-Find the loss layer and it's optimizer subcomponent.  Use the arrow and tab keys to speed up command entry. Also use '!' commands to retrieve commands from history.
+Find the loss layer and its optimizer subcomponent.  Use the arrow and tab keys to speed up command entry. Also use '!' commands to retrieve commands from history.
 ```
 > ls
       batch_controller/ (SST::NeuralNet::NNBatchController)
