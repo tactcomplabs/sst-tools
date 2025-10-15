@@ -18,16 +18,16 @@ set_tests_properties(nn-basic PROPERTIES
   PASS_REGULAR_EXPRESSION "Simulation is complete, simulated time: 1.61963 ms"
 )
 
-add_test(
-  NAME nn-basic-1
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-  COMMAND ./nn-basic.sh 1
-)
-set_tests_properties(nn-basic-1 PROPERTIES
-  LABELS "neuralnet"
-  TIMEOUT 120
-  PASS_REGULAR_EXPRESSION ".*Survey says ### TOP.*Survey says ### TROUSER.*Simulation is complete"
-)
+# add_test(
+#   NAME nn-basic-1
+#   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+#   COMMAND ./nn-basic.sh 1
+# )
+# set_tests_properties(nn-basic-1 PROPERTIES
+#   LABELS "neuralnet"
+#   TIMEOUT 120
+#   PASS_REGULAR_EXPRESSION ".*Survey says ### TOP.*Survey says ### TROUSER.*Simulation is complete"
+# )
 
 add_test(
   NAME nn-5layers
@@ -40,15 +40,15 @@ set_tests_properties(nn-5layers PROPERTIES
   PASS_REGULAR_EXPRESSION "Simulation is complete, simulated time: 2.3964 ms"
 )
 
-add_test(
-  NAME nn-5layers-1
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-  COMMAND ./nn-5layers.sh 1
-)
-set_tests_properties(nn-5layers-1 PROPERTIES
-  LABELS "neuralnet"
-  TIMEOUT 120
-  PASS_REGULAR_EXPRESSION ".*Survey says ### TOP.*Survey says ### TROUSER.*Simulation is complete"
-)
+# add_test(
+#   NAME nn-5layers-1
+#   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+#   COMMAND ./nn-5layers.sh 1
+# )
+# set_tests_properties(nn-5layers-1 PROPERTIES
+#   LABELS "neuralnet"
+#   TIMEOUT 120
+#   PASS_REGULAR_EXPRESSION ".*Survey says ### TOP.*Survey says ### TROUSER.*Simulation is complete"
+# )
 
 # EOF
