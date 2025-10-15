@@ -1052,7 +1052,7 @@ Generate the checkpoint as before. The provided script will replay the interacti
 
 ```
 $ cd sst-tools/examples/restart
-$ ./gen-checkpoint.sh
+$ ./gen-checkpoint2.sh
 ```
 
 Resulting in 

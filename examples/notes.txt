@@ -3,40 +3,32 @@ Part 1: INTRO
 ################
 
 Last year:
-- I demonstrated a header-only methodology for debug that included
-  custom debug triggers and internal buffering.
+- We demonstrated a header-only debug methodology that included
+  custom debug triggers and internal buffering. Component Debug Probe
 - Scott demonstrated a built-in interactive console that interacts
   with internal data via an internal 'object map'.
 
 Today:
-- I'm going to demonstrate the latest work to converge both approaches. 
+- We'll demonstrate the latest work to converge both approaches
 
 Main goals:
-- Review the interactive console's main features
-- Use minimal coding to access variables and run a parameter sweep
-- Checkpoint a trained model, restart and use debugger to run predictions
+- Explore interactive console's main features in a 'real world' model
+- Demonstrate using partial checkpointing for parameter sweeps and more
 
 Since we last met
-- A great deal of effort has been put into checkpoint serialization
-  and its verification for functionality and performance.
-- Debug, gets some benefit from this effort, since the same
-  serialization macros support both checkpointing and debug.
-- In the demo, I'll show examples of how this can be quite convenient
+- Major lift on serialization and checkpointing, functional/performance testing
+- Bringing up foundational which builds on and benefits from the serialization work.
 
-I've found the top challenge in designing a general purpose debugger
-is "Eating your own dog food!"
-- Towards that end, I decided a design case study was needed which
-  I will introduce now.
+Challenge for general purpose debugger: 'eating your own dog food'.
 
-2. The Model under Test (MUT)
+The Model under Test (MUT):
 
-Model attributes intended to be typical...
+A Real design:
+- Structurally complex, unique components, subcomponents, and links.
 - Utilize external libraries
-- Structurally complex design, unique components/subcomponents, non-trivial
-  communication over links
 - Hierarchal Class design
 
-Priming the model for debug
+Priming the model for debug:
 - Add the serialization framework but do not populate it.
 - We just want minimal coding to enable debug.
 - Very far from caring much about checkpointing.
@@ -95,9 +87,9 @@ cd examples/sync_checkpoint
 
 Intro
 - We can use a watchpoint trigger to create a checkpoint but....
-- With multiple threads we can only do this at a synchronization point.
-- We'll attempt this to save a trained network state that can be restarted
-  to run predictions only.
+- With multiple threads we can only do this at a synchronization point
+n- Built in support to pause the state machine for synchronization purposes
+  
 
 Refer to block diagram and describe state machine.
 Open gen-checkpoint.in and enter commands manually
@@ -129,11 +121,3 @@ sst nn.py --interactive-start=0 --load-checkpoint checkpoint/checkpoint_1_322622
 > replay restart.in
 
 Discussion
-
-
-
-
-
-
-
-
