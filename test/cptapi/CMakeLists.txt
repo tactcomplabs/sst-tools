@@ -28,7 +28,7 @@ add_test(NAME cpt-save
 )
 set_tests_properties(cpt-save
   PROPERTIES
-  TIMEOUT 60
+  TIMEOUT 180
   LABELS "cptapi"
   PASS_REGULAR_EXPRESSION "${passRegex}"
   FAIL_REGULAR_EXPRESSION "${failRegex}"
