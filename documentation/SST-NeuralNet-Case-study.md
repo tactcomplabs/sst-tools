@@ -992,7 +992,7 @@ void NNDenseLayer::serialize_order(SST::Core::Serialization::serializer &ser)
   // SST_SER(dweights_ = {};
   // SST_SER(dbiases_ = {};
 
-  // Weights and Biases need special handling
+  // Eigen::Matrix<> Weights and Biases need special handling
 
   double w, b;
 

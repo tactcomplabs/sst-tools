@@ -1,22 +1,44 @@
+# remove any checkpoint directories.
+# use sst --interactive-start=0 --checkpoint-enable ...
+
 # Enter the controller object
+ls
 cd batch_controller/
 
-# Enable pausing the simulation
+# Enable pausing the simulation. 
+# The controller state machine will be clocked but do nothing 
+# until this is cleared in the debugger
 s dbgPauseBeforeEvaluation 1
 
-# Enable image reloading
+# Enable image reloading. 
+# Before performing a forward pass, the existing image data 
+# will be cleared and new images loaded based on the path
+# set by evalImagesStr
+
 s dbgReloadEvaluationImages 1
 
 # Set up action to generate checkpoint when we enter PRECHECK_EVALUATION state
+# Qualify this with 'fsmState_ changed' so we only trigger once (edge)
 # enum class MODE {INVALID, TRAINING, VALIDATION, PRECHECK_EVALUATION, EVALUATION, COMPLETE};
+
 trace fsmState_ changed && fsmState_ == 3 : 10 0 : fsmState_ : checkpoint
 
 # Also break into interactive mode in PRECHECK_EVALUATION state
+# Do not qualify with changed (level). We'll clear the `pause`
+# once we are sure the checkpoint is generated
+
 trace fsmState_ == 3 : 10 0 : fsmState_ : interactive
 wl
 
 # run the simulation until we break into interactive mode
 run
+
+# Upon entering interactive mode, check that the checkpoint file 
+# was generated
+
+# run a few times to show we are still paused
+r 
+r 
 
 # clear the pause setting and watchlist
 s dbgPauseBeforeEvaluation 0

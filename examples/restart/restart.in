@@ -1,13 +1,19 @@
+# time should reflect the checkpoint start time
 time
-cd batch_controller/ 
-p dbgPauseBeforeEvaluation 
-p dbgReloadEvaluationImages
-p evalImagesStr 
+
+# Enter the batch batch_controller
+cd batch_controller
+
+# Our alternative image directory
+set evalImagesStr ../../image_data/eval2
 
 # Clear the pause state
 set dbgPauseBeforeEvaluation 0
 
-# Review values
-ls
+# confirm all is well
+p dbgPauseBeforeEvaluation 
+p dbgReloadEvaluationImages
+p evalImagesStr 
 
+# let er rip
 run

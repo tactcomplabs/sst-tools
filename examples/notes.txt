@@ -91,6 +91,48 @@ Discussion
 Part 3: A Synchronous Checkpoint for Debug
 ###########################################
 
+cd examples/sync_checkpoint
+
+Intro
+- We can use a watchpoint trigger to create a checkpoint but....
+- With multiple threads we can only do this at a synchronization point.
+- We'll attempt this to save a trained network state that can be restarted
+  to run predictions only.
+
+Refer to block diagram and describe state machine.
+Open gen-checkpoint.in and enter commands manually
+
+Alternatively, we could just use a `set var action`
+Open gen-checkpoint2.in and use replay in iconsole
+
+######################################################
+Part 4: Running Predictions Using a Checkpointed Model
+######################################################
+cd examples/restart
+
+- We need to finish the job of serialization.
+- This is surprisingly little code: the controller, and the layer weights/biases.
+- Refer to doc - Dense Layer is the interesting one
+
+Now we simply will restart SST from a checkpoint and
+enter the interactive console to provide a new
+image path and clear the pause bit.
+
+open restart.in and review
+
+open the images for a visual
+
+And for the GRAND FINALE!
+
+./gen-checkpoint2.sh
+sst nn.py --interactive-start=0 --load-checkpoint checkpoint/checkpoint_1_32262251000/checkpoint_1_32262251000.sstcpt
+> replay restart.in
+
+Discussion
+
+
+
+
 
 
 

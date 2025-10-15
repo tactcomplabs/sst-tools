@@ -11,6 +11,7 @@ s dbgReloadEvaluationImages 1
 # enum class MODE {INVALID, TRAINING, VALIDATION, PRECHECK_EVALUATION, EVALUATION, COMPLETE};
 trace fsmState_ changed && fsmState_ == 3 : 10 0 : fsmState_ : checkpoint
 
+# Instead of using interactive mode to clear this... just clear it with an action!
 # Clear the pause state when in PRECHECK_EVALUATION state
 trace fsmState_ == 3 : 10 0 : fsmState_ : set dbgPauseBeforeEvaluation 0
 wl
