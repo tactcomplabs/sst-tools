@@ -21,7 +21,7 @@ Clone the model from git hub
 To run tests, the image data needs to be downloaded.
 
       $ cd <sst-tools>/image_data
-      $ ./get-all.py
+      $ ./getall.py
       $ ls fashion_mnist_images/train/* | wc -l
          60019
 
@@ -70,7 +70,7 @@ If not using a package manager you may need to set these environment variables i
 
       export EIGEN_HOME=<eigen location>
       export OPENCV_HOME=<opencv location>
-      export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$OPENCV_HOME/lib"
+      export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$OPENCV_HOME/build/lib"
 
 
 ### Building and Testing
