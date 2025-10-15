@@ -1,0 +1,97 @@
+################
+Part 1: INTRO
+################
+
+Last year:
+- I demonstrated a header-only methodology for debug that included
+  custom debug triggers and internal buffering.
+- Scott demonstrated a built-in interactive console that interacts
+  with internal data via an internal 'object map'.
+
+Today:
+- I'm going to demonstrate the latest work to converge both approaches. 
+
+Main goals:
+- Review the interactive console's main features
+- Use minimal coding to access variables and run a parameter sweep
+- Checkpoint a trained model, restart and use debugger to run predictions
+
+Since we last met
+- A great deal of effort has been put into checkpoint serialization
+  and its verification for functionality and performance.
+- Debug, gets some benefit from this effort, since the same
+  serialization macros support both checkpointing and debug.
+- In the demo, I'll show examples of how this can be quite convenient
+
+I've found the top challenge in designing a general purpose debugger
+is "Eating your own dog food!"
+- Towards that end, I decided a design case study was needed which
+  I will introduce now.
+
+2. The Model under Test (MUT)
+
+Model attributes intended to be typical...
+- Utilize external libraries
+- Structurally complex design, unique components/subcomponents, non-trivial
+  communication over links
+- Hierarchal Class design
+
+Priming the model for debug
+- Add the serialization framework but do not populate it.
+- We just want minimal coding to enable debug.
+- Very far from caring much about checkpointing.
+
+#####################
+Part 2: Debug Intro
+#####################
+cd examples/debug_intro
+
+The debugger
+- Enter the console. Discuss command-line
+- Just focus on a bit of code where to observe/control some variables
+- Review commands via help, detailed help
+- History (!!...)
+- Auto-completion
+
+Simple debug: watch
+- Run to completion and note the bad completion result
+- Reenter console. set logging on
+- Navigate to loss/optimizer, show vars
+- help watch
+- Set a watch on current_learning_rate_ changing, run/print  - note AC
+- set watch for <var> changed && <var> < 0.000099
+- run; printTrace; discuss
+
+Simple debug: trace
+- edit the log file and replay to get to the optimizer
+- clear watchlist
+  help trace
+  trace iterations_ >= 5 && iterations_ < 10 : 32 16 : current_learning_rate_ : interactive
+  help printtrace
+  watchlist
+- run, prt, discuss trace
+- rerun and use sethandler
+  help sethandler
+  sethandler 0 bc
+
+Modify the simulation
+- Say we've debugged and concluded our learning rate is too slow
+- print the learning_rate_, set to 0.001 (beware of bug!)
+- print to confirm
+- run, show good result
+... so this suggests we can do parameter sweeps. No checkpoint needed.
+
+- Show the parameter sweep code and run it
+
+Discussion
+   - We don't need to be checkpointable to use the debugger
+   - other application: error injection
+
+###########################################
+Part 3: A Synchronous Checkpoint for Debug
+###########################################
+
+
+
+
+

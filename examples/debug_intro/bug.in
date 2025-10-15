@@ -1,0 +1,5 @@
+cd loss/ 
+cd optimizer
+s learning_rate_ = 0.001
+s learning_rate_ 0.001
+

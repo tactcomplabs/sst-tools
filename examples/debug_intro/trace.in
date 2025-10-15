@@ -1,0 +1,6 @@
+cd loss/ 
+cd optimizer
+pwd
+trace iterations_ >= 5 && iterations_ < 10 : 32 16 : current_learning_rate_ : interactive
+wl
+

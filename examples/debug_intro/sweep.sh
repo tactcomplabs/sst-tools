@@ -6,26 +6,29 @@
 
 REPLAYFILE="sweep.in"
 LOGFILE="sweep.log"
-SSTOPTS="--interactive-start=0 --replay=$REPLAYFILE"
 IMAGE_DATA=$(realpath "../../image_data")
 
+# Each simulation will break into the console and run sweep.in
+SSTOPTS="--interactive-start=0 --replay=$REPLAYFILE"
 
+# Generate sweep.in
 sequence=(0.0001 0.0004 0.0008 0.0010 0.0015 0.0020 0.0025)
 for LR in "${sequence[@]}"; do
     echo -n "### LR=${LR} "
     cat > $REPLAYFILE <<EOF
-# navigate to optimizer
-cd loss
-cd optimizer
-# modify the learning rate
-set learning_rate_ $LR
-p learning_rate_
-# do not prompt to confirm clearing watchpoints
-confirm false
-unwatch
-run
+  # navigate to optimizer
+  cd loss
+  cd optimizer
+  # modify the learning rate
+  set learning_rate_ $LR
+  p learning_rate_
+  # do not prompt to confirm clearing watchpoints
+  confirm false
+  unwatch
+  run
 EOF
 
+# Run SST    
     cmd="sst nn.py ${SSTOPTS} -- \
         --classImageLimit=2000 \
         --batchSize=128 \

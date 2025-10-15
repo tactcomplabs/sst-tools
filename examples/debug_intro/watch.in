@@ -1,0 +1,14 @@
+cd loss/ 
+cd optimizer
+watch current_learning_rate_ changed
+c
+p current_learning_rate_ 
+c
+p current_learning_rate_ 
+c
+p current_learning_rate_ 
+unwatch 0
+watch current_learning_rate_ changed && current_learning_rate_ < 0.000099
+c
+p current_learning_rate_ 
+

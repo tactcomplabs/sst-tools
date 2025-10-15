@@ -1,0 +1,4 @@
+clear
+log
+cd loss/ 
+cd optimizer

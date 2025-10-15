@@ -1,5 +1,8 @@
-# A Neural Network in SST: A Development and Debug Case Study
+# A Neural Network in SST From Scratch
+*A Case Study for SST Design and Debug*
+
 <img src="./imgs/logo.png" alt="sst-nn" width="300"/>
+
 
 ## Overview
 An SST design for a neural network is developed to demonstrate use cases for emerging SST features support checkpointing and debug.
@@ -9,11 +12,10 @@ Git branches are used to capture various stages of model development so that eac
 
 ### Model Source Code
 
-Clone the model from git hub and checkout the `sst-nn` branch
+Clone the model from git hub
 
       git clone git@github.com:tactcomplabs/sst-tools.git
       cd sst-tools
-      git checkout sst-nn
 
 ### Image Data
 To run tests, the image data needs to be downloaded.
