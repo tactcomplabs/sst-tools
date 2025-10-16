@@ -1,23 +1,11 @@
 #!/bin/bash
 
-#
-# Enter interactive mode and wait for user input
-#
+sst nn.py --interactive-start=0 -- \
+    --classImageLimit=2000 --batchSize=128 --epochs=10 \
+    --hiddenLayerSize=128 --initialWeightScaling=0.01 \
+    --trainingImages=/Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/train \
+    --testImages=/Users/kgriesser/work/sst-tools/image_data/fashion_mnist_images/test \
+    --evalImages=/Users/kgriesser/work/sst-tools/image_data/eval \
+    --verbose=2
 
-SSTOPTS="--interactive-start=0"
-IMAGE_DATA=$(realpath "../../image_data")
-
-cmd="sst nn.py ${SSTOPTS} -- \
-    --classImageLimit=2000 \
-    --batchSize=128 \
-    --epochs=10 \
-    --evalImages="${IMAGE_DATA}/eval" \
-    --hiddenLayerSize=128 \
-    --initialWeightScaling=0.01 \
-    --testImages="${IMAGE_DATA}/fashion_mnist_images/test" \
-    --trainingImages="${IMAGE_DATA}/fashion_mnist_images/train" \
-    --verbose=2"
-
-echo $cmd 
-$cmd 
 wait
