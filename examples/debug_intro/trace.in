@@ -1,6 +1,6 @@
 cd loss/ 
 cd optimizer
 pwd
-trace iterations_ >= 5 && iterations_ < 10 : 32 16 : current_learning_rate_ : interactive
+trace iterations_ >= 5 : 32 16 : interations_ current_learning_rate_ : interactive
 wl
 
