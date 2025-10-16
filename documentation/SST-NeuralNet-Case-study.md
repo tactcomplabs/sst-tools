@@ -1,8 +1,11 @@
-# A Neural Network in SST From Scratch
+# A Neural Network from Scratch in SST
 *A Case Study for SST Design and Debug*
 
 <img src="./imgs/logo.png" alt="sst-nn" width="300"/>
 
+( Inspired by *"Neural Networks from Scratch in Python"*, Kinsley, Kukiela, 2020 )
+
+https://github.com/tactcomplabs/sst-tools/blob/main/documentation/SST-NeuralNet-Case-study.md
 
 ## Overview
 An SST design for a neural network is developed to demonstrate use cases for emerging SST features support checkpointing and debug.
