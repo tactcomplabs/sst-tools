@@ -710,8 +710,8 @@ $ ./sweep.sh|& tee log
 # Introduction to Tracing
 
 The intent of tracing is to capture specific data of interest in internal buffers that can be 
-inspected following a trigger event. Whereas a watchpoint will provide a trigger to break into
-interactive mode, tracing captures data before and after the trigger in addition to providing
+inspected following a trigger event. Whereas a default watchpoint will provide a trigger to break into
+interactive mode, adding tracing captures data before and after the trigger in addition to providing
 additional actions like checkpointing.
 
 Taking a close look at the 'trace' command syntax:
@@ -719,12 +719,23 @@ Taking a close look at the 'trace' command syntax:
 `trace <trigger> : <bufferSize> <postDelay> : <var1> ... <varN> : <action>`
 
 - '\<trigger>' is exactly the same as what we would provide for a watchpoint.
-- '\<bufferSize>' is the number of entries in the a dedicated (per trace) circular buffer.
+- '\<bufferSize>' is the number of entries in the dedicated (per trace) circular buffer.
 - '\<postDelay>'  is the number of samples collected after the trigger is detected.
-- '\<action> '  occurs when trace buffer 'complete's and can (currently) be on of: 'interactive', 'printTrace', 'checkpoint', 'set \<var> \<val>', 'printStatus', or 'shutdown'
+- '\<var1> ... \<varN>' is a list of variables to sample into the trace buffer.
+- '\<action>'  occurs when the trace sampling completes and can (currently) be one of: 'interactive', 'printTrace', 'checkpoint', 'set \<var> \<val>', 'printStatus', or 'shutdown'
 
-To explain the intent of tracing let's look at an example.  Enter the interactive console at time 0 at before... then:
+To explain the intent of tracing let's look at an example.  Enter the interactive console at time 0 as before:
+```
+sst nn.py --interactive-start=0 -- \
+ --classImageLimit=2000 --batchSize=128 --epochs=10 \
+ --hiddenLayerSize=128 --initialWeightScaling=0.01 \
+ --trainingImages=../../image_data/fashion_mnist_images/train \
+ --testImages=../../image_data/fashion_mnist_images/test \
+ --evalImages=../../image_data/eval \
+ --verbose=2
+```
 
+Now navigate to the optimizer and add a watchpoint to trace 'iterations_' and 'current_learning_rate_':
 ```
 cd loss/ 
 cd optimizer
@@ -738,7 +749,6 @@ Current watch points:
 Now we will run this until we break back into the console and take a look at the trace buffer.
 
 ```
-> run
 > run
 NNBatchController[batch_controller:initTraining:1000]: Starting training phase
 NNBatchController[batch_controller:initTraining:1000]: ### Training setup
@@ -788,10 +798,10 @@ buf[3] AC @136137000 (+) loss/optimizer/iterations_=9 loss/optimizer/current_lea
 
 Column 1: buf[n]
 This shows the 32 entry buffer index:  buf[31] to buf[0]. Since this is a fixed size circular buffer the sampling 
-wraps around resulting in (for this case) entries 0-3 occur after the other entries.
+wraps around resulting in (for this case) entries 0-3 occurring after the other entries.
 
 Column 2: BE|AE|BC|AC
-Were the sampling occured. Translating these codes:
+This indicates where the sampling occured. Translating these codes:
 - `BE` Before Event Handler
 - `AE` After Event Handler
 - `BC` Before Clock Handler
@@ -807,12 +817,14 @@ Column 4: (-), (!), (+)
 
 The remaining columns print the data sampled for each entry.
 
-In this design, the data of interest only changed in the clock handler so we can improve filter
-out these samples by using the `sethandler` command:
+In this design, the data of interest only changed in the clock handler so we can filter
+out extra samples by using the `sethandler` command:
 
-      ```sethandler <wpIndex> <handlerType1> ... <handlerTypeN>```
+`sethandler <wpIndex> <handlerType1> ... <handlerTypeN>`
 
-If we set this for our watchpoint we get the following (more efficient) 32-entry trace:
+The 'trace-ac.in' file repeats the above sequence of trace commands and modifies the watchpoint by setting handler to 
+'ac' so that it samples only after the clock handler. If we invoke the simulation as before and replay this file,
+we get the following (more efficient) 32-entry trace:
 
 ```
 > replay trace-ac.in
@@ -858,11 +870,16 @@ buf[11] AC @184185000 (+) loss/optimizer/iterations_=12 loss/optimizer/current_l
 buf[12] AC @200201000 (+) loss/optimizer/iterations_=13 loss/optimizer/current_learning_rate_=0.00009881422924901 
 buf[13] AC @216217000 (+) loss/optimizer/iterations_=14 loss/optimizer/current_learning_rate_=0.00009871668311945 
 buf[14] AC @232233000 (+) loss/optimizer/iterations_=15 loss/optimizer/current_learning_rate_=0.00009861932938856 
+> (Finished reading from trace-ac.in)
 ```
 
-Tracing become more critical when we move to multi-rank/mult-threaded simulations. For these cases,
+Tracing becomes more critical when we move to multi-rank/mult-threaded simulations. For these cases,
 we can only break into interactive mode at simulation synchronization points. Trace buffers provide the means
 to capture and view the data we would otherwise miss between synchronization points.
+
+## Reference code
+
+[sst-nn-demo](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-demo)
 
 # Checkpointing A Trained Model
 
