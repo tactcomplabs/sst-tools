@@ -5,6 +5,7 @@ pwd
 # Buffer 32 entries of data: 24 samples before the trigger, 8 samples at/after the trigger
 # When post-delay counter expires, print the trigger
 trace iterations_ changed && iterations_ >= 7  : 32 8 : iterations_ current_learning_rate_ : interactive
+sethandler 0 ac
 wl
 run
 printTrace 0

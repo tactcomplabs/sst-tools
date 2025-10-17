@@ -707,6 +707,162 @@ $ ./sweep.sh|& tee log
 
 [sst-nn-2-dbg-intro](https://github.com/tactcomplabs/sst-tools/tree/sst-nn-2-dbgintro)
 
+# Introduction to Tracing
+
+The intent of tracing is to capture specific data of interest in internal buffers that can be 
+inspected following a trigger event. Whereas a watchpoint will provide a trigger to break into
+interactive mode, tracing captures data before and after the trigger in addition to providing
+additional actions like checkpointing.
+
+Taking a close look at the 'trace' command syntax:
+
+`trace <trigger> : <bufferSize> <postDelay> : <var1> ... <varN> : <action>`
+
+- '\<trigger>' is exactly the same as what we would provide for a watchpoint.
+- '\<bufferSize>' is the number of entries in the a dedicated (per trace) circular buffer.
+- '\<postDelay>'  is the number of samples collected after the trigger is detected.
+- '\<action> '  occurs when trace buffer 'complete's and can (currently) be on of: 'interactive', 'printTrace', 'checkpoint', 'set \<var> \<val>', 'printStatus', or 'shutdown'
+
+To explain the intent of tracing let's look at an example.  Enter the interactive console at time 0 at before... then:
+
+```
+cd loss/ 
+cd optimizer
+> trace iterations_ changed && iterations_ >= 7  : 32 8 : iterations_ current_learning_rate_ : interactive
+Added watchpoint #0
+> wl
+Current watch points:
+0: ALL : loss/optimizer/iterations_ CHANGED loss/optimizer/iterations_ >= 7  : bufsize = 32 postDelay = 8 : loss/optimizer/iterations_ loss/optimizer/current_learning_rate_  : interactive
+```
+
+Now we will run this until we break back into the console and take a look at the trace buffer.
+
+```
+> run
+> run
+NNBatchController[batch_controller:initTraining:1000]: Starting training phase
+NNBatchController[batch_controller:initTraining:1000]: ### Training setup
+NNBatchController[batch_controller:initTraining:1000]: epochs=10
+NNBatchController[batch_controller:initTraining:1000]: X.rows()=20000
+NNBatchController[batch_controller:initTraining:1000]: batch_size=128
+NNBatchController[batch_controller:initTraining:1000]: train_steps=157
+    Invoke Action
+    Set Buffer Reset
+Entering interactive mode at time 136137000 
+  WP0: AC : loss/optimizer/iterations_ ...
+> printTrace 0
+TriggerRecord:@cycle136137000: samples lost = 0: loss/optimizer/iterations_=9 loss/optimizer/current_learning_rate_=0.00009920634920635 
+buf[4] BE @24024000 (-) loss/optimizer/iterations_=1 loss/optimizer/current_learning_rate_=0.00010000000000000 
+buf[5] AE @24024000 (-) loss/optimizer/iterations_=1 loss/optimizer/current_learning_rate_=0.00010000000000000 
+buf[6] BC @24025000 (-) loss/optimizer/iterations_=1 loss/optimizer/current_learning_rate_=0.00010000000000000 
+buf[7] AC @24025000 (-) loss/optimizer/iterations_=2 loss/optimizer/current_learning_rate_=0.00009990009990010 
+buf[8] BE @40040000 (-) loss/optimizer/iterations_=2 loss/optimizer/current_learning_rate_=0.00009990009990010 
+buf[9] AE @40040000 (-) loss/optimizer/iterations_=2 loss/optimizer/current_learning_rate_=0.00009990009990010 
+buf[10] BC @40041000 (-) loss/optimizer/iterations_=2 loss/optimizer/current_learning_rate_=0.00009990009990010 
+buf[11] AC @40041000 (-) loss/optimizer/iterations_=3 loss/optimizer/current_learning_rate_=0.00009980039920160 
+buf[12] BE @56056000 (-) loss/optimizer/iterations_=3 loss/optimizer/current_learning_rate_=0.00009980039920160 
+buf[13] AE @56056000 (-) loss/optimizer/iterations_=3 loss/optimizer/current_learning_rate_=0.00009980039920160 
+buf[14] BC @56057000 (-) loss/optimizer/iterations_=3 loss/optimizer/current_learning_rate_=0.00009980039920160 
+buf[15] AC @56057000 (-) loss/optimizer/iterations_=4 loss/optimizer/current_learning_rate_=0.00009970089730808 
+buf[16] BE @72072000 (-) loss/optimizer/iterations_=4 loss/optimizer/current_learning_rate_=0.00009970089730808 
+buf[17] AE @72072000 (-) loss/optimizer/iterations_=4 loss/optimizer/current_learning_rate_=0.00009970089730808 
+buf[18] BC @72073000 (-) loss/optimizer/iterations_=4 loss/optimizer/current_learning_rate_=0.00009970089730808 
+buf[19] AC @72073000 (-) loss/optimizer/iterations_=5 loss/optimizer/current_learning_rate_=0.00009960159362550 
+buf[20] BE @88088000 (-) loss/optimizer/iterations_=5 loss/optimizer/current_learning_rate_=0.00009960159362550 
+buf[21] AE @88088000 (-) loss/optimizer/iterations_=5 loss/optimizer/current_learning_rate_=0.00009960159362550 
+buf[22] BC @88089000 (-) loss/optimizer/iterations_=5 loss/optimizer/current_learning_rate_=0.00009960159362550 
+buf[23] AC @88089000 (-) loss/optimizer/iterations_=6 loss/optimizer/current_learning_rate_=0.00009950248756219 
+buf[24] BE @104104000 (-) loss/optimizer/iterations_=6 loss/optimizer/current_learning_rate_=0.00009950248756219 
+buf[25] AE @104104000 (-) loss/optimizer/iterations_=6 loss/optimizer/current_learning_rate_=0.00009950248756219 
+buf[26] BC @104105000 (-) loss/optimizer/iterations_=6 loss/optimizer/current_learning_rate_=0.00009950248756219 
+buf[27] AC @104105000 (!) loss/optimizer/iterations_=7 loss/optimizer/current_learning_rate_=0.00009940357852883 
+buf[28] BE @120120000 (+) loss/optimizer/iterations_=7 loss/optimizer/current_learning_rate_=0.00009940357852883 
+buf[29] AE @120120000 (+) loss/optimizer/iterations_=7 loss/optimizer/current_learning_rate_=0.00009940357852883 
+buf[30] BC @120121000 (+) loss/optimizer/iterations_=7 loss/optimizer/current_learning_rate_=0.00009940357852883 
+buf[31] AC @120121000 (+) loss/optimizer/iterations_=8 loss/optimizer/current_learning_rate_=0.00009930486593843 
+buf[0] BE @136136000 (+) loss/optimizer/iterations_=8 loss/optimizer/current_learning_rate_=0.00009930486593843 
+buf[1] AE @136136000 (+) loss/optimizer/iterations_=8 loss/optimizer/current_learning_rate_=0.00009930486593843 
+buf[2] BC @136137000 (+) loss/optimizer/iterations_=8 loss/optimizer/current_learning_rate_=0.00009930486593843 
+buf[3] AC @136137000 (+) loss/optimizer/iterations_=9 loss/optimizer/current_learning_rate_=0.00009920634920635  
+```
+
+Column 1: buf[n]
+This shows the 32 entry buffer index:  buf[31] to buf[0]. Since this is a fixed size circular buffer the sampling 
+wraps around resulting in (for this case) entries 0-3 occur after the other entries.
+
+Column 2: BE|AE|BC|AC
+Were the sampling occured. Translating these codes:
+- `BE` Before Event Handler
+- `AE` After Event Handler
+- `BC` Before Clock Handler
+- `AC` After Clock Handler
+
+Column 3: @T
+The SST timestamp
+
+Column 4: (-), (!), (+)
+- (-) This sample occured before the trigger (23 pre-trigger entries)
+- (!) This sample occured with the trigger   (1 entry)
+- (+) This sample occurred after the trigger (8 post-trigger entries)
+
+The remaining columns print the data sampled for each entry.
+
+In this design, the data of interest only changed in the clock handler so we can improve filter
+out these samples by using the `sethandler` command:
+
+      ```sethandler <wpIndex> <handlerType1> ... <handlerTypeN>```
+
+If we set this for our watchpoint we get the following (more efficient) 32-entry trace:
+
+```
+> replay trace-ac.in
+> cd loss/ 
+> cd optimizer
+> pwd
+loss/optimizer (SST::NeuralNet::NNAdamOptimizer)
+> # Trigger when iterations_ changes from 6 to 7
+> # Buffer 32 entries of data: 24 samples before the trigger, 8 samples at/after the trigger
+> # When post-delay counter expires, print the trigger
+> trace iterations_ changed && iterations_ >= 7  : 32 8 : iterations_ current_learning_rate_ : interactive
+Added watchpoint #0
+> sethandler 0 ac
+WP 0 - loss/optimizer/iterations_
+> wl
+Current watch points:
+0: AC : loss/optimizer/iterations_ CHANGED loss/optimizer/iterations_ >= 7  : bufsize = 32 postDelay = 8 : loss/optimizer/iterations_ loss/optimizer/current_learning_rate_  : interactive
+> run
+NNBatchController[batch_controller:initTraining:1000]: Starting training phase
+NNBatchController[batch_controller:initTraining:1000]: ### Training setup
+NNBatchController[batch_controller:initTraining:1000]: epochs=10
+NNBatchController[batch_controller:initTraining:1000]: X.rows()=20000
+NNBatchController[batch_controller:initTraining:1000]: batch_size=128
+NNBatchController[batch_controller:initTraining:1000]: train_steps=157
+    Invoke Action
+    Set Buffer Reset
+Entering interactive mode at time 232233000 
+  WP0: AC : loss/optimizer/iterations_ ...
+> printTrace 0
+TriggerRecord:@cycle232233000: samples lost = 0: loss/optimizer/iterations_=15 loss/optimizer/current_learning_rate_=0.00009861932938856 
+buf[0] AC @8009000 (-) loss/optimizer/iterations_=1 loss/optimizer/current_learning_rate_=0.00010000000000000 
+buf[1] AC @24025000 (-) loss/optimizer/iterations_=2 loss/optimizer/current_learning_rate_=0.00009990009990010 
+buf[2] AC @40041000 (-) loss/optimizer/iterations_=3 loss/optimizer/current_learning_rate_=0.00009980039920160 
+buf[3] AC @56057000 (-) loss/optimizer/iterations_=4 loss/optimizer/current_learning_rate_=0.00009970089730808 
+buf[4] AC @72073000 (-) loss/optimizer/iterations_=5 loss/optimizer/current_learning_rate_=0.00009960159362550 
+buf[5] AC @88089000 (-) loss/optimizer/iterations_=6 loss/optimizer/current_learning_rate_=0.00009950248756219 
+buf[6] AC @104105000 (!) loss/optimizer/iterations_=7 loss/optimizer/current_learning_rate_=0.00009940357852883 
+buf[7] AC @120121000 (+) loss/optimizer/iterations_=8 loss/optimizer/current_learning_rate_=0.00009930486593843 
+buf[8] AC @136137000 (+) loss/optimizer/iterations_=9 loss/optimizer/current_learning_rate_=0.00009920634920635 
+buf[9] AC @152153000 (+) loss/optimizer/iterations_=10 loss/optimizer/current_learning_rate_=0.00009910802775025 
+buf[10] AC @168169000 (+) loss/optimizer/iterations_=11 loss/optimizer/current_learning_rate_=0.00009900990099010 
+buf[11] AC @184185000 (+) loss/optimizer/iterations_=12 loss/optimizer/current_learning_rate_=0.00009891196834817 
+buf[12] AC @200201000 (+) loss/optimizer/iterations_=13 loss/optimizer/current_learning_rate_=0.00009881422924901 
+buf[13] AC @216217000 (+) loss/optimizer/iterations_=14 loss/optimizer/current_learning_rate_=0.00009871668311945 
+buf[14] AC @232233000 (+) loss/optimizer/iterations_=15 loss/optimizer/current_learning_rate_=0.00009861932938856 
+```
+
+Tracing become more critical when we move to multi-rank/mult-threaded simulations. For these cases,
+we can only break into interactive mode at simulation synchronization points. Trace buffers provide the means
+to capture and view the data we would otherwise miss between synchronization points.
 
 # Checkpointing A Trained Model
 
