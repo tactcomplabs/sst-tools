@@ -17,7 +17,7 @@ if (( $ranks > 1)); then
 fi
 
 args=${@:4:$#}
-cmd="${mpipfx} sst --load-checkpoint ${cpt} $args"
+cmd="${mpipfx} sst $args"
 echo $cmd
 eval "${cmd}"
 
