@@ -45,10 +45,6 @@ OMSimpleComponent::OMSimpleComponent(ComponentId_t id, const SST::Params& params
 void OMSimpleComponent::serialize_order(SST::Core::Serialization::serializer &ser)
 {
     Component::serialize_order(ser);
-    // from serialize.h
-    // #define SST_SER(obj, ...)                     \
-    //     SST::Core::Serialization::sst_ser_object( \
-    //     ser, (obj), SST::Core::Serialization::pvt::sst_ser_or_helper(__VA_ARGS__), #obj)
 
     // SST Handlers
     // SST_SER(sstout_);

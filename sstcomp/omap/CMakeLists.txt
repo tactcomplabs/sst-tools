@@ -8,7 +8,7 @@
 #
 
 set(OMapSrcs
-  OMap.cc
+  omap.cc
 )
 
 add_library(omap SHARED ${OMapSrcs})

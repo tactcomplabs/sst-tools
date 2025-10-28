@@ -15,7 +15,7 @@ add_test(
 set_tests_properties(omsimple PROPERTIES
   LABELS "omap"
   TIMEOUT 5
-  PASS_REGULAR_EXPRESSION "Simulation is complete, simulated time: 10 ns"
+  PASS_REGULAR_EXPRESSION "Simulation is complete, simulated time: 1.013 us"
 )
 
 # EOF
