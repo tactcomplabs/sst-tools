@@ -11,10 +11,12 @@
 #ifndef _SST_NN_LAYER_BASE_H_
 #define _SST_NN_LAYER_BASE_H_
 
+// clang-format off
 #include <vector>
 #include "nn_event.h"
 #include "eigen_utils.h"
 #include "SST.h"
+// clang-format on
 
 namespace SST::NeuralNet{
 

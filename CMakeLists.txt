@@ -28,24 +28,27 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 # Local scripts
 set(SCRIPTS "${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 
-#-- SST Setup
-execute_process(COMMAND sst-config --prefix
-                OUTPUT_VARIABLE SST_INSTALL_DIR
-                OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-set(SST_INCLUDE_DIR "${SST_INSTALL_DIR}/include")
-if(NOT (EXISTS "${SST_INSTALL_DIR}"))
-  message(FATAL_ERROR " SST_INSTALL_DIR (${SST_INSTALL_DIR}) is invalid.")
-endif()
-
 # SST Configuration Sanity Check
+message(STATUS "Looking or sst-config")
 find_program(SST sst)
 find_program(SST_CONFIG sst-config)
 if(NOT SST OR NOT SST_CONFIG)
   message(FATAL_ERROR "No SST binary or sst-config binary found in path")
 endif()
 
+#-- SST Setup
+message(STATUS "Checking sst-config for sst installation directory")
+execute_process(COMMAND sst-config --prefix
+                OUTPUT_VARIABLE SST_INSTALL_DIR
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+set(SST_INCLUDE_DIR "${SST_INSTALL_DIR}/include")
+if(NOT (EXISTS "${SST_INSTALL_DIR}"))
+  message(FATAL_ERROR "SST_INSTALL_DIR (${SST_INSTALL_DIR}) is invalid.")
+endif()
+
 # SST Environment Derivation
+message(STATUS "Checking sst-config environment")
 execute_process(COMMAND sst-config --CXX
                 OUTPUT_VARIABLE CXX
                 OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -67,6 +70,8 @@ execute_process(COMMAND sst-config SST_ELEMENT_LIBRARY SST_ELEMENT_LIBRARY_LIBDI
                 OUTPUT_VARIABLE SST_ELEMENT_LIBRARY_LIBDIR
                 OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+
+message(STATUS "Checking for sst version info")
 execute_process(COMMAND ${SCRIPTS}/sst-major-version.sh
                 OUTPUT_VARIABLE SST_MAJOR_VERSION
                 OUTPUT_STRIP_TRAILING_WHITESPACE
