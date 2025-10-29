@@ -26,4 +26,7 @@ if (${SST_TOOLS_NEURALNET})
   add_subdirectory(neuralnet)
 endif()
 
+message(STATUS "[SST-TOOLS] Enabling OMAP testing")
+add_subdirectory(omap)
+
 # EOF

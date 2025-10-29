@@ -25,6 +25,8 @@ sst-register -u NNActivationSoftmaxLayer
 sst-register -u NNLoss_CategoricalCrossEntropy
 sst-register -u NNAccuracyCategorical
 sst-register -u NNAdamOptimizer
+sst-register -u OMSimpleComponent
+sst-register -u OMSimpleSubComponent
 
 #-- forcible remove it from the local script
 CONFIG=~/.sst/sstsimulator.conf
@@ -48,5 +50,7 @@ if test -f "$CONFIG"; then
   sed -i.bak '/NNLoss_CategoricalCrossEntropy/d' $CONFIG
   sed -i.bak '/NNAccuracyCategorical/d' $CONFIG
   sed -i.bak '/NNAdamOptimizer/d' $CONFIG
+  sed -i.bak '/OMSimpleComponent/d' $CONFIG
+  sed -i.bak '/OMSimpleSubComponent/d' $CONFIG
 fi
 
