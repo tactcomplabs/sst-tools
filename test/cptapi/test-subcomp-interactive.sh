@@ -4,7 +4,8 @@ subcomp=$1
 en_schema=$2
 cleanup=$3
 
-threads=2
+# TODO currently limited to 1 thread
+threads=1
 # verbose must be set to 2 for regex checks below
 verbose=2
 
@@ -38,7 +39,7 @@ check() {
     return 0
 }
 
-pfx=cpt.${subcomp}
+pfx=cpt.${subcomp}.console
 logs=${pfx}.logs
 rm -rf $pfx $logs
 mkdir -p $logs
@@ -46,15 +47,18 @@ mkdir -p $logs
 gridtestlib=$(realpath ../../build/sstcomp/gridtest)
 
 echo "### creating checkpoints"
-cmd="sst ${schema} --checkpoint-prefix=${pfx} --num-threads=${threads} --checkpoint-period=1us \
+log=${logs}/save.interactive.log
+cmd="sst --interactive-start=0 --replay=gridtest-console.in \
+    ${schema} --checkpoint-prefix=${pfx} --num-threads=${threads} --checkpoint-period=1us \
     --add-lib-path=${gridtestlib} \
     2d.py -- --x=2 --y=2 --subcomp=${subcomp} --verbose=${verbose}"
-($cmd) > ${logs}/save.log
+rm -f $log
+($cmd) | tee $log
 if [ $? != 0 ]; then
     echo "error: checkpoint save failed"
     exit 1
 fi
-check ${logs}/save.log
+check ${log}
 if [ $? != 0 ]; then
     echo "error: simulation check failed"
     exit 10
@@ -64,18 +68,24 @@ for i in 1_1 2_2 3_3 4_4 5_5 6_6 7_7 8_8 9_9 10_10
 do
     cpt=${pfx}_${i}000000
     echo "### loading checkpoint ${cpt}"
-    cmd="sst --load-checkpoint ${pfx}/${cpt}/${cpt}.sstcpt \
+    cmd="sst --interactive-start=0 --replay=gridtest-console.in \
+        --load-checkpoint ${pfx}/${cpt}/${cpt}.sstcpt \
         --num-threads=${threads} \
         --add-lib-path=${gridtestlib}"
-    ($cmd) > ${logs}/${i}.log
+    rlog=${logs}/{$i}.interactive.log
+    rm -f ${rlog}
+    ($cmd) | tee ${rlog}
     if [ $? != 0 ]; then
         echo "error: checkpoint load failed for ${cpt}"
         exit 11
     fi
-    check ${logs}/${i}.log
+    check ${rlog}
     if [ $? != 0 ]; then
         echo "error: restore check failed for ${cpt}"
         exit 12
+    fi
+    if [ "$cleanup" = "ON" ]; then
+        rm -f ${rlog}
     fi
 done
 
@@ -86,8 +96,8 @@ fi
 
 # optional clean
 if [ "$cleanup" = "ON" ]; then
-    echo "Cleaning " ${logs} ${pfx}
-    rm -rf ${logs} ${pfx}
+    echo "Cleaning " ${log} ${pfx}
+    rm -rf ${log} ${pfx}
 fi
 
 # for ctest pass regexp

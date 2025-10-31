@@ -1,0 +1,7 @@
+# Currently we only care about not crashing
+cd cp_0_0
+ls
+cd CPTSubComp
+ls
+confirm false
+quit

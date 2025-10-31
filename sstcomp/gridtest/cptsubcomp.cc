@@ -27,6 +27,7 @@ CPTSubCompAPI::~CPTSubCompAPI()
 
 void CPTSubCompAPI::serialize_order(SST::Core::Serialization::serializer &ser)
 {
+    SST::SubComponent::serialize_order(ser);
     SST_SER(output);
     SST_SER(clocks);
     SST_SER(max);

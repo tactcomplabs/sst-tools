@@ -48,7 +48,7 @@ set_tests_properties(cpt-restore
 )
 
 #  
-# Subcomponent/Type Checkpoint Save/Restore Tests
+# Subcomponent/Type Checkpoint Save/Restore Tests and Interactive check
 #
 
 set(subcomps gridtest.CPTSubCompPair gridtest.CPTSubCompPairOfStructs gridtest.CPTSubCompVecInt gridtest.CPTSubCompVecStruct)
@@ -67,7 +67,19 @@ foreach(subcomp IN ITEMS ${subcomps})
     PASS_REGULAR_EXPRESSION "${passRegex}"
     FAIL_REGULAR_EXPRESSION "${failRegex}"
   )
+  add_test(NAME ${subcomp}-interactive
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND test-subcomp-interactive.sh ${subcomp} ${TCL_SCHEMA} ${SST_TOOLS_CLEAN_TESTS}
+  )
+  set_tests_properties(${subcomp}-interactive
+    PROPERTIES
+    TIMEOUT 60
+    LABELS "cptapi"
+    PASS_REGULAR_EXPRESSION "${passRegex}"
+    FAIL_REGULAR_EXPRESSION "${failRegex}"
+  )
 endforeach()
+
 
 #
 # schema testing ( requires tcl sst-core schema branch, version -dev-schema)
