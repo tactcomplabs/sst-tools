@@ -18,19 +18,8 @@
 - No longer require –interactive-console option to use the default console handler
 - Added –checkpoint-enable to support checkpointing from the interactive console
 - Improved help and detailed help for console commands.
-- The following standard types currently have *built-in* mapping mode support
-  - bool, char, float, double, signed/unsigned int/long, float, double ...
-  - size_t
-  - enum, arrays, string
-  - dequeu, forward_list, list, vector
-  - map, unordered_map, unordered_multimap,
-  - set, unordered_set, multiset, unordered_multiset
 
-## Interactive Console Support and Restrictions for Standard Types
-- The following standard types currently do not have *built-in* mapping mode support (these require manual mapping for use in the interactive console)
-  - pair, tuple
-  - stack, queue, priority_queue
-  - atomic
-  - bitset
-  - shared_ptr, weak_ptr, unique_ptr
-  - variant, optional
+## Interactive Console Restrictions
+- The interactive console is still considered an experimental feature and will continue to change as development and testing progresses.
+- Use of the SST Serialization macros provides automatic mapping of many types of data for visibility in the interactive console. Arithmetic types, arrays, and several common containers are supported. The only indication that a variable is not mapped is that it will not be visible in the interactive console. For these cases, the object can be manually mapped by the user.
+
