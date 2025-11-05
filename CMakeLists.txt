@@ -91,7 +91,7 @@ endif()
 
 option(SST_TOOLS_ASAN "Compile using address sanitizer" OFF)
 if (SST_TOOLS_ASAN)
-  set (SANITIZE_FLAG "-fsanitize=address")
+  set (SANITIZE_FLAG "-fsanitize=address -fno-omit-frame-pointer")
 endif()
 
 # Compiler Options
