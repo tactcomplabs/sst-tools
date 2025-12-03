@@ -1,3 +1,4 @@
+![sst-tools](imgs/sst-tools.png)
 # SST Tools
 
 Debugging is both an art and a discipline. There are a host of debug features provided in `sst-core`. In addition, there are an unbounded number of user developed features realized in their individual workflows and SST components. The developer may be overwhelmed with the debug learning curve and resort to a printf based debug methodology only then to have to support a set of post-processing scripts to deal with an overwhelming amount of data followed by a never-ending cycle of recompiling and rerunning code to try to root cause a problem.
