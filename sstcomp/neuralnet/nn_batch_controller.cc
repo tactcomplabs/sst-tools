@@ -244,7 +244,7 @@ bool NNBatchController::stepTraining() {
     epoch_losses.data_loss = accumulatedSums.loss.data_loss / accumulatedSums.count;
     epoch_losses.regularization_loss = accumulatedSums.loss.regularization_loss / accumulatedSums.count;
     double epoch_loss = epoch_losses.total_loss();
-    double epoch_accuracy = accumulatedSums.accuracy / accumulatedSums.count;
+    epoch_accuracy = accumulatedSums.accuracy / accumulatedSums.count;
 
     if (output.getVerboseLevel()>1) {
       std::cout  << "epoch " << epoch-1 << " training:\t"
@@ -497,6 +497,7 @@ void NNBatchController::serialize_order(SST::Core::Serialization::serializer &se
   SST_SER(validationComplete);
   SST_SER(evaluationComplete);
   SST_SER(epoch);
+  SST_SER(epoch_accuracy);
   SST_SER(step);
   SST_SER(train_steps);
   SST_SER(validation_steps);
