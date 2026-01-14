@@ -44,9 +44,9 @@ NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
   const std::string systemClock = params.find< std::string >("clockFreq", "1GHz");
   clockHandler_  = new SST::Clock::Handler2<NNLayer,&NNLayer::clockTick>(this);
   timeConverter_ = registerClock(systemClock, clockHandler_);
-  sstout_.verbose(CALL_INFO, 10, 0, "register clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
+  sstout_.verbose(CALL_INFO, 0, 0, "register clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
   // an event will wake up the clocking
-  sstout_.verbose(CALL_INFO, 10, 0, "unregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
+  sstout_.verbose(CALL_INFO, 0, 0, "unregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
   unregisterClock(timeConverter_, clockHandler_);
  
 
@@ -196,7 +196,7 @@ void NNLayer::forward_i_rcv(SST::Event *ev){
   else
     driveForwardPass_ = true;
  
-  sstout_.verbose(CALL_INFO, 10, 0, "reregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
+  sstout_.verbose(CALL_INFO, 0, 0, "*** reregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
   std::cout << "nn_layer.cc:201 ["  << sstout_.getPrefix() << "] reregister clock: ref=0x" << std::hex << timeConverter_ << " factor=0x" << timeConverter_->getFactor() << std::endl;
   reregisterClock(timeConverter_, clockHandler_);
   delete ev;
@@ -206,7 +206,7 @@ void NNLayer::backward_i_rcv(SST::Event *ev){
   NNEvent *nnev = static_cast<NNEvent*>(ev);
   backwardData_i = nnev->payload();
   driveBackwardPass_ = true;
-  sstout_.verbose(CALL_INFO, 10, 0, "reregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
+  sstout_.verbose(CALL_INFO, 0, 0, "reregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
   reregisterClock(timeConverter_, clockHandler_);
   delete ev;
 }
