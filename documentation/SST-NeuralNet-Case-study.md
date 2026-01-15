@@ -864,7 +864,144 @@ Tracing become more critical when we move to multi-rank/mult-threaded simulation
 we can only break into interactive mode at simulation synchronization points. Trace buffers provide the means
 to capture and view the data we would otherwise miss between synchronization points.
 
+# Introduction to User-defined Commands
+
+Dependency: Requires tactcomplabs iconsole feature branch of sst-core
+
+This section demonstrates how to define and document a user-defined command sequence. 
+User-defined commands in the interactive console are comprised of a sequence of commands
+and can be nested, i.e. include other user-defined commands. The `define` command is used
+to specify a custom sequence of operations. 
+In the following example, we define a command `flags` to print
+all the completion flags in the batch_controller.
+```
+> ls
+batch_controller/ (SST::NeuralNet::NNBatchController)
+dense1/ (SST::NeuralNet::NNLayer)
+dense2/ (SST::NeuralNet::NNLayer)
+input/ (SST::NeuralNet::NNLayer)
+relu1/ (SST::NeuralNet::NNLayer)
+> cd batch_controller/
+> ls
+batch_size = 128 (unsigned int)
+busy = false (bool)
+clockHandler/ (SST::SSTHandler2<bool, unsigned long, SST::NeuralNet::NNBatchController, void, &SST::NeuralNet::NNBatchController::clockTick>)
+component_state_ = 3 (SST::BaseComponent::ComponentState)
+dbgPauseBeforeEvaluation = false (bool)
+dbgReloadEvaluationImages = false (bool)
+epoch = 0 (unsigned int)
+epoch_accuracy = 0.00000000000000000e+00 (double)
+epochs = 4 (unsigned int)
+evalImagesStr = /home/skuntz/ken/sst-tools/image_data/eval (std::string)
+evaluationComplete = false (bool)
+fsmState_ = 1 (SST::NeuralNet::MODE)
+linkHandlers/ (std::map<SST::NeuralNet::PortTypes, SST::Link*, std::less<SST::NeuralNet::PortTypes>, std::allocator<std::pair<SST::NeuralNet::PortTypes const, SST::Link*> > >)
+my_info_/ ()
+output/ (SST::Output)
+prediction_steps = 1 (unsigned int)
+print_every = 100 (unsigned int)
+readyToSend = false (bool)
+step = 0 (unsigned int)
+testImagesStr = /home/skuntz/ken/sst-tools/image_data/fashion_mnist_images/test (std::string)
+timeConverter = 1 ns (SST::TimeConverter)
+train_steps = 1 (unsigned int)
+trainingComplete = false (bool)
+trainingImagesStr = /home/skuntz/ken/sst-tools/image_data/fashion_mnist_images/train (std::string)
+validationComplete = false (bool)
+validation_steps = 1 (unsigned int)
+> define flags
+Enter commands for "flags" terminated by "end"
+> print validationComplete
+> print trainingComplete
+> print evaluationComplete
+> end
+Committing definition for flags
+[ returning to normal line entry mode ]
+```
+
+The `doc` command is used to document the user-defined command for help. The first
+line will appear in help as the summary description. Additional lines will appear
+in extended help.
+```
+> doc flags
+Enter documentation for "flags" terminated by "end"
+> Prints the completion flags in batch_controller
+> Flags include: validationComplete, trainingComplete, and evaluationComplete
+> end
+Committing documentation for flags
+[ returning to normal line entry mode ]
+> help
+--- General ---
+help (?) <[CMD]>: show this help or detailed command help
+verbose (v) [mask]: set verbosity mask or print if no mask specified
+info (info) "current"|"all" print summary for current thread or all threads
+thread (thd) [threadID]: switch to specified thread ID
+confirm (cfm) <true/false>: set confirmation requests on (default) or off
+--- Navigation ---
+pwd (pwd) print the current working directory in the object map
+chdir (cd) change 1 directory level in the object map
+list (ls) list the objects in the current level of the object map
+--- State ---
+time (tm) print current simulation time in cycles
+print (p) [-rN] [<obj>]: print objects at the current level
+set (s) var value: set value for a variable at the current level
+--- Watch/Trace ---
+watch (w) <trig>: adds watchpoint to the watchlist
+trace (t) <trig> : <bufSize> <postDelay> : <v1> ... <vN> : <action>
+watchlist (wl) prints the current list of watchpoints
+addTraceVar (add) <watchpointIndex> <var1> ... <varN>
+printWatchPoint (prw) <watchpointIndex>: prints a watchpoint
+printTrace (prt) <watchpointIndex>: prints trace buffer for a watchpoint
+resetTrace (rst) <watchpointIndex>: reset trace buffer for a watchpoint
+setHandler (shn) <idx> <t1> ... <t2>: trigger check/sampling handler
+unwatch (uw) <watchpointIndex>: remove 1 or all watchpoints
+--- Simulation ---
+run (r) [TIME]: continues the simulation
+continue (c) alias for run
+exit (e) exit debugger and continue simulation
+quit (q) alias for exit
+shutdown (shutd) exit the debugger and cleanly shutdown simulator
+--- Logging ---
+logging (log) <filepath>: log command line entires to file
+replay (rep) <filepath>: run commands from a file. See also: sst --replay
+history (h) [N]: display all or last N unique commands
+--- Misc ---
+autoComplete (ac) toggle command line auto-completion enable
+clear (clr) reset terminal
+define (def) define a user command sequence
+document (doc) document help for a user defined command
+spinThread (spin) enter spin loop. See SimpleDebugger::cmd_spinThread
+--- User Defined ---
+flags (flags) Prints the completion flags in batch_controller
+
+More detailed help available for:
+        addtracevar define document editing
+        examine flags history print printtrace
+        printwatchpoint resettrace run set
+        sethandler spinThread trace unwatch
+        verbose watch watchlist watchpoints
+
+> help flags
+flags Prints the completion flags in batch_controller
+Flags include: validationComplete, trainingComplete, and evaluationComplete
+```
+
+The flags command can now be used to print all the completion flags at once.
+```
+> flags
+validationComplete = false (bool)
+trainingComplete = false (bool)
+evaluationComplete = false (bool)
+```
+
+Note that this feature comes in with the multithreaded support described in the
+next section. In multithreaded execution the user-defined commands are tied to 
+the thread in which they are defined. Making them available to all threads will
+be addressed in on-going work. 
+
 # Multithreaded Interactive Console Support
+
+Dependency: Requires tactcomplabs iconsole feature branch of sst-core
 
 This section demonstrates the interactive debug console support for multithreaded execution. Currently, sst provides 
 experimental support for the interactive console with multithreading within a single-rank. 
