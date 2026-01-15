@@ -12,6 +12,7 @@
 #include "nn_layer.h"
 #include "tcldbg.h"
 #include "nn_layer_base.h"
+#include "tcldbg.h"
 
 namespace SST::NeuralNet{
 
@@ -44,9 +45,9 @@ NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
   const std::string systemClock = params.find< std::string >("clockFreq", "1GHz");
   clockHandler_  = new SST::Clock::Handler2<NNLayer,&NNLayer::clockTick>(this);
   timeConverter_ = registerClock(systemClock, clockHandler_);
-  sstout_.verbose(CALL_INFO, 0, 0, "register clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
+  sstout_.verbose(CALL_INFO, 0, 0, "register clock: &timeConverter_=%p timeConverter_=%p factor=%" PRIx64 "\n", &timeConverter_, timeConverter_, timeConverter_->getFactor());
   // an event will wake up the clocking
-  sstout_.verbose(CALL_INFO, 0, 0, "unregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
+  sstout_.verbose(CALL_INFO, 0, 0, "unregister clock: &timeConverter_=%p timeConverter_=%p factor=%" PRIx64 "\n", &timeConverter_, timeConverter_, timeConverter_->getFactor());
   unregisterClock(timeConverter_, clockHandler_);
  
 
@@ -84,10 +85,11 @@ NNLayer::~NNLayer(){
 }
 
 void NNLayer::init( unsigned int phase ){
-
+  sstout_.verbose(CALL_INFO, 0, 0, "init check register clock: &timeConverter_=%p timeConverter_=%p factor=%" PRIx64 "\n", &timeConverter_, timeConverter_, timeConverter_->getFactor());
 }
 
 void NNLayer::setup(){
+  sstout_.verbose(CALL_INFO, 0, 0, "setup check register clock: &timeConverter_=%p timeConverter_=%p factor=%" PRIx64 "\n", &timeConverter_, timeConverter_, timeConverter_->getFactor());
 }
 
 void NNLayer::complete( unsigned int phase ){
@@ -196,8 +198,11 @@ void NNLayer::forward_i_rcv(SST::Event *ev){
   else
     driveForwardPass_ = true;
  
-  sstout_.verbose(CALL_INFO, 0, 0, "*** reregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
-  std::cout << "nn_layer.cc:201 ["  << sstout_.getPrefix() << "] reregister clock: ref=0x" << std::hex << timeConverter_ << " factor=0x" << timeConverter_->getFactor() << std::endl;
+  sstout_.verbose(CALL_INFO, 0, 0, "*** reregister clock: &timeConverter_=%p timeConverter_=%p factor=%" PRIx64 "\n", &timeConverter_, timeConverter_, timeConverter_->getFactor());
+  // This print occurs immediately
+  std::cout << "nn_layer.cc:202 "  << sstout_.getPrefix() << "] *** reregister clock: &timeConverter_=0x" << std::hex << &timeConverter_ 
+            << " timeCoverter_=0x" << timeConverter_ 
+            << " factor=0x" << timeConverter_->getFactor() << std::endl;
   reregisterClock(timeConverter_, clockHandler_);
   delete ev;
 }
@@ -206,7 +211,7 @@ void NNLayer::backward_i_rcv(SST::Event *ev){
   NNEvent *nnev = static_cast<NNEvent*>(ev);
   backwardData_i = nnev->payload();
   driveBackwardPass_ = true;
-  sstout_.verbose(CALL_INFO, 0, 0, "reregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter_, timeConverter_->getFactor());
+  sstout_.verbose(CALL_INFO, 0, 0, "reregister clock: &timeConverter_=%p timeConverter_=%p factor=%" PRIx64 "\n", &timeConverter_, timeConverter_, timeConverter_->getFactor());
   reregisterClock(timeConverter_, clockHandler_);
   delete ev;
 }

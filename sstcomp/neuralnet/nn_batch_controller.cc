@@ -41,7 +41,7 @@ NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& p
   const std::string systemClock = params.find< std::string >("clockFreq", "1GHz");
   clockHandler  = new SST::Clock::Handler2<NNBatchController,&NNBatchController::clockTick>(this);
   timeConverter = registerClock(systemClock, clockHandler);
-  output.verbose(CALL_INFO, 0, 0, "register clock: ref=%p factor=%" PRIx64 "\n", timeConverter, timeConverter->getFactor());
+  output.verbose(CALL_INFO, 0, 0, "register clock: &timeConverter=%p timeConverter=%p factor=%" PRIx64 "\n", &timeConverter, timeConverter, timeConverter->getFactor());
   
   // Configure Links
   linkHandlers[PortTypes::forward_i] = 
@@ -74,11 +74,13 @@ void NNBatchController::init( unsigned int phase ){
   // Currently only one controller. Indicated init phase to
   // show that interactive debug does not address it.
   output.verbose( CALL_INFO, 0,0, "init phase %" PRId32 "\n", phase);
+  output.verbose(CALL_INFO, 0, 0, "init check register clock: &timeConverter=%p timeConverter=%p factor=%" PRIx64 "\n", &timeConverter, timeConverter, timeConverter->getFactor());
 }
 
 void NNBatchController::setup(){
   // Similar to init, let the user know  
   output.verbose( CALL_INFO, 0,0, "setup\n");
+   output.verbose(CALL_INFO, 0, 0, "setup check register clock: &timeConverter=%p timeConverter=%p factor=%" PRIx64 "\n", &timeConverter, timeConverter, timeConverter->getFactor());
 
   if (!enableTraining() && !enableValidation() && !enableEvaluation())
     output.fatal(CALL_INFO, -1, "Nothing to do. Please set --trainingImages, --testImages, and/or --evalImages");
@@ -166,7 +168,7 @@ void NNBatchController::backward_i_rcv(SST::Event *ev) {
   
   // Signal to send the next batch
   readyToSend = true;
-  output.verbose(CALL_INFO, 0, 0, "reregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter, timeConverter->getFactor());
+  output.verbose(CALL_INFO, 0, 0, "reregister clock: &timeConverter=%p timeConverter=%p factor=%" PRIx64 "\n", &timeConverter, timeConverter, timeConverter->getFactor());
   reregisterClock(timeConverter, clockHandler);
   delete(ev);
 }
@@ -188,12 +190,12 @@ void NNBatchController::monitor_rcv(SST::Event *ev) {
     accumulatedSums.current_learning_rate = monitor_payload.optimizer_data.current_learning_rate;
   
     readyToSend = true;
-    output.verbose(CALL_INFO, 0, 0, "reregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter, timeConverter->getFactor());
+    output.verbose(CALL_INFO, 0, 0, "reregister clock: &timeConverter=%p timeConverter=%p factor=%" PRIx64 "\n", &timeConverter, timeConverter, timeConverter->getFactor());
     reregisterClock(timeConverter, clockHandler);
   } else if (mode == MODE::EVALUATION) {
     // std::cout << "predictions=" << monitor_payload.predictions.transpose() << std::endl;
     readyToSend = true;
-    output.verbose(CALL_INFO, 0, 0, "reregister clock: ref=%p factor=%" PRIx64 "\n", timeConverter, timeConverter->getFactor());
+    output.verbose(CALL_INFO, 0, 0, "reregister clock: &timeConverter=%p timeConverter=%p factor=%" PRIx64 "\n", &timeConverter, timeConverter, timeConverter->getFactor());
     reregisterClock(timeConverter, clockHandler);
   } else {
     assert(mode == MODE::TRAINING);
