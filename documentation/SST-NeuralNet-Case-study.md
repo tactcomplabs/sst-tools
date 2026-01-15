@@ -864,6 +864,555 @@ Tracing become more critical when we move to multi-rank/mult-threaded simulation
 we can only break into interactive mode at simulation synchronization points. Trace buffers provide the means
 to capture and view the data we would otherwise miss between synchronization points.
 
+# Introduction to User-defined Commands
+
+Dependency: Requires tactcomplabs iconsole feature branch of sst-core
+
+This section demonstrates how to define and document a user-defined command sequence. 
+User-defined commands in the interactive console are comprised of a sequence of commands
+and can be nested, i.e. include other user-defined commands. The `define` command is used
+to specify a custom sequence of operations. 
+In the following example, we define a command `flags` to print
+all the completion flags in the batch_controller.
+```
+> ls
+batch_controller/ (SST::NeuralNet::NNBatchController)
+dense1/ (SST::NeuralNet::NNLayer)
+dense2/ (SST::NeuralNet::NNLayer)
+input/ (SST::NeuralNet::NNLayer)
+relu1/ (SST::NeuralNet::NNLayer)
+> cd batch_controller/
+> ls
+batch_size = 128 (unsigned int)
+busy = false (bool)
+clockHandler/ (SST::SSTHandler2<bool, unsigned long, SST::NeuralNet::NNBatchController, void, &SST::NeuralNet::NNBatchController::clockTick>)
+component_state_ = 3 (SST::BaseComponent::ComponentState)
+dbgPauseBeforeEvaluation = false (bool)
+dbgReloadEvaluationImages = false (bool)
+epoch = 0 (unsigned int)
+epoch_accuracy = 0.00000000000000000e+00 (double)
+epochs = 4 (unsigned int)
+evalImagesStr = /home/skuntz/ken/sst-tools/image_data/eval (std::string)
+evaluationComplete = false (bool)
+fsmState_ = 1 (SST::NeuralNet::MODE)
+linkHandlers/ (std::map<SST::NeuralNet::PortTypes, SST::Link*, std::less<SST::NeuralNet::PortTypes>, std::allocator<std::pair<SST::NeuralNet::PortTypes const, SST::Link*> > >)
+my_info_/ ()
+output/ (SST::Output)
+prediction_steps = 1 (unsigned int)
+print_every = 100 (unsigned int)
+readyToSend = false (bool)
+step = 0 (unsigned int)
+testImagesStr = /home/skuntz/ken/sst-tools/image_data/fashion_mnist_images/test (std::string)
+timeConverter = 1 ns (SST::TimeConverter)
+train_steps = 1 (unsigned int)
+trainingComplete = false (bool)
+trainingImagesStr = /home/skuntz/ken/sst-tools/image_data/fashion_mnist_images/train (std::string)
+validationComplete = false (bool)
+validation_steps = 1 (unsigned int)
+> define flags
+Enter commands for "flags" terminated by "end"
+> print validationComplete
+> print trainingComplete
+> print evaluationComplete
+> end
+Committing definition for flags
+[ returning to normal line entry mode ]
+```
+
+The `doc` command is used to document the user-defined command for help. The first
+line will appear in help as the summary description. Additional lines will appear
+in extended help.
+```
+> doc flags
+Enter documentation for "flags" terminated by "end"
+> Prints the completion flags in batch_controller
+> Flags include: validationComplete, trainingComplete, and evaluationComplete
+> end
+Committing documentation for flags
+[ returning to normal line entry mode ]
+> help
+--- General ---
+help (?) <[CMD]>: show this help or detailed command help
+verbose (v) [mask]: set verbosity mask or print if no mask specified
+info (info) "current"|"all" print summary for current thread or all threads
+thread (thd) [threadID]: switch to specified thread ID
+confirm (cfm) <true/false>: set confirmation requests on (default) or off
+--- Navigation ---
+pwd (pwd) print the current working directory in the object map
+chdir (cd) change 1 directory level in the object map
+list (ls) list the objects in the current level of the object map
+--- State ---
+time (tm) print current simulation time in cycles
+print (p) [-rN] [<obj>]: print objects at the current level
+set (s) var value: set value for a variable at the current level
+--- Watch/Trace ---
+watch (w) <trig>: adds watchpoint to the watchlist
+trace (t) <trig> : <bufSize> <postDelay> : <v1> ... <vN> : <action>
+watchlist (wl) prints the current list of watchpoints
+addTraceVar (add) <watchpointIndex> <var1> ... <varN>
+printWatchPoint (prw) <watchpointIndex>: prints a watchpoint
+printTrace (prt) <watchpointIndex>: prints trace buffer for a watchpoint
+resetTrace (rst) <watchpointIndex>: reset trace buffer for a watchpoint
+setHandler (shn) <idx> <t1> ... <t2>: trigger check/sampling handler
+unwatch (uw) <watchpointIndex>: remove 1 or all watchpoints
+--- Simulation ---
+run (r) [TIME]: continues the simulation
+continue (c) alias for run
+exit (e) exit debugger and continue simulation
+quit (q) alias for exit
+shutdown (shutd) exit the debugger and cleanly shutdown simulator
+--- Logging ---
+logging (log) <filepath>: log command line entires to file
+replay (rep) <filepath>: run commands from a file. See also: sst --replay
+history (h) [N]: display all or last N unique commands
+--- Misc ---
+autoComplete (ac) toggle command line auto-completion enable
+clear (clr) reset terminal
+define (def) define a user command sequence
+document (doc) document help for a user defined command
+spinThread (spin) enter spin loop. See SimpleDebugger::cmd_spinThread
+--- User Defined ---
+flags (flags) Prints the completion flags in batch_controller
+
+More detailed help available for:
+        addtracevar define document editing
+        examine flags history print printtrace
+        printwatchpoint resettrace run set
+        sethandler spinThread trace unwatch
+        verbose watch watchlist watchpoints
+
+> help flags
+flags Prints the completion flags in batch_controller
+Flags include: validationComplete, trainingComplete, and evaluationComplete
+```
+
+The flags command can now be used to print all the completion flags at once.
+```
+> flags
+validationComplete = false (bool)
+trainingComplete = false (bool)
+evaluationComplete = false (bool)
+```
+
+Note that this feature comes in with the multithreaded support described in the
+next section. In multithreaded execution the user-defined commands are tied to 
+the thread in which they are defined. Making them available to all threads will
+be addressed in on-going work. 
+
+# Multithreaded Interactive Console Support
+
+Dependency: Requires tactcomplabs iconsole feature branch of sst-core
+
+This section demonstrates the interactive debug console support for multithreaded execution. Currently, sst provides 
+experimental support for the interactive console with multithreading within a single-rank. 
+Support for the interactive console with multiple ranks is under development.
+
+When the interactive console is triggered during multithreaded execution, the simulation waits to break
+into the console when all threads are at a synchronization point (similar to a checkpoint) rather than immediately
+breaking into the console as occurs in a sequential simulation. At each synchronization point, a check is made
+to determine if any thread has triggered the interactive console. If so, it will break into the interactive console
+in thread 0. 
+
+In this example, we will invoke sst with 2 threads (`-n 2`), schedule the interactive console at time 0 
+(`--interactive-start`), and enable checkpointing from the interactive console (`--checkpoint-enable`). 
+(See examples/multithread_console/nn-mt-demo.sh for the script used to invoke sst in this example.)
+
+The full-command line
+```
+sst ../test-image.py -n 2 --interactive-start --checkpoint-enable -- \
+--batchSize=128 --classImageLimit=2000 --epochs=4 
+--evalImages=../../../image_data/eval --hiddenLayerSize=128 --initialWeightScaling=0.01 \
+--testImages=../../../image_data/fashion_mnist_images/test \
+--trainingImages=../../../image_data/fashion_mnist_images/train --verbose=2
+```
+This results in
+```
+NNBatchController[batch_controller:init:0]: init phase 0
+NNBatchController[batch_controller:setup:0]: setup
+Reading /home/skuntz/ken/sst-tools/image_data/fashion_mnist_images/train
+Loaded 20000 images
+Reading /home/skuntz/ken/sst-tools/image_data/fashion_mnist_images/test
+Loaded 10000 images
+Reading /home/skuntz/ken/sst-tools/image_data/eval
+Loading image from /home/skuntz/ken/sst-tools/image_data/eval/pants.png
+Loading image from /home/skuntz/ken/sst-tools/image_data/eval/tshirt.png
+Loaded 2 images
+NNBatchController[batch_controller:setup:0]: setup completed. Ready for first clock
+
+INTERACTIVE CONSOLE
+  Rank:0/1 Thread:0/2 (Triggered)
+  Rank:0/1 Thread:1/2 (Triggered)
+
+---- Rank0:Thread0: Entering interactive mode at time 0
+>
+```
+
+When breaking into the interactive console, all the threads are listed with a specifier denoting 
+whether or not they "triggered" the interactive console. 
+Using the `--interactive-start` flag creates a trigger in every thread, so both
+thread 0 and thread 1 are marked as triggered in this case. This is followed by information about the 
+current thread being viewed in the console. 
+
+Similar to GDB, we provide two new commands to print information 
+about the available threads and to switch between threads. 
+The `info` command prints the Rank ID, Thread ID, and Process ID for either the current thread
+or all threads. When printing information for all threads, it also summarizes which components
+are mapped to that thread. 
+```
+> info current
+Rank 0/1, Thread 0/2 (Process 877962)
+> info all
+Rank:0 Thread:0 (Process:877962)  -- Component Summary
+batch_controller/ (SST::NeuralNet::NNBatchController)
+dense1/ (SST::NeuralNet::NNLayer)
+dense2/ (SST::NeuralNet::NNLayer)
+input/ (SST::NeuralNet::NNLayer)
+relu1/ (SST::NeuralNet::NNLayer)
+
+Rank:0 Thread:1 (Process:877962)  -- Component Summary
+dense3/ (SST::NeuralNet::NNLayer)
+loss/ (SST::NeuralNet::NNLayer)
+relu2/ (SST::NeuralNet::NNLayer)
+softmax/ (SST::NeuralNet::NNLayer)
+```
+
+When an sst simulation is invoked with multiple threads, the graph partitioner divides the components across the
+threads. Within the console you can navigate the objects within the current thread, explore the current state, and set variables,
+watchpoints and traces just as you would in a sequential simulation. The `thread` command is used to switch the
+context to a different thread.
+```
+> thread 1
+
+---- Rank0:Thread1: Entering interactive mode at time 0
+
+> thread 0
+
+---- Rank0:Thread0: Entering interactive mode at time 0
+```
+
+This is example will explore navigating components and creating watchpoints and traces across multiple threads. 
+To start, navigate into the batch_controller in thread 0 and create a watchpoint that waits
+for the training accuracy to be > 75% and then breaks to the interactive console. 
+```
+> ls
+batch_controller/ (SST::NeuralNet::NNBatchController)
+dense1/ (SST::NeuralNet::NNLayer)
+dense2/ (SST::NeuralNet::NNLayer)
+input/ (SST::NeuralNet::NNLayer)
+relu1/ (SST::NeuralNet::NNLayer)
+> cd batch_controller/
+> ls
+batch_size = 128 (unsigned int)
+busy = false (bool)
+clockHandler/ (SST::SSTHandler2<bool, unsigned long, SST::NeuralNet::NNBatchController, void, &SST::NeuralNet::NNBatchController::clockTick>)
+component_state_ = 3 (SST::BaseComponent::ComponentState)
+dbgPauseBeforeEvaluation = false (bool)
+dbgReloadEvaluationImages = false (bool)
+epoch = 0 (unsigned int)
+epoch_accuracy = 0.00000000000000000e+00 (double)
+epochs = 4 (unsigned int)
+evalImagesStr = /home/skuntz/ken/sst-tools/image_data/eval (std::string)
+evaluationComplete = false (bool)
+fsmState_ = 1 (SST::NeuralNet::MODE)
+linkHandlers/ (std::map<SST::NeuralNet::PortTypes, SST::Link*, std::less<SST::NeuralNet::PortTypes>, std::allocator<std::pair<SST::NeuralNet::PortTypes const, SST::Link*> > >)
+my_info_/ ()
+output/ (SST::Output)
+prediction_steps = 1 (unsigned int)
+print_every = 100 (unsigned int)
+readyToSend = false (bool)
+step = 0 (unsigned int)
+testImagesStr = /home/skuntz/ken/sst-tools/image_data/fashion_mnist_images/test (std::string)
+timeConverter = 1 ns (SST::TimeConverter)
+train_steps = 1 (unsigned int)
+trainingComplete = false (bool)
+trainingImagesStr = /home/skuntz/ken/sst-tools/image_data/fashion_mnist_images/train (std::string)
+validationComplete = false (bool)
+validation_steps = 1 (unsigned int)
+> watch epoch_accuracy > 0.75
+Added watchpoint #0
+```
+As described in the previous sections, this watchpoint will check the value of epoch_accuracy in the clock and
+event handlers. If the test, `epoch_accuracy > 0.75` evaluates to true, it will set a flag to trigger the interactive
+console at the next synchronization point.
+
+Now create another watchpoint that just waits for training to complete.
+```
+> watch trainingComplete changed && trainingComplete == true
+Added watchpoint #1
+> watchlist
+R0,T0: Current watch points:
+0: TriggerCount 0 : ALL : batch_controller/epoch_accuracy > 0.75000000000000000  : interactive
+1: TriggerCount 0 : ALL : batch_controller/trainingComplete CHANGED batch_controller/trainingComplete == true  : interactive
+>
+```
+
+Next let's switch to thread 1. 
+```
+> thread 1
+
+---- Rank0:Thread1: Entering interactive mode at time 0
+
+> ls
+dense3/ (SST::NeuralNet::NNLayer)
+loss/ (SST::NeuralNet::NNLayer)
+relu2/ (SST::NeuralNet::NNLayer)
+softmax/ (SST::NeuralNet::NNLayer)
+```
+
+Then set a trace for the current_learning_rate_ in loss/optimizer
+```
+> cd loss
+> ls
+accuracy_function/ (SST::NeuralNet::NNAccuracyCategorical)
+accuracy_function_/ (SST::NeuralNet::NNAccuracyCategorical)
+clockHandler_/ (SST::SSTHandler2<bool, unsigned long, SST::NeuralNet::NNLayer, void, &SST::NeuralNet::NNLayer::clockTick>)
+component_state_ = 0 (SST::BaseComponent::ComponentState)
+driveBackwardPass_ = false (bool)
+driveForwardPass_ = false (bool)
+driveMonitor_ = false (bool)
+lastComponent_ = true (bool)
+linkHandlers/ (std::map<SST::NeuralNet::PortTypes, SST::Link*, std::less<SST::NeuralNet::PortTypes>, std::allocator<std::pair<SST::NeuralNet::PortTypes const, SST::Link*> > >)
+loss_function/ (SST::NeuralNet::NNLoss_CategoricalCrossEntropy)
+loss_function_/ (SST::NeuralNet::NNLoss_CategoricalCrossEntropy)
+my_info_/ ()
+optimizer/ (SST::NeuralNet::NNAdamOptimizer)
+optimizer_/ (SST::NeuralNet::NNAdamOptimizer)
+sstout_/ (SST::Output)
+timeConverter_ = 1 ns (SST::TimeConverter)
+transfer_function/ (SST::NeuralNet::NNInputLayer)
+transfer_function_/ (SST::NeuralNet::NNInputLayer)
+> cd optimizer
+> ls
+beta_1_ = 0.90000000000000002 (double)
+beta_2_ = 0.99900000000000000 (double)
+component_state_ = 0 (SST::BaseComponent::ComponentState)
+current_learning_rate_ = 0.00100000000000000 (double)
+decay_ = 0.00100000000000000 (double)
+epsilon_ = 9.99999999999999955e-08 (double)
+iterations_ = 0 (unsigned int)
+learning_rate_ = 0.00100000000000000 (double)
+my_info_/ ()
+sstout_/ (SST::Output)
+> trace current_learning_rate_ < 0.00065 : 32 0 : current_learning_rate_ : interactive
+Added watchpoint #0
+> wl
+R0,T1: Current watch points:
+0: TriggerCount 0 : ALL : loss/optimizer/current_learning_rate_ < 0.00065000000000000  : bufsize = 32 postDelay = 0 : loss/optimizer/current_learning_rate_  : interactive
+```
+
+Note that the watchpoints are tied to the components they watch and, as such,
+watch points and traces are thread-specific e.g. the watchpoints set in the batch_controller in
+thread 0 are not seen in thread 1 and vice-versa. 
+
+The run command exits the interactive console and resumes execution for all threads. 
+```
+> run
+NNBatchController[batch_controller:initTraining:1000]: Starting training phase
+NNBatchController[batch_controller:initTraining:1000]: ### Training setup
+NNBatchController[batch_controller:initTraining:1000]: epochs=4
+NNBatchController[batch_controller:initTraining:1000]: X.rows()=20000
+NNBatchController[batch_controller:initTraining:1000]: batch_size=128
+NNBatchController[batch_controller:initTraining:1000]: train_steps=157
+epoch 0 training:       acc: 0.656 loss: 0.923 (data_loss: 0.923 reg_loss: 0.000) lr: 0.0008650519
+epoch 0 validation:     acc: 0.763 loss: 0.630
+epoch 1 training:       acc: 0.803 loss: 0.538 (data_loss: 0.538 reg_loss: 0.000) lr: 0.0007616146
+
+INTERACTIVE CONSOLE
+  Rank:0/1 Thread:0/2 (Triggered)
+  Rank:0/1 Thread:1/2 (Not Triggered)
+
+---- Rank0:Thread0: Entering interactive mode at time 5741737000
+  Last Trigger: WP0: AC : batch_controller/epoch_accuracy ...
+>
+```
+
+The simulation executed through epoch 1 training before breaking into the interactive console. 
+Note that multiple watchpoints in multiple threads can trigger during execution before the console is invoked.
+The summary shows that a trigger occurred in thread 0, but not in thread 1. When breaking
+into thread 0, it also shows that watchpoint 0 was the last watchpoint to trigger.
+
+
+Printing the watchlist gives more information on what triggers occurred.
+```
+> wl
+R0,T0: Current watch points:
+0: TriggerCount 3 : ALL : batch_controller/epoch_accuracy > 0.75000000000000000  : interactive
+1: TriggerCount 0 : ALL : batch_controller/trainingComplete CHANGED batch_controller/trainingComplete == true  : interactive
+```
+It shows that watchpoint 0 was triggered 3 times and watchpoint 1 was not triggered before 
+the interactive console was invoked. By default, the trigger tests are checked both before and
+after the clock handler and the event handler. So, the triggers may have occurred in multiple 
+handlers. Also note that there may be a delay between when the trigger occurs and when the
+synchronization point is reached to invoke the interactive console, resulting in
+the same trigger firing multiple times. Because there is no tracing with this watchpoint,
+we can only see the current value of epoch_accuracy, not the previous values.
+```
+> print epoch_accuracy
+epoch_accuracy = 0.80254777070063699 (double)
+```
+
+Given that the accuracy will continue to increase during simulation, we will remove watchpoint 0
+to avoid having it continue to trigger. 
+```
+> unwatch 0
+> wl
+R0,T0: Current watch points:
+1: TriggerCount 0 : ALL : batch_controller/trainingComplete CHANGED batch_controller/trainingComplete == true  : interactive
+```
+
+Next, let's switch to thread 1 and explore the trace there.
+```
+> thread 1
+
+---- Rank0:Thread1: Entering interactive mode at time 5741737000
+
+> wl
+R0,T1: Current watch points:
+0: TriggerCount 0 : ALL : loss/optimizer/current_learning_rate_ < 0.00065000000000000  : bufsize = 32 postDelay = 0 : loss/optimizer/current_learning_rate_  : interactive
+```
+
+Printing the watchlist shows that the watchpoint has not been triggered. However, we
+can still print the trace buffer to see how the values are changing. As noted previously,
+the BE/AE (before/after event handler) and BC/AC (before/after clock handler)
+signify where the sampling occurred. The (-) indicates that all of these 
+values are sampled before the first trigger has occurred. 
+```
+> printTrace 0
+TriggerCount=0
+buf[4] BE @5620617000 (-) loss/optimizer/current_learning_rate_=0.00076628352490421
+buf[5] AE @5620617000 (-) loss/optimizer/current_learning_rate_=0.00076628352490421
+buf[6] BC @5620618000 (-) loss/optimizer/current_learning_rate_=0.00076628352490421
+buf[7] AC @5620618000 (-) loss/optimizer/current_learning_rate_=0.00076569678407351
+buf[8] BE @5636633000 (-) loss/optimizer/current_learning_rate_=0.00076569678407351
+buf[9] AE @5636633000 (-) loss/optimizer/current_learning_rate_=0.00076569678407351
+buf[10] BC @5636634000 (-) loss/optimizer/current_learning_rate_=0.00076569678407351
+buf[11] AC @5636634000 (-) loss/optimizer/current_learning_rate_=0.00076511094108646
+buf[12] BE @5652649000 (-) loss/optimizer/current_learning_rate_=0.00076511094108646
+buf[13] AE @5652649000 (-) loss/optimizer/current_learning_rate_=0.00076511094108646
+buf[14] BC @5652650000 (-) loss/optimizer/current_learning_rate_=0.00076511094108646
+buf[15] AC @5652650000 (-) loss/optimizer/current_learning_rate_=0.00076452599388379
+buf[16] BE @5668665000 (-) loss/optimizer/current_learning_rate_=0.00076452599388379
+buf[17] AE @5668665000 (-) loss/optimizer/current_learning_rate_=0.00076452599388379
+buf[18] BC @5668666000 (-) loss/optimizer/current_learning_rate_=0.00076452599388379
+buf[19] AC @5668666000 (-) loss/optimizer/current_learning_rate_=0.00076394194041253
+buf[20] BE @5684681000 (-) loss/optimizer/current_learning_rate_=0.00076394194041253
+buf[21] AE @5684681000 (-) loss/optimizer/current_learning_rate_=0.00076394194041253
+buf[22] BC @5684682000 (-) loss/optimizer/current_learning_rate_=0.00076394194041253
+buf[23] AC @5684682000 (-) loss/optimizer/current_learning_rate_=0.00076335877862595
+buf[24] BE @5700697000 (-) loss/optimizer/current_learning_rate_=0.00076335877862595
+buf[25] AE @5700697000 (-) loss/optimizer/current_learning_rate_=0.00076335877862595
+buf[26] BC @5700698000 (-) loss/optimizer/current_learning_rate_=0.00076335877862595
+buf[27] AC @5700698000 (-) loss/optimizer/current_learning_rate_=0.00076277650648360
+buf[28] BE @5716713000 (-) loss/optimizer/current_learning_rate_=0.00076277650648360
+buf[29] AE @5716713000 (-) loss/optimizer/current_learning_rate_=0.00076277650648360
+buf[30] BC @5716714000 (-) loss/optimizer/current_learning_rate_=0.00076277650648360
+buf[31] AC @5716714000 (-) loss/optimizer/current_learning_rate_=0.00076219512195122
+buf[0] BE @5732729000 (-) loss/optimizer/current_learning_rate_=0.00076219512195122
+buf[1] AE @5732729000 (-) loss/optimizer/current_learning_rate_=0.00076219512195122
+buf[2] BC @5732730000 (-) loss/optimizer/current_learning_rate_=0.00076219512195122
+buf[3] AC @5732730000 (-) loss/optimizer/current_learning_rate_=0.00076161462300076
+```
+
+Continuing execution, the next watchpoint to trigger is watchpoint 0 in thread 1.
+```
+> run
+epoch 1 validation:     acc: 0.800 loss: 0.539
+epoch 2 training:       acc: 0.830 loss: 0.465 (data_loss: 0.465 reg_loss: 0.000) lr: 0.0006802721
+epoch 2 validation:     acc: 0.822 loss: 0.496
+    Invoke Action
+    Set Buffer Reset
+
+INTERACTIVE CONSOLE
+  Rank:0/1 Thread:0/2 (Not Triggered)
+  Rank:0/1 Thread:1/2 (Triggered)
+
+---- Rank0:Thread0: Entering interactive mode at time 10776771000
+  Last Trigger: WP0: AC : batch_controller/epoch_accuracy ...
+> thread 1
+
+---- Rank0:Thread1: Entering interactive mode at time 10776771000
+  Last Trigger: WP0: AC : loss/optimizer/current_learning_rate_ ...
+> wl
+R0,T1: Current watch points:
+0: TriggerCount 1 : ALL : loss/optimizer/current_learning_rate_ < 0.00065000000000000  : bufsize = 32 postDelay = 0 : loss/optimizer/current_learning_rate_  : interactive
+```
+
+Printing the trace buffer shows that the last sample was the trigger sample (!) and no samples were lost.
+```
+> printTrace 0
+TriggerCount=1
+LastTriggerRecord:@cycle10775772000: SamplesLost=0: loss/optimizer/current_learning_rate_=0.00064977257959714
+buf[4] BE @10663659000 (-) loss/optimizer/current_learning_rate_=0.00065316786414108
+buf[5] AE @10663659000 (-) loss/optimizer/current_learning_rate_=0.00065316786414108
+buf[6] BC @10663660000 (-) loss/optimizer/current_learning_rate_=0.00065316786414108
+buf[7] AC @10663660000 (-) loss/optimizer/current_learning_rate_=0.00065274151436031
+buf[8] BE @10679675000 (-) loss/optimizer/current_learning_rate_=0.00065274151436031
+buf[9] AE @10679675000 (-) loss/optimizer/current_learning_rate_=0.00065274151436031
+buf[10] BC @10679676000 (-) loss/optimizer/current_learning_rate_=0.00065274151436031
+buf[11] AC @10679676000 (-) loss/optimizer/current_learning_rate_=0.00065231572080887
+buf[12] BE @10695691000 (-) loss/optimizer/current_learning_rate_=0.00065231572080887
+buf[13] AE @10695691000 (-) loss/optimizer/current_learning_rate_=0.00065231572080887
+buf[14] BC @10695692000 (-) loss/optimizer/current_learning_rate_=0.00065231572080887
+buf[15] AC @10695692000 (-) loss/optimizer/current_learning_rate_=0.00065189048239896
+buf[16] BE @10711707000 (-) loss/optimizer/current_learning_rate_=0.00065189048239896
+buf[17] AE @10711707000 (-) loss/optimizer/current_learning_rate_=0.00065189048239896
+buf[18] BC @10711708000 (-) loss/optimizer/current_learning_rate_=0.00065189048239896
+buf[19] AC @10711708000 (-) loss/optimizer/current_learning_rate_=0.00065146579804560
+buf[20] BE @10727723000 (-) loss/optimizer/current_learning_rate_=0.00065146579804560
+buf[21] AE @10727723000 (-) loss/optimizer/current_learning_rate_=0.00065146579804560
+buf[22] BC @10727724000 (-) loss/optimizer/current_learning_rate_=0.00065146579804560
+buf[23] AC @10727724000 (-) loss/optimizer/current_learning_rate_=0.00065104166666667
+buf[24] BE @10743739000 (-) loss/optimizer/current_learning_rate_=0.00065104166666667
+buf[25] AE @10743739000 (-) loss/optimizer/current_learning_rate_=0.00065104166666667
+buf[26] BC @10743740000 (-) loss/optimizer/current_learning_rate_=0.00065104166666667
+buf[27] AC @10743740000 (-) loss/optimizer/current_learning_rate_=0.00065061808718282
+buf[28] BE @10759755000 (-) loss/optimizer/current_learning_rate_=0.00065061808718282
+buf[29] AE @10759755000 (-) loss/optimizer/current_learning_rate_=0.00065061808718282
+buf[30] BC @10759756000 (-) loss/optimizer/current_learning_rate_=0.00065061808718282
+buf[31] AC @10759756000 (-) loss/optimizer/current_learning_rate_=0.00065019505851756
+buf[0] BE @10775771000 (-) loss/optimizer/current_learning_rate_=0.00065019505851756
+buf[1] AE @10775771000 (-) loss/optimizer/current_learning_rate_=0.00065019505851756
+buf[2] BC @10775772000 (-) loss/optimizer/current_learning_rate_=0.00065019505851756
+buf[3] AC @10775772000 (!) loss/optimizer/current_learning_rate_=0.00064977257959714
+```
+
+The current_learning_rate_ will continue to decrease and trigger, so we will delete this watchpoint
+and continue execution until trainingComplete is triggered.
+```
+> unwatch 0
+> wl
+R0,T1: Current watch points:
+> run
+epoch 3 training:       acc: 0.846 loss: 0.429 (data_loss: 0.429 reg_loss: 0.000) lr: 0.0006146281
+
+INTERACTIVE CONSOLE
+  Rank:0/1 Thread:0/2 (Triggered)
+  Rank:0/1 Thread:1/2 (Not Triggered)
+
+---- Rank0:Thread0: Entering interactive mode at time 12194187000
+  Last Trigger: WP1: AC : batch_controller/trainingComplete ...
+> wl
+R0,T0: Current watch points:
+1: TriggerCount 1 : ALL : batch_controller/trainingComplete CHANGED batch_controller/trainingComplete == true  : interactive
+```
+
+At this point the training is complete. Watchpoint 1 will remain at true, so it will not trigger
+again. The simulation will execute the validation phase and complete. 
+```
+> run
+epoch 3 validation:     acc: 0.831 loss: 0.473
+preCheckEvaluation()
+### Evaluating images
+Prediction for /home/skuntz/ken/sst-tools/image_data/eval/pants.png ...         Survey says ### TROUSER
+Prediction for /home/skuntz/ken/sst-tools/image_data/eval/tshirt.png ...        Survey says ### TOP
+Simulation is complete, simulated time: 12.9229 ms
+```
+
+Note that the following sections that describe how to generate a checkpoint after the 
+training phase and restart or how to vary the learning rate would also work in a multithreaded
+simulation.  
+
+
 # Checkpointing A Trained Model
 
 In this section, we want to leverage SST's checkpointing capabilities

@@ -109,6 +109,7 @@ private:
   bool trainingComplete = false;
   bool validationComplete = false;
   bool evaluationComplete = false;
+  double epoch_accuracy = 0.0;
 
   unsigned epoch = 0;                             ///< training interations counter
   unsigned step = 0;                              ///< step counter
