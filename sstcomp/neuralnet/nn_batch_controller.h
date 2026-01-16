@@ -83,7 +83,7 @@ public:
 private:
   // -- SST handlers
   SST::Output    output;                          ///< SST output handler
-  TimeConverter* timeConverter;                   ///< SST time conversion handler
+  TimeConverter  timeConverter;                   ///< SST time conversion handler
   SST::Clock::HandlerBase* clockHandler;          ///< Clock Handler
 
   // -- Component Parameters  

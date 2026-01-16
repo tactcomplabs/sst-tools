@@ -77,7 +77,7 @@ private:
 
   // -- SST handlers
   SST::Output    sstout_; 
-  TimeConverter* timeConverter_;
+  TimeConverter timeConverter_;
   SST::Clock::HandlerBase* clockHandler_;
 
   // internals

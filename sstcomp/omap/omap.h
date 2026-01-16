@@ -163,7 +163,7 @@ private:
 
   // SST Handlers
   SST::Output sstout_;
-  SST::TimeConverter* timeConverter_;
+  SST::TimeConverter timeConverter_;
   SST::Clock::HandlerBase* clockHandler_;
 
   // Links
