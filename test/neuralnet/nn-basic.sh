@@ -21,7 +21,7 @@ fi
 
 if [ $largesim -eq 0 ]; then
     echo "Running small simulation"
-    sst ../test-image.py ${SSTOPTS} -- \
+    sst ../test-image.py ${SSTOPTS} --verbose=${VERBOSE} -- \
         --batchSize=1 \
         --classImageLimit=4 \
         --epochs=4 \
@@ -33,7 +33,7 @@ if [ $largesim -eq 0 ]; then
         --verbose=${verbose}
 else
     echo "Running large simulation"
-    sst ../test-image.py ${SSTOPTS} -- \
+    sst ../test-image.py ${SSTOPTS} --verbose=${VERBOSE} -- \
         --batchSize=128 \
         --epochs=10 \
         --evalImages="${IMAGE_DATA}/eval" \
