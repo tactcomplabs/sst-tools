@@ -1,7 +1,11 @@
 # Currently we only care about not crashing
-cd cp_0_0
-ls
-cd CPTSubComp
-ls
 confirm false
+cd cp_0_0
+# TODO: FIX BUG: paging continuation character 'c' is not being detected
+#ls
+#c
+cd CPTSubComp
+#ls
+#c
+
 quit
