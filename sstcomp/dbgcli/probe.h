@@ -194,7 +194,7 @@ protected:
 };
 
 // Simple template wrapper for buffer data
-template<typename T> class ProbeBuffer final : public ProbeBufCtl {
+template<typename T> class ProbeBuffer : public ProbeBufCtl {
 public:
     ProbeBuffer( size_t sz ) : ProbeBufCtl(sz) { buf.resize(sz); };
     virtual ~ProbeBuffer() {};
@@ -217,7 +217,7 @@ private:
     T trigger_rec;          // copy of record associated with triggered cycle
 };
 
-class ProbeSocket final {
+class ProbeSocket {
 
 public:
     static const int SOCKET_BUFFER_SIZE=4096;

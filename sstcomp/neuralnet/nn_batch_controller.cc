@@ -39,26 +39,26 @@ NNBatchController::NNBatchController(SST::ComponentId_t id, const SST::Params& p
 
   // clocking 
   const std::string systemClock = params.find< std::string >("clockFreq", "1GHz");
-  clockHandler  = new SST::Clock::Handler2<NNBatchController,&NNBatchController::clockTick>(this);
+  clockHandler  = new SST::Clock::Handler<NNBatchController,&NNBatchController::clockTick>(this);
   timeConverter = registerClock(systemClock, clockHandler);
   output.verbose(CALL_INFO, 10, 0, "register clock: &timeConverter=%p factor=%" PRIx64 "\n", &timeConverter, timeConverter.getFactor());
   
   // Configure Links
   linkHandlers[PortTypes::forward_i] = 
     configureLink(PortNames.at(PortTypes::forward_i),
-              new Event::Handler2<NNBatchController, &NNBatchController::forward_i_rcv>(this));
+              new Event::Handler<NNBatchController, &NNBatchController::forward_i_rcv>(this));
   linkHandlers[PortTypes::forward_o] = 
     configureLink(PortNames.at(PortTypes::forward_o),
-              new Event::Handler2<NNBatchController, &NNBatchController::forward_o_rcv>(this));
+              new Event::Handler<NNBatchController, &NNBatchController::forward_o_rcv>(this));
   linkHandlers[PortTypes::backward_i] = 
     configureLink(PortNames.at(PortTypes::backward_i),
-              new Event::Handler2<NNBatchController, &NNBatchController::backward_i_rcv>(this));
+              new Event::Handler<NNBatchController, &NNBatchController::backward_i_rcv>(this));
   linkHandlers[PortTypes::backward_o] = 
     configureLink(PortNames.at(PortTypes::backward_o),
-              new Event::Handler2<NNBatchController, &NNBatchController::backward_o_rcv>(this));
+              new Event::Handler<NNBatchController, &NNBatchController::backward_o_rcv>(this));
   linkHandlers[PortTypes::monitor] = 
     configureLink(PortNames.at(PortTypes::monitor),
-              new Event::Handler2<NNBatchController, &NNBatchController::monitor_rcv>(this));
+              new Event::Handler<NNBatchController, &NNBatchController::monitor_rcv>(this));
 
   // Complete construction
   registerAsPrimaryComponent();

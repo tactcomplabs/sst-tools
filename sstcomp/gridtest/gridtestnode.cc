@@ -17,7 +17,7 @@ namespace SST::GridTestNode{
 // GridTestNode
 //------------------------------------------
 GridTestNode::GridTestNode(SST::ComponentId_t id, const SST::Params& params ) :
-  SST::Component( id ), timeConverter(nullptr), clockHandler(nullptr),
+  SST::Component( id ), clockHandler(nullptr),
   numPorts(8), minData(10), maxData(256), minDelay(20), maxDelay(100), clocks(1000),
   curCycle(0), demoBug(0), dataMask(0x1ffffff), dataMax(0x1ffffff) 
 {
@@ -27,7 +27,7 @@ GridTestNode::GridTestNode(SST::ComponentId_t id, const SST::Params& params ) :
     "GridTestNode[" + getName() + ":@p:@t]: ",
     Verbosity, 0, SST::Output::STDOUT );
   const std::string cpuClock = params.find< std::string >("clockFreq", "1GHz");
-  clockHandler  = new SST::Clock::Handler2<GridTestNode,&GridTestNode::clockTick>(this);
+  clockHandler  = new SST_CLOCK_HANDLER<GridTestNode,&GridTestNode::clockTick>(this);
   timeConverter = registerClock(cpuClock, clockHandler);
 
   // read the rest of the parameters
@@ -84,7 +84,7 @@ GridTestNode::GridTestNode(SST::ComponentId_t id, const SST::Params& params ) :
   for( unsigned i=0; i<numPorts; i++ ){
     portname[i] = "port" + std::to_string(i);
     linkHandlers.push_back(configureLink("port"+std::to_string(i),
-                                         new Event::Handler2<GridTestNode,
+                                         new SST_EVENT_HANDLER<GridTestNode,
                                          &GridTestNode::handleEvent>(this)));
     
     // The sending link and receiving links must have the same seed for the checking to work

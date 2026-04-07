@@ -17,7 +17,7 @@ namespace SSTDEBUG::DbgCLI{
 // DbgCLI
 //------------------------------------------
 DbgCLI::DbgCLI(SST::ComponentId_t id, const SST::Params& params ) :
-  SST::Component( id ), timeConverter(nullptr), clockHandler(nullptr),
+  SST::Component( id ), clockHandler(nullptr),
   numPorts(1), minData(1), maxData(2), clockDelay(1), clocks(1000),
   curCycle(0) {
   
@@ -27,7 +27,7 @@ DbgCLI::DbgCLI(SST::ComponentId_t id, const SST::Params& params ) :
     "DbgCLI[" + getName() + ":@p:@t]: ",
     Verbosity, 0, SST::Output::STDOUT );
   const std::string cpuClock = params.find< std::string >("clockFreq", "1GHz");
-  clockHandler  = new SST::Clock::Handler2<DbgCLI,&DbgCLI::clockTick>(this);
+  clockHandler  = new SST_CLOCK_HANDLER<DbgCLI,&DbgCLI::clockTick>(this);
   timeConverter = registerClock(cpuClock, clockHandler);
   registerAsPrimaryComponent();
   primaryComponentDoNotEndSim();
@@ -66,7 +66,7 @@ DbgCLI::DbgCLI(SST::ComponentId_t id, const SST::Params& params ) :
   // setup the links
   for( unsigned i=0; i<numPorts; i++ ){
     linkHandlers.push_back(configureLink("port"+std::to_string(i),
-                                         new SST::Event::Handler2<DbgCLI,
+                                         new SST_EVENT_HANDLER<DbgCLI,
                                          &DbgCLI::handleEvent>(this)));
   }
 

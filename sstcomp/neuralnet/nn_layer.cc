@@ -42,7 +42,7 @@ NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
 
   // clocking 
   const std::string systemClock = params.find< std::string >("clockFreq", "1GHz");
-  clockHandler_  = new SST::Clock::Handler2<NNLayer,&NNLayer::clockTick>(this);
+  clockHandler_  = new SST::Clock::Handler<NNLayer,&NNLayer::clockTick>(this);
   timeConverter_ = registerClock(systemClock, clockHandler_);
   sstout_.verbose(CALL_INFO, 10, 0, "register clock: &timeConverter_=%p factor=%" PRIx64 "\n", &timeConverter_, timeConverter_.getFactor());
   // an event will wake up the clocking
@@ -64,19 +64,19 @@ NNLayer::NNLayer(SST::ComponentId_t id, const SST::Params& params ) :
   // Configure Links
   linkHandlers[PortTypes::forward_i] = 
     configureLink(PortNames.at(PortTypes::forward_i),
-              new Event::Handler2<NNLayer, &NNLayer::forward_i_rcv>(this));
+              new Event::Handler<NNLayer, &NNLayer::forward_i_rcv>(this));
   linkHandlers[PortTypes::forward_o] = 
     configureLink(PortNames.at(PortTypes::forward_o),
-              new Event::Handler2<NNLayer, &NNLayer::forward_o_rcv>(this));
+              new Event::Handler<NNLayer, &NNLayer::forward_o_rcv>(this));
   linkHandlers[PortTypes::backward_i] = 
     configureLink(PortNames.at(PortTypes::backward_i),
-              new Event::Handler2<NNLayer, &NNLayer::backward_i_rcv>(this));
+              new Event::Handler<NNLayer, &NNLayer::backward_i_rcv>(this));
   linkHandlers[PortTypes::backward_o] = 
     configureLink(PortNames.at(PortTypes::backward_o),
-              new Event::Handler2<NNLayer, &NNLayer::backward_o_rcv>(this));
+              new Event::Handler<NNLayer, &NNLayer::backward_o_rcv>(this));
   linkHandlers[PortTypes::monitor] = 
     configureLink(PortNames.at(PortTypes::monitor),
-    new Event::Handler2<NNLayer, &NNLayer::monitorEvent>(this));
+    new Event::Handler<NNLayer, &NNLayer::monitorEvent>(this));
 }
 
 NNLayer::~NNLayer(){

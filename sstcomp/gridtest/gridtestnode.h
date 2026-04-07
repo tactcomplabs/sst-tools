@@ -156,7 +156,7 @@ private:
   uint64_t cptBegin;                              ///< Mark beginning of checkpoint sequence
   // -- SST handlers
   SST::Output    output;                          ///< SST output handler
-  TimeConverter* timeConverter;                   ///< SST time conversion handler
+  TimeConverter timeConverter;                    ///< SST time conversion handler
   SST::Clock::HandlerBase* clockHandler;          ///< Clock Handler
   CPTSubComp::CPTSubCompAPI* CPTSubComp=nullptr;  ///< SubComponent for additional testing
   // -- parameters

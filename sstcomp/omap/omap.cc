@@ -19,7 +19,7 @@ OMSimpleComponent::OMSimpleComponent(ComponentId_t id, const SST::Params& params
     sstout_.init(getName() + ":@p:@t]: ",verbosity, 0, SST::Output::STDOUT );
     
     // SST clocking
-    clockHandler_  = new SST::Clock::Handler2<OMSimpleComponent,&OMSimpleComponent::clockTick>(this);
+    clockHandler_  = new SST_CLOCK_HANDLER<OMSimpleComponent,&OMSimpleComponent::clockTick>(this);
     timeConverter_ = registerClock("1GHz", clockHandler_);
 
     // SubComponents
@@ -28,7 +28,7 @@ OMSimpleComponent::OMSimpleComponent(ComponentId_t id, const SST::Params& params
 
     // Links
     port0link_ = configureLink("port0",
-              new Event::Handler2<OMSimpleComponent, &OMSimpleComponent::port0rcv>(this));
+              new SST_EVENT_HANDLER<OMSimpleComponent, &OMSimpleComponent::port0rcv>(this));
 
     // Primary Controller
     primary = params.find<bool>("primary", false);

@@ -1,7 +1,7 @@
 //
 // _SST_h_
 //
-// Copyright (C) 2017-2025 Tactical Computing Laboratories, LLC
+// Copyright (C) 2017-2026 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 // contact@tactcomplabs.com
 //
@@ -13,6 +13,18 @@
 
 #ifndef _SST_H_
 #define _SST_H_
+
+// Macros for transition from 'handler2' to 'handler' between sst 15 and sst 16
+// These will not work for sst 14 or older
+#ifdef USE_HANDLER2
+#define SST_CLOCK_HANDLER SST::Clock::Handler2
+#define SST_INTERFACES_SIMPLENETWORK_HANDLER SST::Interfaces::SimpleNetwork::Handler2
+#define SST_EVENT_HANDLER SST::Event::Handler2
+#else
+#define SST_CLOCK_HANDLER SST::Clock::Handler
+#define SST_INTERFACES_SIMPLENETWORK_HANDLER SST::Interfaces::SimpleNetwork::Handler
+#define SST_EVENT_HANDLER SST::Event::Handler
+#endif
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
